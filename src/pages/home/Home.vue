@@ -5,9 +5,6 @@
 
 <template>
   <section class="home">
-   
-
-   
   </section>
 </template>
 
