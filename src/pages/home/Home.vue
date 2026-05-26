@@ -4,12 +4,16 @@
 </script>
 
 <template>
+  <section class="home">
+   
 
-<h1 class="text-3xl text-red-500">Proyecto Prueba Transversal</h1>
-
-<h1>"Hola mundo"</h1>
+   
+  </section>
 </template>
 
 <style scoped>
-
-</style>n
+.home {
+  min-height: 100vh;
+  background-color: black;
+}
+</style>
