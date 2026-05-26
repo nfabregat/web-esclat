@@ -1,13 +1,28 @@
+<script setup lang="ts">
+import { ref } from "vue";
+
+const email = ref("");
+const isSent = ref(false);
+
+const sendEmail = () => {
+  if (!email.value) return;
+
+  email.value = "";
+  isSent.value = true;
+};
+</script>
+
 <template>
   <section class="tickets-page">
     <div class="tickets-content">
       <h1 class="tickets-title font-monument">CONSIGUE TU ENTRADA</h1>
 
-      <form class="tickets-form">
+      <form class="tickets-form" @submit.prevent="sendEmail">
         <input
+          v-model="email"
           class="tickets-input"
           type="email"
-          placeholder="INTRODUCE TU E-MAIL"
+          :placeholder="isSent ? 'EMAIL ENVIADO CORRECTAMENTE' : 'INTRODUCE TU E-MAIL'"
           aria-label="Introduce tu e-mail"
         />
         <button class="tickets-button font-monument" type="submit">ENTER</button>
@@ -24,9 +39,9 @@
 }
 
 .tickets-content {
-  width: min(820px, calc(100% - 64px));
-  padding-top: 45vh;
-  margin-left: 32px;
+  width: calc(100% - 128px);
+  padding-top: 36vh;
+  margin-inline: 64px;
 }
 
 .tickets-title {
@@ -40,7 +55,7 @@
   display: grid;
   grid-template-columns: 1fr auto;
   width: 100%;
-  border: 1px solid white;
+  border: 0.5px solid rgb(255 255 255 / 55%);
 }
 
 .tickets-input {
@@ -49,7 +64,7 @@
   background-color: transparent;
   color: white;
   font: inherit;
-  padding: 18px 20px;
+  padding: 14px 20px;
   outline: none;
 }
 
@@ -60,12 +75,11 @@
 
 .tickets-button {
   border: 0;
-  border-left: 1px solid white;
   background-color: transparent;
   color: white;
   cursor: pointer;
   font-size: 16px;
   font-weight: 400;
-  padding: 18px 24px;
+  padding: 14px 24px;
 }
 </style>
