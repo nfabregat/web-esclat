@@ -1,6 +1,7 @@
 import Home from "@/pages/home/Home.vue";
 import Artistas from "@/pages/artistas/Artistas.vue";
 import Contacto from "@/pages/contacto/Contacto.vue";
+import Entradas from "@/pages/entradas/Entradas.vue";
 import Info from "@/pages/info/Info.vue";
 import Menu from "@/pages/menu/Menu.vue";
 import Programa from "@/pages/programa/Programa.vue";
@@ -37,6 +38,11 @@ export const router = createRouter({
       path: '/artistas',
       name: 'artistas',
       component: Artistas
+    },
+    {
+      path: '/entradas',
+      name: 'entradas',
+      component: Entradas
     },
     {
       path: '/tienda',

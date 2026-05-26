@@ -4,11 +4,12 @@ import { RouterLink, useRouter } from "vue-router";
 const router = useRouter();
 
 const menuLinks = [
-  { text: "Info", path: "/info" },
-  { text: "Programa", path: "/programa" },
-  { text: "Artistas", path: "/artistas" },
-  { text: "Tienda", path: "/tienda" },
-  { text: "Contacto", path: "/contacto" },
+  { text: "INFO", path: "/info" },
+  { text: "PROGRAMA", path: "/programa" },
+  { text: "ARTISTAS", path: "/artistas" },
+  { text: "ENTRADAS", path: "/entradas" },
+  { text: "TIENDA", path: "/tienda" },
+  { text: "CONTACTO", path: "/contacto" },
 ];
 
 const goBack = () => {
