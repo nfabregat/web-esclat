@@ -14,7 +14,6 @@ const artists = [
 ];
 
 const activeSlide = ref(0);
-const dragStartX = ref(0);
 const slides = computed(() => {
   const groups = [];
 
@@ -29,26 +28,6 @@ let carouselInterval: number | undefined;
 
 const nextSlide = () => {
   activeSlide.value = (activeSlide.value + 1) % slides.value.length;
-};
-
-const startDrag = (event: MouseEvent | TouchEvent) => {
-  const pointX = "touches" in event ? event.touches[0]?.clientX : event.clientX;
-
-  if (pointX === undefined) return;
-
-  dragStartX.value = pointX;
-};
-
-const endDrag = (event: MouseEvent | TouchEvent) => {
-  const endX = "changedTouches" in event ? event.changedTouches[0]?.clientX : event.clientX;
-
-  if (endX === undefined) return;
-
-  const distance = dragStartX.value - endX;
-
-  if (distance > 40) {
-    nextSlide();
-  }
 };
 
 onMounted(() => {
@@ -66,13 +45,7 @@ onUnmounted(() => {
       <h1 class="artists-title font-monument">ARTISTAS</h1>
     </section>
 
-    <section
-      class="artists-carousel"
-      @mousedown="startDrag"
-      @mouseup="endDrag"
-      @touchstart="startDrag"
-      @touchend="endDrag"
-    >
+    <section class="artists-carousel">
       <div
         class="artists-track"
         :style="{ transform: `translateX(-${activeSlide * 100}%)` }"
@@ -113,11 +86,6 @@ onUnmounted(() => {
   overflow: hidden;
   min-height: 100vh;
   padding: 140px 32px 80px;
-  cursor: grab;
-}
-
-.artists-carousel:active {
-  cursor: grabbing;
 }
 
 .artists-track {

@@ -5,7 +5,7 @@ import { RouterLink } from "vue-router";
 <template>
   <header class="site-header">
     <RouterLink class="site-logo font-monument" to="/">ESCLAT</RouterLink>
-    <RouterLink class="site-menu font-monument" to="/menu">Menu</RouterLink>
+    <RouterLink class="site-menu font-monument" to="/menu">MENÚ</RouterLink>
   </header>
 </template>
 
@@ -19,7 +19,7 @@ import { RouterLink } from "vue-router";
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  padding: 32px;
+  padding: 28px max(24px, 3vw);
   background-color: transparent;
   color: white;
 }
@@ -32,12 +32,12 @@ import { RouterLink } from "vue-router";
 }
 
 .site-logo {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 900;
 }
 
 .site-menu {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 400;
 }
 </style>
