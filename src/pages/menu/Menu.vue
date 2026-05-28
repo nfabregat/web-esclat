@@ -48,27 +48,29 @@ const goBack = () => {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: center;
-  gap: 20px;
-  padding: 120px 32px 64px 56vw;
+  gap: 28px;
+  padding: 120px calc(max(24px, 3vw) + 140px) 64px 32vw;
+  text-align: right;
 }
 
 .menu-link {
   color: inherit;
-  font-size: 32px;
+  font-size: 42px;
   font-weight: 400;
   line-height: 1;
   text-decoration: none;
+  text-underline-offset: 8px;
 }
 
 .menu-link:hover {
-  font-weight: 900;
+  text-decoration: underline;
 }
 
 .back-button {
   position: fixed;
-  left: 24px;
+  right: 24px;
   bottom: 18px;
   border: 0;
   background-color: transparent;

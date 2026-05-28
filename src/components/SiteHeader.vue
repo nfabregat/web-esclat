@@ -1,11 +1,25 @@
 <script setup lang="ts">
-import { RouterLink } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
+
+const route = useRoute();
+const router = useRouter();
+
+const toggleMenu = () => {
+  if (route.name === "menu") {
+    router.back();
+    return;
+  }
+
+  router.push("/menu");
+};
 </script>
 
 <template>
   <header class="site-header">
     <RouterLink class="site-logo font-monument" to="/">ESCLAT</RouterLink>
-    <RouterLink class="site-menu font-monument" to="/menu">MENÚ</RouterLink>
+    <button class="site-menu font-monument" type="button" @click="toggleMenu">
+      MENÚ
+    </button>
   </header>
 </template>
 
@@ -37,7 +51,11 @@ import { RouterLink } from "vue-router";
 }
 
 .site-menu {
+  border: 0;
+  background-color: transparent;
+  cursor: pointer;
   font-size: 20px;
   font-weight: 400;
+  padding: 0;
 }
 </style>
