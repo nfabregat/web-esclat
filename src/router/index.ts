@@ -6,57 +6,62 @@ import Info from "@/pages/info/Info.vue";
 import Menu from "@/pages/menu/Menu.vue";
 import Programa from "@/pages/programa/Programa.vue";
 import Tienda from "@/pages/tienda/Tienda.vue";
+import FestivalLayout from "@/layouts/FestivalLayout.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
-
-
 
 export const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
 
   routes: [
     {
-      path: '/',
-      name: 'home',
-      component: Home
+      path: "/",
+      component: FestivalLayout,
+      children: [
+        {
+          path: "",
+          name: "home",
+          component: Home,
+        },
+        {
+          path: "menu",
+          name: "menu",
+          component: Menu,
+        },
+        {
+          path: "info",
+          name: "info",
+          component: Info,
+        },
+        {
+          path: "programa",
+          name: "programa",
+          component: Programa,
+        },
+        {
+          path: "artistas",
+          name: "artistas",
+          component: Artistas,
+        },
+        {
+          path: "entradas",
+          name: "entradas",
+          component: Entradas,
+        },
+        {
+          path: "tienda",
+          name: "tienda",
+          component: Tienda,
+        },
+        {
+          path: "contacto",
+          name: "contacto",
+          component: Contacto,
+        },
+      ],
     },
     {
-      path: '/menu',
-      name: 'menu',
-      component: Menu
+      path: "/:patchMatch(.*)*",
+      redirect: "/",
     },
-    {
-      path: '/info',
-      name: 'info',
-      component: Info
-    },
-    {
-      path: '/programa',
-      name: 'programa',
-      component: Programa
-    },
-    {
-      path: '/artistas',
-      name: 'artistas',
-      component: Artistas
-    },
-    {
-      path: '/entradas',
-      name: 'entradas',
-      component: Entradas
-    },
-    {
-      path: '/tienda',
-      name: 'tienda',
-      component: Tienda
-    },
-    {
-      path: '/contacto',
-      name: 'contacto',
-      component: Contacto
-    },
-    {
-      path: '/:patchMatch(.*)',
-      redirect: '/'
-    }
-  ]
-})
+  ],
+});
