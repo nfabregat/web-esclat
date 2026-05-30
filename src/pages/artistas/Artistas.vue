@@ -69,7 +69,7 @@ onUnmounted(() => {
     <section class="artists-carousel">
       <div
         class="artists-track"
-        :style="{ transform: `translateX(-${activeSlide * 100}%)` }"
+        :style="{ transform: `translateX(calc(-${activeSlide} * (100% + 32px)))` }"
       >
         <div v-for="(slide, index) in slides" :key="index" class="artists-slide">
           <article v-for="artist in slide" :key="artist.name" class="artist-card">
@@ -111,15 +111,27 @@ onUnmounted(() => {
 
 .artists-track {
   display: flex;
+  width: 100%;
+  gap: 32px;
   transition: transform 500ms ease;
 }
 
 .artists-slide {
   display: grid;
-  min-width: 100%;
-  grid-template-columns: repeat(3, 1fr);
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
   align-items: start;
+}
+
+.artist-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .artist-card {
