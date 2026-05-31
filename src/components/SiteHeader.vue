@@ -78,4 +78,22 @@ const toggleMenu = () => {
   font-weight: 400;
   padding: 0;
 }
+
+@media (max-width: 760px) {
+  .site-header {
+    padding: 22px 18px;
+  }
+
+  .site-header::before {
+    height: 104px;
+  }
+
+  .site-logo {
+    font-size: 23px;
+  }
+
+  .site-menu {
+    font-size: 16px;
+  }
+}
 </style>

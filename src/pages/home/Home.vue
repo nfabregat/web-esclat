@@ -24,8 +24,8 @@ import { RouterLink } from "vue-router";
       <div class="home-intro-content">
         <h2 class="home-intro-title font-monument">
           <span>FESTIVAL DE MÚSICA,</span>
-          <span>PENSAMIENTO Y</span>
-          <span>CREATIVIDAD</span>
+          <span>PENSAMIENTO</span>
+          <span>Y CREATIVIDAD</span>
         </h2>
 
         <RouterLink class="home-info-link font-monument" to="/info">
@@ -39,38 +39,39 @@ import { RouterLink } from "vue-router";
 <style scoped>
 .home {
   min-height: 100vh;
-  background-color: #0a0a0a;
+  overflow-x: hidden;
+  background-color: #080808;
   color: white;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  --page-padding: max(24px, 3vw);
+  --page-padding: clamp(18px, 3vw, 48px);
 }
 
 .home-hero {
   display: flex;
-  min-height: 84vh;
+  min-height: calc(100svh - 92px);
   flex-direction: column;
   justify-content: flex-end;
-  padding: 9vh var(--page-padding) 4vh;
+  padding: clamp(28px, 7vh, 72px) var(--page-padding) clamp(28px, 5vh, 54px);
 }
 
 .home-hero-image {
   width: 100%;
-  height: 48vh;
+  min-height: clamp(280px, 48vh, 560px);
   background-color: black;
 }
 
 .home-meta {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  padding: 28px 0 0;
+  gap: clamp(18px, 3vw, 32px);
+  padding: clamp(20px, 3vw, 32px) 0 0;
 }
 
 .home-date,
 .home-location {
   margin: 0;
-  font-size: clamp(28px, 3.4vw, 38px);
+  font-size: clamp(26px, 3.4vw, 42px);
   font-weight: 400;
   line-height: 1.12;
 }
@@ -80,50 +81,97 @@ import { RouterLink } from "vue-router";
 }
 
 .home-intro {
-  min-height: 90vh;
-  padding: 4vh var(--page-padding) 26vh;
+  min-height: 78vh;
+  padding: clamp(42px, 8vh, 88px) var(--page-padding) clamp(90px, 20vh, 220px);
 }
 
 .home-intro-content {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: end;
-  gap: 40px;
-  min-height: 60vh;
+  gap: clamp(28px, 5vw, 68px);
+  min-height: 46vh;
 }
 
 .home-intro-title {
   display: flex;
   flex-direction: column;
   margin: 0;
-  font-size: clamp(28px, 4.2vw, 50px);
+  max-width: 17ch;
+  font-size: clamp(26px, 3.8vw, 52px);
   font-weight: 400;
-  line-height: 1.05;
+  line-height: 1.08;
 }
 
 .home-info-link {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 44px;
   color: inherit;
-  padding-bottom: 0.45em;
-  font-size: 13px;
+  font-size: clamp(12px, 1.2vw, 14px);
   font-weight: 400;
   line-height: 1;
   text-decoration: none;
+  text-underline-offset: 4px;
 }
 
 .home-info-link:hover {
   text-decoration: underline;
-  text-underline-offset: 4px;
 }
 
 @media (max-width: 760px) {
+  .home-hero {
+    min-height: calc(100svh - 76px);
+    padding-top: 18px;
+  }
+
+  .home-hero-image {
+    min-height: clamp(260px, 46svh, 420px);
+  }
+
   .home-meta,
   .home-intro-content {
     grid-template-columns: 1fr;
+  }
+
+  .home-meta {
+    gap: 16px;
+  }
+
+  .home-date,
+  .home-location {
+    font-size: clamp(24px, 9vw, 36px);
   }
 
   .home-location {
     text-align: left;
   }
 
+  .home-intro {
+    min-height: auto;
+    padding-top: 56px;
+    padding-bottom: 112px;
+  }
+
+  .home-intro-content {
+    align-items: start;
+    min-height: auto;
+  }
+
+  .home-intro-title {
+    max-width: 15ch;
+    font-size: clamp(25px, 7.4vw, 34px);
+  }
+
+  .home-info-link {
+    margin-top: 6px;
+  }
+}
+
+@media (max-width: 380px) {
+  .home-intro-title {
+    font-size: clamp(23px, 7vw, 30px);
+  }
 }
 </style>
