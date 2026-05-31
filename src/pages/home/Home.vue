@@ -1,17 +1,5 @@
 <script lang="ts" setup>
 import { RouterLink } from "vue-router";
-
-const collaboratorLogos = [
-  { src: "/assets/logos/Ayuntament de Valencia.png", alt: "Ayuntament de Valencia" },
-  { src: "/assets/logos/Las Naves.png", alt: "Las Naves" },
-];
-
-const organizerLogos = [
-  { src: "/assets/logos/Diputacio de Valencia.png", alt: "Diputacio de Valencia" },
-  { src: "/assets/logos/IVAJ.png", alt: "IVAJ" },
-  { src: "/assets/logos/Turia.png", alt: "Turia" },
-  { src: "/assets/logos/Cocacola.png", alt: "Cocacola" },
-];
 </script>
 
 <template>
@@ -127,56 +115,9 @@ const organizerLogos = [
   text-underline-offset: 4px;
 }
 
-.footer-logos img {
-  width: auto;
-  max-height: 28px;
-  filter: brightness(0) invert(1);
-}
-
-.footer-divider {
-  height: 1px;
-  margin: 44px 0 20px;
-  background-color: rgb(255 255 255 / 18%);
-}
-
-.footer-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 32px;
-}
-
-.footer-legal {
-  margin: 0;
-  font-family: "Roboto Mono", monospace;
-  color: white;
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.footer-socials {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.footer-socials a {
-  color: inherit;
-}
-
-.footer-socials svg {
-  display: block;
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: white;
-  stroke-width: 1.7;
-}
-
 @media (max-width: 760px) {
   .home-meta,
-  .home-intro-content,
-  .footer-columns {
+  .home-intro-content {
     grid-template-columns: 1fr;
   }
 
@@ -184,8 +125,5 @@ const organizerLogos = [
     text-align: left;
   }
 
-  .footer-bottom {
-    display: grid;
-  }
 }
 </style>

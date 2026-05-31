@@ -18,25 +18,39 @@ import * as Icons from 'lucide-vue-next';
           <div>
             <p class="footer-label mb-4 uppercase tracking-[0.35em] text-white/50 text-[11px]">Colabora</p>
             <div class="brand-row flex flex-wrap items-center gap-8">
-              <span class="brand-text text-xl font-black tracking-[0.3em]">ESCLAT</span>
-              <img src="/assets/logos/Ayuntament de Valencia.png" alt="Ajuntament de València" class="h-10 max-w-[160px] object-contain" />
-              <img src="/assets/logos/Las Naves.png" alt="Las Naves" class="h-10 max-w-[160px] object-contain" />
+              <RouterLink to="/" class="brand-text text-xl font-black tracking-[0.3em]">ESCLAT</RouterLink>
+              <a href="https://www.valencia.es/val/inici" target="_blank" rel="noreferrer">
+                <img src="/assets/logos/Ayuntament de Valencia.png" alt="Ajuntament de València" class="h-10 max-w-[160px] object-contain" />
+              </a>
+              <a href="https://cultural.valencia.es/espais/las-naves-centre-dinnovacio/" target="_blank" rel="noreferrer">
+                <img src="/assets/logos/Las Naves.png" alt="Las Naves" class="h-10 max-w-[160px] object-contain" />
+              </a>
             </div>
           </div>
 
           <div>
             <p class="footer-label mb-4 uppercase tracking-[0.35em] text-white/50 text-[11px]">Organiza</p>
             <div class="brand-row flex flex-wrap items-center gap-8">
-              <img src="/assets/logos/Diputacio de Valencia.png" alt="Diputació de València" class="h-10 max-w-[160px] object-contain" />
-              <img src="/assets/logos/IVAJ.png" alt="IVAJ" class="h-10 max-w-[120px] object-contain" />
-              <img src="/assets/logos/Turia.png" alt="Turia" class="h-10 max-w-[120px] object-contain" />
-              <img src="/assets/logos/Cocacola.png" alt="Coca-Cola" class="h-10 max-w-[140px] object-contain" />
+              <a href="http://dival.es/va" target="_blank" rel="noreferrer">
+                <img src="/assets/logos/Diputacio de Valencia.png" alt="Diputació de València" class="h-10 max-w-[160px] object-contain" />
+              </a>
+              <a href="https://ivaj.gva.es/va/" target="_blank" rel="noreferrer">
+                <img src="/assets/logos/IVAJ.png" alt="IVAJ" class="h-10 max-w-[120px] object-contain" />
+              </a>
+              <a href="https://www.cervezaturia.es/va" target="_blank" rel="noreferrer">
+                <img src="/assets/logos/Turia.png" alt="Turia" class="h-10 max-w-[120px] object-contain" />
+              </a>
+              <a href="https://www.coca-cola.com/es/es" target="_blank" rel="noreferrer">
+                <img src="/assets/logos/Cocacola.png" alt="Coca-Cola" class="h-10 max-w-[140px] object-contain" />
+              </a>
             </div>
           </div>
         </div>
 
         <div class="footer-meta flex flex-col gap-6 border-t border-white/10 pt-6 text-sm md:flex-row md:items-center md:justify-between">
-          <p class="footer-copy uppercase tracking-[0.35em] text-white/60 text-[12px]">© 2026 Esclat Festival</p>
+          <p class="footer-copy uppercase tracking-[0.35em] text-white/60 text-[12px]">
+            <RouterLink to="/">© 2026 Esclat Festival</RouterLink>
+          </p>
 
           <nav class="footer-links flex flex-wrap items-center gap-4 text-[12px] uppercase tracking-[0.3em] text-white/60">
             <RouterLink to="/" class="hover:text-white">Términos y condiciones</RouterLink>
@@ -75,6 +89,14 @@ import * as Icons from 'lucide-vue-next';
 }
 .brand-row img {
   filter: brightness(0) invert(1);
+}
+.brand-row a,
+.footer-copy a {
+  color: inherit;
+  text-decoration: none;
+}
+.brand-row a {
+  display: inline-flex;
 }
 .footer-copy {
   font-size: 11px;

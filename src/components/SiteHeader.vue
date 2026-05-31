@@ -38,8 +38,28 @@ const toggleMenu = () => {
   color: white;
 }
 
+.site-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  height: 132px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.94) 0%,
+    rgb(0 0 0 / 0.78) 42%,
+    rgb(0 0 0 / 0.34) 74%,
+    rgb(0 0 0 / 0) 100%
+  );
+}
+
 .site-logo,
 .site-menu {
+  position: relative;
+  z-index: 1;
   color: inherit;
   line-height: 1;
   text-decoration: none;
