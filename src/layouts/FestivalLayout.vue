@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router';
 import SiteHeader from '@/components/SiteHeader.vue';
+import { Button } from '@/components/ui/button';
+import * as Icons from 'lucide-vue-next';
 </script>
 
 <template>
@@ -44,17 +46,21 @@ import SiteHeader from '@/components/SiteHeader.vue';
           </nav>
 
           <div class="footer-social flex items-center gap-4">
-            <a href="https://www.instagram.com" target="_blank" rel="noreferrer" class="footer-social-link text-white/80 hover:text-white">
+            <Button as="a" href="https://www.instagram.com" target="_blank" rel="noreferrer" variant="ghost" size="icon" class="footer-social-link no-hover">
+              <component :is="Icons.Instagram" class="lucide-icon" />
               <span class="sr-only">Instagram</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37a4 4 0 1 1-7.99.37 4 4 0 0 1 7.99-.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </Button>
+
+            <a href="https://x.com" target="_blank" rel="noreferrer" class="footer-social-link" aria-label="X">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="social-svg">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.514l-5.106-6.665-5.841 6.665H2.556l7.73-8.835L1.75 2.25h6.52l4.827 6.383 5.447-6.383zM16.6 20.575h1.829L7.75 3.972H5.81l10.79 16.603z"/>
+              </svg>
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noreferrer" class="footer-social-link text-white/80 hover:text-white">
-              <span class="sr-only">X</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 22.43 1s-4.26 1.84-6.48 3.1A4.48 4.48 0 0 0 12 5.1a4.48 4.48 0 0 0-4.14 2.77A12.8 12.8 0 0 1 1.64 2.16 4.48 4.48 0 0 0 3 9.71 4.42 4.42 0 0 1 .96 9.1v.05A4.48 4.48 0 0 0 4.46 13a4.45 4.45 0 0 1-2 .08 4.48 4.48 0 0 0 4.18 3.11A9 9 0 0 1 1 18.58a12.76 12.76 0 0 0 6.92 2.03c8.3 0 12.84-6.88 12.84-12.84 0-.2 0-.39-.02-.58A9.22 9.22 0 0 0 23 3z"/></svg>
-            </a>
-            <a href="https://www.tiktok.com" target="_blank" rel="noreferrer" class="footer-social-link text-white/80 hover:text-white">
-              <span class="sr-only">TikTok</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18a4 4 0 0 1-4-4V6h4v8h3a4 4 0 0 0 4-4V3h4v7a8 8 0 0 1-8 8H9z"/></svg>
+
+            <a href="https://www.tiktok.com" target="_blank" rel="noreferrer" class="footer-social-link" aria-label="TikTok">
+              <svg viewBox="0 0 16 16" fill="currentColor" class="social-svg">
+                <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z"/>
+              </svg>
             </a>
           </div>
         </div>
@@ -69,5 +75,67 @@ import SiteHeader from '@/components/SiteHeader.vue';
 }
 .brand-row img {
   filter: brightness(0) invert(1);
+}
+.footer-copy {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.55);
+}
+.footer-links {
+  gap: 12px;
+}
+.footer-links a {
+  font-size: 11px;
+  opacity: 0.6;
+}
+.footer-links a:hover {
+  opacity: 1;
+}
+
+.no-hover {
+  background-color: transparent !important;
+}
+.no-hover:hover {
+  background-color: transparent !important;
+}
+.lucide-icon {
+  width: 28px;
+  height: 28px;
+  color: white;
+  opacity: 0.95;
+  transition: transform 160ms ease, opacity 120ms ease;
+}
+.no-hover:hover .lucide-icon {
+  transform: scale(1.06);
+  opacity: 1;
+}
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 160ms ease, opacity 120ms ease;
+}
+
+.footer-social-link:hover .social-svg {
+  transform: scale(1.06);
+  opacity: 1;
+}
+
+.social-svg {
+  width: 28px;
+  height: 28px;
+  color: white;
+  opacity: 0.95;
+  transition: transform 160ms ease, opacity 120ms ease;
+}
+
+@media (max-width: 640px) {
+  .footer-links {
+    display: none;
+  }
+  .footer-copy {
+    font-size: 10px;
+  }
 }
 </style>
