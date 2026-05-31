@@ -48,15 +48,15 @@ import { RouterLink } from "vue-router";
 
 .home-hero {
   display: flex;
-  min-height: 100vh;
+  min-height: 84vh;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 14vh var(--page-padding) 4vh;
+  padding: 9vh var(--page-padding) 4vh;
 }
 
 .home-hero-image {
   width: 100%;
-  height: 56vh;
+  height: 48vh;
   background-color: black;
 }
 

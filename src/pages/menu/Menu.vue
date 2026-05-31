@@ -49,9 +49,9 @@ const goBack = () => {
   min-height: 100vh;
   flex-direction: column;
   align-items: flex-end;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 28px;
-  padding: 120px calc(max(24px, 3vw) + 140px) 64px 32vw;
+  padding: 22vh calc(max(24px, 3vw) + 140px) 64px 32vw;
   text-align: right;
 }
 
