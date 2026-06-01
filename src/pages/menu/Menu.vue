@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { X } from "lucide-vue-next";
 import { RouterLink, useRouter } from "vue-router";
 
 const router = useRouter();
@@ -31,7 +32,7 @@ const goBack = () => {
     </nav>
 
     <button class="back-button" type="button" aria-label="Volver" @click="goBack">
-      X
+      <X class="back-icon" aria-hidden="true" />
     </button>
   </section>
 </template>
@@ -74,14 +75,20 @@ const goBack = () => {
   position: fixed;
   right: 24px;
   bottom: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   background-color: transparent;
   color: white;
   cursor: pointer;
-  font-family: "Monument Extended", sans-serif;
-  font-size: 22px;
-  font-weight: 400;
-  line-height: 1;
+  padding: 0;
+}
+
+.back-icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.8;
 }
 
 @media (max-width: 760px) {
@@ -98,7 +105,11 @@ const goBack = () => {
   .back-button {
     right: 18px;
     bottom: 18px;
-    font-size: 18px;
+  }
+
+  .back-icon {
+    width: 18px;
+    height: 18px;
   }
 }
 

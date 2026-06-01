@@ -16,47 +16,47 @@ const showFooter = computed(() => route.name !== 'menu');
       <RouterView />
     </main>
 
-    <footer v-if="showFooter" class="site-footer border-t border-white/10 bg-black px-6 py-10 text-white/80">
-      <div class="mx-auto flex max-w-7xl flex-col gap-10">
-        <div class="footer-brands grid gap-10 lg:grid-cols-[1.2fr_1fr]">
+    <footer v-if="showFooter" class="site-footer mt-20 border-t border-white/10 bg-black py-8 text-white/80 md:mt-28">
+      <div class="footer-inner flex flex-col gap-8">
+        <div class="footer-brands grid gap-8 lg:grid-cols-[1.2fr_1fr]">
           <div>
-            <p class="footer-label mb-4 uppercase tracking-[0.35em] text-white/50 text-[11px]">Colabora</p>
-            <div class="brand-row flex flex-wrap items-center gap-8">
-              <RouterLink to="/" class="brand-text text-xl font-black tracking-[0.3em]">ESCLAT</RouterLink>
+            <p class="footer-label mb-3 uppercase text-white/50">Colabora</p>
+            <div class="brand-row flex flex-wrap items-center gap-6">
+              <RouterLink to="/" class="brand-text font-monument text-[17px] font-black tracking-normal">ESCLAT</RouterLink>
               <a href="https://www.valencia.es/val/inici" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/Ayuntament de Valencia.png" alt="Ajuntament de València" class="h-10 max-w-[160px] object-contain" />
+                <img src="/assets/logos/Ayuntament de Valencia.png" alt="Ajuntament de València" class="h-8 max-w-[132px] object-contain" />
               </a>
               <a href="https://cultural.valencia.es/espais/las-naves-centre-dinnovacio/" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/Las Naves.png" alt="Las Naves" class="h-10 max-w-[160px] object-contain" />
+                <img src="/assets/logos/Las Naves.png" alt="Las Naves" class="h-8 max-w-[132px] object-contain" />
               </a>
             </div>
           </div>
 
           <div>
-            <p class="footer-label mb-4 uppercase tracking-[0.35em] text-white/50 text-[11px]">Organiza</p>
-            <div class="brand-row flex flex-wrap items-center gap-8">
+            <p class="footer-label mb-3 uppercase text-white/50">Organiza</p>
+            <div class="brand-row flex flex-wrap items-center gap-6">
               <a href="http://dival.es/va" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/Diputacio de Valencia.png" alt="Diputació de València" class="h-10 max-w-[160px] object-contain" />
+                <img src="/assets/logos/Diputacio de Valencia.png" alt="Diputació de València" class="footer-logo-diputacio h-8 max-w-[132px] object-contain" />
               </a>
               <a href="https://ivaj.gva.es/va/" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/IVAJ.png" alt="IVAJ" class="h-10 max-w-[120px] object-contain" />
+                <img src="/assets/logos/IVAJ.png" alt="IVAJ" class="footer-logo-ivaj h-8 max-w-[96px] object-contain" />
               </a>
               <a href="https://www.cervezaturia.es/va" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/Turia.png" alt="Turia" class="h-10 max-w-[120px] object-contain" />
+                <img src="/assets/logos/Turia.png" alt="Turia" class="h-8 max-w-[96px] object-contain" />
               </a>
               <a href="https://www.coca-cola.com/es/es" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/Cocacola.png" alt="Coca-Cola" class="h-10 max-w-[140px] object-contain" />
+                <img src="/assets/logos/Cocacola.png" alt="Coca-Cola" class="footer-logo-cocacola h-8 max-w-[112px] object-contain" />
               </a>
             </div>
           </div>
         </div>
 
-        <div class="footer-meta flex flex-col gap-6 border-t border-white/10 pt-6 text-sm md:flex-row md:items-center md:justify-between">
-          <p class="footer-copy uppercase tracking-[0.35em] text-white/60 text-[12px]">
+        <div class="footer-meta flex flex-col gap-5 border-t border-white/10 pt-5 text-sm md:flex-row md:items-center md:justify-between">
+          <p class="footer-copy uppercase text-white/60">
             <RouterLink to="/">© 2026 Esclat Festival</RouterLink>
           </p>
 
-          <nav class="footer-links flex flex-wrap items-center gap-4 text-[12px] uppercase tracking-[0.3em] text-white/60">
+          <nav class="footer-links flex flex-wrap items-center gap-4 uppercase text-white/60">
             <RouterLink to="/" class="hover:text-white">Términos y condiciones</RouterLink>
             <RouterLink to="/" class="hover:text-white">Aviso legal</RouterLink>
             <RouterLink to="/" class="hover:text-white">Política de privacidad</RouterLink>
@@ -88,12 +88,43 @@ const showFooter = computed(() => route.name !== 'menu');
 </template>
 
 <style scoped>
+.site-footer {
+  --footer-padding: clamp(18px, 3vw, 48px);
+}
+
+.footer-inner {
+  width: 100%;
+  padding-inline: var(--footer-padding);
+}
+
 .footer-label {
-  letter-spacing: 0.35em;
+  font-size: 10px;
+  letter-spacing: 0.25em;
 }
 .brand-row img {
   filter: brightness(0) invert(1);
 }
+
+.brand-row .footer-logo-diputacio {
+  height: 26px;
+  max-width: 118px;
+}
+
+.brand-text {
+  color: white;
+}
+
+.brand-row .footer-logo-ivaj {
+  height: 32px;
+  max-width: 100px;
+  transform: translateY(3px);
+}
+
+.brand-row .footer-logo-cocacola {
+  height: 30px;
+  max-width: 104px;
+}
+
 .brand-row a,
 .footer-copy a {
   color: inherit;
@@ -103,7 +134,7 @@ const showFooter = computed(() => route.name !== 'menu');
   display: inline-flex;
 }
 .footer-copy {
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.25em;
   color: rgba(255,255,255,0.55);
 }
@@ -111,7 +142,8 @@ const showFooter = computed(() => route.name !== 'menu');
   gap: 12px;
 }
 .footer-links a {
-  font-size: 11px;
+  font-size: 10px;
+  letter-spacing: 0.25em;
   opacity: 0.6;
 }
 .footer-links a:hover {
@@ -125,8 +157,8 @@ const showFooter = computed(() => route.name !== 'menu');
   background-color: transparent !important;
 }
 .lucide-icon {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   color: white;
   opacity: 0.95;
   transition: transform 160ms ease, opacity 120ms ease;
@@ -140,6 +172,9 @@ const showFooter = computed(() => route.name !== 'menu');
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
   transition: transform 160ms ease, opacity 120ms ease;
 }
 
@@ -149,8 +184,8 @@ const showFooter = computed(() => route.name !== 'menu');
 }
 
 .social-svg {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   color: white;
   opacity: 0.95;
   transition: transform 160ms ease, opacity 120ms ease;

@@ -136,7 +136,7 @@ import { RouterLink } from "vue-router";
   }
 
   .home-meta {
-    gap: 16px;
+    gap: 28px;
   }
 
   .home-date,

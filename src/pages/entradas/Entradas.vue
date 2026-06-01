@@ -44,7 +44,7 @@ const sendEmail = () => {
 
 .tickets-content {
   width: auto;
-  padding: 24vh var(--page-padding) 0;
+  padding: 16vh var(--page-padding) 0;
 }
 
 .tickets-title {
@@ -94,7 +94,7 @@ const sendEmail = () => {
 
 @media (max-width: 760px) {
   .tickets-content {
-    padding-top: 20vh;
+    padding-top: 15vh;
   }
 
   .tickets-title {
@@ -124,7 +124,7 @@ const sendEmail = () => {
   }
 
   .tickets-content {
-    padding-top: 18vh;
+    padding-top: 14vh;
   }
 
   .tickets-title {
