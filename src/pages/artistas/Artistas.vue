@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
+import { RouterLink } from "vue-router";
+import { ChevronLeft, ChevronRight } from "lucide-vue-next";
 
 const artists = [
   { name: "CATERINA BARBERI", image: "/assets/artistas/1.jpg" },
@@ -47,16 +49,45 @@ const slides = computed(() => {
 
 let carouselInterval: number | undefined;
 
+const stopCarousel = () => {
+  if (carouselInterval !== undefined) {
+    window.clearInterval(carouselInterval);
+    carouselInterval = undefined;
+  }
+};
+
+const startCarousel = () => {
+  stopCarousel();
+  carouselInterval = window.setInterval(() => {
+    nextSlide();
+  }, 5000);
+};
+
 const nextSlide = () => {
   activeSlide.value = (activeSlide.value + 1) % slides.value.length;
 };
 
+const prevSlide = () => {
+  activeSlide.value =
+    (activeSlide.value - 1 + slides.value.length) % slides.value.length;
+};
+
+const goToNextSlide = () => {
+  nextSlide();
+  startCarousel();
+};
+
+const goToPrevSlide = () => {
+  prevSlide();
+  startCarousel();
+};
+
 onMounted(() => {
-  carouselInterval = window.setInterval(nextSlide, 5000);
+  startCarousel();
 });
 
 onUnmounted(() => {
-  window.clearInterval(carouselInterval);
+  stopCarousel();
 });
 </script>
 
@@ -67,6 +98,32 @@ onUnmounted(() => {
     </section>
 
     <section class="artists-carousel">
+      <div class="artists-controls">
+        <RouterLink class="artists-view-all font-monument" to="/artistas/galeria">
+          VER TODOS
+        </RouterLink>
+      </div>
+
+      <div class="carousel-arrows" aria-label="Controles del carrusel">
+        <button
+          type="button"
+          class="carousel-arrow carousel-arrow--prev"
+          @click="goToPrevSlide"
+          aria-label="Ir al slide anterior"
+        >
+          <component :is="ChevronLeft" class="carousel-arrow-icon" aria-hidden="true" />
+        </button>
+
+        <button
+          type="button"
+          class="carousel-arrow carousel-arrow--next"
+          @click="goToNextSlide"
+          aria-label="Ir al slide siguiente"
+        >
+          <component :is="ChevronRight" class="carousel-arrow-icon" aria-hidden="true" />
+        </button>
+      </div>
+
       <div
         class="artists-track"
         :style="{ transform: `translateX(calc(-${activeSlide} * (100% + 32px)))` }"
@@ -104,9 +161,83 @@ onUnmounted(() => {
 }
 
 .artists-carousel {
+  position: relative;
   overflow: hidden;
   min-height: 100vh;
   padding: 140px 32px 80px;
+}
+
+.artists-controls {
+  position: absolute;
+  top: 32px;
+  right: 44px;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.artists-view-all {
+  color: white;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.artists-view-all:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.carousel-arrows {
+  position: absolute;
+  top: 52%;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 14px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.carousel-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(0 0 0 / 58%);
+  color: white;
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.carousel-arrow-icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.75;
+}
+
+.carousel-arrow:hover {
+  background: rgb(0 0 0 / 72%);
+  transform: translateY(-1px);
+}
+
+.carousel-arrow:focus-visible,
+.artists-view-all:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 3px;
 }
 
 .artists-track {
@@ -134,12 +265,6 @@ onUnmounted(() => {
   gap: 16px;
 }
 
-.artist-card {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
 .artist-image {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -152,5 +277,37 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 400;
   line-height: 1.2;
+}
+
+@media (max-width: 760px) {
+  .artists-carousel {
+    padding: 112px 18px 64px;
+  }
+
+  .artists-controls {
+    top: 20px;
+    right: 24px;
+    left: 18px;
+  }
+
+  .artists-view-all {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+  }
+
+  .carousel-arrows {
+    top: 53%;
+    padding: 0 6px;
+  }
+
+  .carousel-arrow {
+    width: 44px;
+    height: 44px;
+  }
+
+  .carousel-arrow-icon {
+    width: 18px;
+    height: 18px;
+  }
 }
 </style>

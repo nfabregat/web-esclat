@@ -1,5 +1,6 @@
 import Home from "@/pages/home/Home.vue";
 import Artistas from "@/pages/artistas/Artistas.vue";
+import ArtistasGaleria from "@/pages/artistas/Galeria.vue";
 import Contacto from "@/pages/contacto/Contacto.vue";
 import Entradas from "@/pages/entradas/Entradas.vue";
 import Info from "@/pages/info/Info.vue";
@@ -44,6 +45,11 @@ export const router = createRouter({
           path: "artistas",
           name: "artistas",
           component: Artistas,
+        },
+        {
+          path: "artistas/galeria",
+          name: "artistas-galeria",
+          component: ArtistasGaleria,
         },
         {
           path: "entradas",
