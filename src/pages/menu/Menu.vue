@@ -39,14 +39,16 @@ const goBack = () => {
 <style scoped>
 .menu-page {
   position: relative;
-  min-height: 100vh;
+  height: calc(100svh - 92px);
+  min-height: 0;
+  overflow: hidden;
   background-color: black;
   color: white;
 }
 
 .menu-nav {
   display: flex;
-  min-height: 100vh;
+  min-height: 100%;
   flex-direction: column;
   align-items: flex-end;
   justify-content: flex-start;
@@ -80,5 +82,33 @@ const goBack = () => {
   font-size: 22px;
   font-weight: 400;
   line-height: 1;
+}
+
+@media (max-width: 760px) {
+  .menu-nav {
+    gap: 22px;
+    padding: 20vh 18px 72px;
+  }
+
+  .menu-link {
+    font-size: clamp(28px, 9vw, 34px);
+    text-underline-offset: 6px;
+  }
+
+  .back-button {
+    right: 18px;
+    bottom: 18px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .menu-nav {
+    gap: 18px;
+  }
+
+  .menu-link {
+    font-size: clamp(25px, 8vw, 30px);
+  }
 }
 </style>

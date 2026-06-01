@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router';
+import { computed } from 'vue';
+import { RouterLink, RouterView, useRoute } from 'vue-router';
 import SiteHeader from '@/components/SiteHeader.vue';
 import { Button } from '@/components/ui/button';
 import * as Icons from 'lucide-vue-next';
+
+const route = useRoute();
+const showFooter = computed(() => route.name !== 'menu');
 </script>
 
 <template>
@@ -12,7 +16,7 @@ import * as Icons from 'lucide-vue-next';
       <RouterView />
     </main>
 
-    <footer class="site-footer border-t border-white/10 bg-black px-6 py-10 text-white/80">
+    <footer v-if="showFooter" class="site-footer border-t border-white/10 bg-black px-6 py-10 text-white/80">
       <div class="mx-auto flex max-w-7xl flex-col gap-10">
         <div class="footer-brands grid gap-10 lg:grid-cols-[1.2fr_1fr]">
           <div>

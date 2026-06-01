@@ -65,9 +65,9 @@ const submitContact = () => {
 
 .contact-hero {
   display: flex;
-  min-height: 34vh;
+  min-height: 28vh;
   align-items: flex-end;
-  padding: 0 0 9vh var(--page-padding);
+  padding: 0 0 5vh var(--page-padding);
 }
 
 .contact-title {
@@ -89,7 +89,7 @@ const submitContact = () => {
   gap: 28px;
   width: 100%;
   margin: 0;
-  padding-top: 12px;
+  padding-top: 0;
   font-family: "Roboto Mono", monospace;
   letter-spacing: 0;
 }
@@ -137,7 +137,8 @@ const submitContact = () => {
 
 @media (max-width: 760px) {
   .contact-hero {
-    min-height: 30vh;
+    min-height: 24vh;
+    padding-bottom: 4vh;
   }
 
   .contact-field span,
