@@ -92,7 +92,7 @@ onUnmounted(() => {
       <h1 class="artists-title font-monument">ARTISTAS</h1>
     </section>
 
-    <section class="artists-carousel">
+    <section id="carrusel" class="artists-carousel">
       <div class="artists-controls">
         <RouterLink class="artists-view-all font-monument" to="/artistas/galeria">
           VER TODOS
@@ -111,7 +111,7 @@ onUnmounted(() => {
           <div v-for="(slide, index) in slides" :key="index" class="artists-slide">
             <article v-for="artist in slide" :key="artist.name" class="artist-card">
               <img :src="artist.image" :alt="artist.name" class="artist-image" />
-              <h2 class="artist-name">{{ artist.name }}</h2>
+              <h2 class="artist-name">{{ artist.name.toUpperCase() }}</h2>
             </article>
           </div>
         </div>

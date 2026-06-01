@@ -12,7 +12,18 @@ import { createRouter, createWebHashHistory } from "vue-router";
 
 export const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
-  scrollBehavior() {
+  scrollBehavior(to, _from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
+
+    if (to.hash) {
+      return {
+        el: to.hash,
+        top: 0,
+      };
+    }
+
     return { top: 0, left: 0 };
   },
 

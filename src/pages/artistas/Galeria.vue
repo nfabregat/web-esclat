@@ -1,14 +1,70 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, type ComponentPublicInstance } from "vue";
 import { RouterLink } from "vue-router";
 import { Instagram, Music2, X } from "lucide-vue-next";
 import { artists, type Artist } from "@/data/artists";
 
 const selectedArtist = ref<Artist | null>(null);
+const hoveredArtist = ref<string | null>(null);
+const artistRowRefs = ref<(HTMLElement | null)[]>([]);
+const artistRowScales = ref<number[]>([]);
 const isModalOpen = computed(() => selectedArtist.value !== null);
+const artistRows = computed(() => {
+  const rows: Artist[][] = [];
+
+  for (let index = 0; index < artists.length; index += 3) {
+    rows.push(artists.slice(index, index + 3));
+  }
+
+  return rows;
+});
+
+const clamp = (value: number, min: number, max: number) => {
+  return Math.min(max, Math.max(min, value));
+};
 
 const openArtist = (artist: Artist) => {
   selectedArtist.value = artist;
+};
+
+const setHoveredArtist = (artist: Artist | null) => {
+  hoveredArtist.value = artist?.name ?? null;
+};
+
+const setArtistRowRef = (el: Element | ComponentPublicInstance | null, rowIndex: number) => {
+  if (el instanceof HTMLElement) {
+    artistRowRefs.value[rowIndex] = el;
+  }
+};
+
+let rowAnimationFrame: number | null = null;
+
+const updateArtistRowScales = () => {
+  rowAnimationFrame = null;
+
+  const viewportCenter = window.innerHeight / 2;
+  const maxDistance = window.innerHeight * 0.65;
+
+  artistRowScales.value = artistRowRefs.value.map((row) => {
+    if (!row) {
+      return 0.94;
+    }
+
+    const rect = row.getBoundingClientRect();
+    const rowCenter = rect.top + rect.height / 2;
+    const distance = Math.abs(rowCenter - viewportCenter);
+    const proximity = clamp(1 - distance / maxDistance, 0, 1);
+
+    return 0.92 + proximity * 0.16;
+  });
+};
+
+const requestArtistRowScalesUpdate = () => {
+  if (rowAnimationFrame !== null) {
+    return;
+  }
+
+  rowAnimationFrame = window.requestAnimationFrame(updateArtistRowScales);
 };
 
 const closeArtist = () => {
@@ -27,10 +83,20 @@ watch(isModalOpen, (open) => {
 
 onMounted(() => {
   window.addEventListener("keydown", handleKeydown);
+  window.addEventListener("scroll", requestArtistRowScalesUpdate, { passive: true });
+  window.addEventListener("resize", requestArtistRowScalesUpdate);
+  nextTick(() => {
+    updateArtistRowScales();
+  });
 });
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
+  window.removeEventListener("scroll", requestArtistRowScalesUpdate);
+  window.removeEventListener("resize", requestArtistRowScalesUpdate);
+  if (rowAnimationFrame !== null) {
+    window.cancelAnimationFrame(rowAnimationFrame);
+  }
   document.body.style.overflow = "";
 });
 </script>
@@ -39,29 +105,49 @@ onUnmounted(() => {
   <main class="artists-gallery-page">
     <header class="artists-gallery-header">
       <div>
-        <p class="artists-gallery-kicker font-monument">ARCHIVO VISUAL</p>
         <h1 class="artists-gallery-title font-monument">GALERÍA</h1>
       </div>
 
-      <RouterLink class="artists-gallery-back font-monument" to="/artistas">
+      <RouterLink class="artists-gallery-back font-monument" to="/artistas#carrusel">
         VOLVER
       </RouterLink>
     </header>
 
     <section class="artists-gallery-stage">
       <section class="artists-grid" aria-label="Galería de artistas">
-        <button
-          v-for="artist in artists"
-          :key="artist.name"
-          type="button"
-          class="artist-thumb"
-          :class="{ 'artist-thumb--active': selectedArtist?.name === artist.name }"
-          :aria-pressed="selectedArtist?.name === artist.name"
-          :aria-label="`Abrir ficha de ${artist.name}`"
-          @click="openArtist(artist)"
+        <div
+          v-for="(row, rowIndex) in artistRows"
+          :key="rowIndex"
+          class="artist-row"
+          :ref="(el) => setArtistRowRef(el, rowIndex)"
+          :style="{ transform: `scale(${artistRowScales[rowIndex] ?? 0.94})` }"
         >
-          <img :src="artist.image" :alt="artist.name" class="artist-thumb-image" />
-        </button>
+          <button
+            v-for="artist in row"
+            :key="artist.name"
+            type="button"
+            class="artist-thumb"
+            :class="{ 'artist-thumb--active': selectedArtist?.name === artist.name }"
+            :aria-pressed="selectedArtist?.name === artist.name"
+            :aria-label="`Abrir ficha de ${artist.name}`"
+            @mouseenter="setHoveredArtist(artist)"
+            @mouseleave="setHoveredArtist(null)"
+            @focus="setHoveredArtist(artist)"
+            @blur="setHoveredArtist(null)"
+            @click="openArtist(artist)"
+          >
+            <img :src="artist.image" :alt="artist.name" class="artist-thumb-image" />
+            <span
+              class="artist-thumb-overlay"
+              :class="{ 'artist-thumb-overlay--visible': hoveredArtist === artist.name }"
+            >
+              <span class="artist-thumb-overlay-gradient"></span>
+              <span class="artist-thumb-overlay-name font-monument">
+                {{ artist.name }}
+              </span>
+            </span>
+          </button>
+        </div>
       </section>
 
       <Transition name="modal-fade">
@@ -150,24 +236,17 @@ onUnmounted(() => {
 
 .artists-gallery-header {
   display: flex;
-  align-items: flex-start;
+  align-items: end;
   justify-content: space-between;
   gap: 24px;
   margin-bottom: 56px;
-}
-
-.artists-gallery-kicker {
-  margin: 0 0 10px;
-  font-size: 12px;
-  letter-spacing: 0.28em;
-  color: rgb(255 255 255 / 58%);
 }
 
 .artists-gallery-title {
   margin: 0;
   font-size: clamp(42px, 6vw, 92px);
   line-height: 0.9;
-  font-weight: 900;
+  font-weight: 400;
 }
 
 .artists-gallery-back {
@@ -177,6 +256,7 @@ onUnmounted(() => {
   text-decoration: none;
   text-transform: uppercase;
   white-space: nowrap;
+  margin-right: 24px;
 }
 
 .artists-gallery-back:hover {
@@ -190,11 +270,22 @@ onUnmounted(() => {
 }
 
 .artists-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-top: 8px;
+  align-items: stretch;
+}
+
+.artist-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
-  padding-top: 8px;
-  align-items: start;
+  padding-inline: 12px;
+  box-sizing: border-box;
+  transform-origin: center center;
+  transition: transform 220ms ease;
+  will-change: transform;
 }
 
 .artist-thumb {
@@ -231,6 +322,39 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.artist-thumb-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+
+.artist-thumb-overlay--visible {
+  opacity: 1;
+}
+
+.artist-thumb-overlay-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 88%) 0%, rgb(0 0 0 / 42%) 44%, rgb(0 0 0 / 0%) 100%);
+}
+
+.artist-thumb-overlay-name {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 16px 16px 14px;
+  font-size: 16px;
+  letter-spacing: 0.2em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  text-align: left;
+  color: #fff;
 }
 
 .artist-modal-backdrop {
@@ -375,13 +499,27 @@ onUnmounted(() => {
     margin-bottom: 28px;
   }
 
+  .artists-gallery-back {
+    margin-right: 12px;
+  }
+
   .artists-gallery-title {
     font-size: clamp(36px, 14vw, 64px);
   }
 
   .artists-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
+  }
+
+  .artist-row {
+    gap: 12px;
+    padding-inline: 0;
+  }
+
+  .artist-thumb-overlay-name {
+    padding: 12px 10px 10px;
+    font-size: 13px;
+    letter-spacing: 0.16em;
   }
 
   .artist-modal-backdrop {
