@@ -4,10 +4,15 @@
       <canvas
         ref="animationCanvas"
         class="home-sequence-canvas"
-        :class="{ 'is-hidden': !isSequenceActive }"
+        :class="{ 'is-hidden': sequenceOpacity <= 0.01 }"
+        :style="{ opacity: sequenceOpacity }"
       ></canvas>
 
-      <div class="home-meta font-monument" :class="{ 'is-hidden': !isSequenceActive }">
+      <div
+        class="home-meta font-monument"
+        :class="{ 'is-hidden': metaOpacity <= 0.01 }"
+        :style="{ opacity: metaOpacity }"
+      >
         <p class="home-date">
           23.10—<br />
           25.10.26
@@ -20,7 +25,7 @@
       </div>
     </section>
 
-    <section class="home-intro">
+    <section class="home-intro" :class="{ 'is-revealed': isIntroRevealed }">
       <div class="home-intro-content">
         <h2 class="home-intro-title font-monument">
           <span>FESTIVAL DE MÚSICA,</span>
@@ -42,7 +47,9 @@ import { RouterLink } from "vue-router";
 
 const scrollContainer = ref<HTMLElement | null>(null);
 const animationCanvas = ref<HTMLCanvasElement | null>(null);
-const isSequenceActive = ref(true);
+const sequenceOpacity = ref(1);
+const metaOpacity = ref(1);
+const isIntroRevealed = ref(false);
 
 let cleanupAnimation = () => {};
 
@@ -76,6 +83,11 @@ onMounted(async () => {
 
   const clamp = (value: number, min: number, max: number) => {
     return Math.min(Math.max(value, min), max);
+  };
+
+  const smoothStep = (start: number, end: number, value: number) => {
+    const progress = clamp((value - start) / (end - start), 0, 1);
+    return progress * progress * (3 - 2 * progress);
   };
 
   const getFramePath = (frameNumber: number) => {
@@ -184,7 +196,9 @@ onMounted(async () => {
     const progress = clamp(localScroll / scrollDistance, 0, 1);
 
     targetFrame = progress * (frameCount - 1);
-    isSequenceActive.value = localScroll <= scrollDistance;
+    sequenceOpacity.value = 1 - smoothStep(0.9, 1, progress);
+    metaOpacity.value = 1 - smoothStep(0.72, 0.86, progress);
+    isIntroRevealed.value = progress >= 0.78;
 
     console.log(
       `Frame actual: ${Math.round(targetFrame + frameStart)} | progreso: ${progress.toFixed(3)} | scrollY: ${Math.round(window.scrollY)}`,
@@ -267,7 +281,8 @@ onUnmounted(() => {
   width: 100vw;
   height: 100vh;
   background-color: black;
-  transition: opacity 120ms ease;
+  transition: opacity 280ms ease-out;
+  will-change: opacity;
 }
 
 .home-sequence-canvas.is-hidden {
@@ -285,7 +300,8 @@ onUnmounted(() => {
   grid-template-columns: 1fr 1fr;
   gap: clamp(18px, 3vw, 32px);
   pointer-events: none;
-  transition: opacity 120ms ease;
+  transition: opacity 260ms ease-out;
+  will-change: opacity;
 }
 
 .home-meta.is-hidden {
@@ -307,17 +323,28 @@ onUnmounted(() => {
 .home-intro {
   position: relative;
   z-index: 3;
-  min-height: 78vh;
-  padding: clamp(42px, 8vh, 88px) var(--page-padding) clamp(90px, 20vh, 220px);
-  background-color: #080808;
+  margin-top: -42vh;
+  min-height: 48vh;
+  padding: clamp(18px, 5vh, 56px) var(--page-padding) clamp(90px, 18vh, 180px);
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.home-intro.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .home-intro-content {
   display: grid;
   grid-template-columns: 1fr auto;
-  align-items: end;
+  align-items: start;
   gap: clamp(28px, 5vw, 68px);
-  min-height: 46vh;
+  min-height: 12vh;
 }
 
 .home-intro-title {
