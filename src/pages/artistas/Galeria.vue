@@ -1,89 +1,141 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
-import { artists } from "@/data/artists";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Instagram, Music2, X } from "lucide-vue-next";
+import { artists, type Artist } from "@/data/artists";
 
-const selectedLetter = ref("Todos");
+const selectedArtist = ref<Artist | null>(null);
+const isModalOpen = computed(() => selectedArtist.value !== null);
 
-const letters = computed(() => {
-  const uniqueLetters = new Set(
-    artists.map((artist) => artist.name.charAt(0).toUpperCase()),
-  );
+const openArtist = (artist: Artist) => {
+  selectedArtist.value = artist;
+};
 
-  return ["Todos", ...Array.from(uniqueLetters).sort()];
+const closeArtist = () => {
+  selectedArtist.value = null;
+};
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === "Escape") {
+    closeArtist();
+  }
+};
+
+watch(isModalOpen, (open) => {
+  document.body.style.overflow = open ? "hidden" : "";
 });
 
-const visibleArtists = computed(() => {
-  if (selectedLetter.value === "Todos") {
-    return artists;
-  }
+onMounted(() => {
+  window.addEventListener("keydown", handleKeydown);
+});
 
-  return artists.filter((artist) =>
-    artist.name.toUpperCase().startsWith(selectedLetter.value),
-  );
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeydown);
+  document.body.style.overflow = "";
 });
 </script>
 
 <template>
   <main class="artists-gallery-page">
-    <section class="artists-gallery-hero">
-      <div class="artists-gallery-hero-copy">
+    <header class="artists-gallery-header">
+      <div>
         <p class="artists-gallery-kicker font-monument">ARCHIVO VISUAL</p>
-        <h1 class="artists-gallery-title font-monument">GALERÍA DE ARTISTAS</h1>
-        <p class="artists-gallery-text">
-          Un recorrido limpio y editorial por los artistas del festival. Cuando subas el
-          Excel, conectamos estos datos y la dejamos lista.
-        </p>
+        <h1 class="artists-gallery-title font-monument">GALERÍA</h1>
       </div>
 
-      <div class="artists-gallery-meta font-monument">
-        <p class="artists-gallery-count">
-          {{ visibleArtists.length.toString().padStart(2, "0") }}
-          <span>artistas</span>
-        </p>
-        <RouterLink class="artists-gallery-back" to="/artistas">
-          VOLVER AL CARRUSEL
-        </RouterLink>
-      </div>
-    </section>
+      <RouterLink class="artists-gallery-back font-monument" to="/artistas">
+        VOLVER
+      </RouterLink>
+    </header>
 
-    <section class="artists-gallery-filters" aria-label="Filtros de artistas">
-      <button
-        v-for="letter in letters"
-        :key="letter"
-        type="button"
-        class="filter-chip font-monument"
-        :class="{ 'filter-chip--active': selectedLetter === letter }"
-        @click="selectedLetter = letter"
-      >
-        {{ letter }}
-      </button>
-    </section>
+    <section class="artists-gallery-stage">
+      <section class="artists-grid" aria-label="Galería de artistas">
+        <button
+          v-for="artist in artists"
+          :key="artist.name"
+          type="button"
+          class="artist-thumb"
+          :class="{ 'artist-thumb--active': selectedArtist?.name === artist.name }"
+          :aria-pressed="selectedArtist?.name === artist.name"
+          :aria-label="`Abrir ficha de ${artist.name}`"
+          @click="openArtist(artist)"
+        >
+          <img :src="artist.image" :alt="artist.name" class="artist-thumb-image" />
+        </button>
+      </section>
 
-    <section class="artists-gallery-grid" aria-label="Galería de artistas">
-      <Card
-        v-for="artist in visibleArtists"
-        :key="artist.name"
-        class="artist-card"
-      >
-        <div class="artist-card-image-wrap">
-          <img :src="artist.image" :alt="artist.name" class="artist-card-image" />
+      <Transition name="modal-fade">
+        <div
+          v-if="isModalOpen && selectedArtist"
+          class="artist-modal-backdrop"
+          role="presentation"
+          @click.self="closeArtist"
+        >
+          <article
+            class="artist-modal"
+            role="dialog"
+            aria-modal="true"
+            :aria-labelledby="`artist-modal-title-${selectedArtist.name}`"
+          >
+            <button
+              type="button"
+              class="artist-modal-close"
+              aria-label="Cerrar ficha del artista"
+              @click="closeArtist"
+            >
+              <X :size="18" />
+            </button>
+
+            <div class="artist-modal-media">
+              <img
+                :src="selectedArtist.image"
+                :alt="selectedArtist.name"
+                class="artist-modal-image"
+              />
+            </div>
+
+            <div class="artist-modal-copy">
+              <p
+                :id="`artist-modal-title-${selectedArtist.name}`"
+                class="artist-modal-name font-monument"
+              >
+                {{ selectedArtist.name }}
+              </p>
+
+              <p class="artist-modal-text">
+                {{
+                  selectedArtist.bio ||
+                  "Ficha pendiente de importar desde Excel. Cuando me pases la tabla, colocamos aquí la biografía o descripción."
+                }}
+              </p>
+
+              <div class="artist-modal-links">
+                <a
+                  v-if="selectedArtist.instagramUrl"
+                  :href="selectedArtist.instagramUrl"
+                  target="_blank"
+                  rel="noreferrer"
+                  class="artist-modal-link"
+                  aria-label="Abrir Instagram"
+                >
+                  <Instagram :size="26" />
+                </a>
+
+                <a
+                  v-if="selectedArtist.musicUrl"
+                  :href="selectedArtist.musicUrl"
+                  target="_blank"
+                  rel="noreferrer"
+                  class="artist-modal-link"
+                  aria-label="Abrir música del artista"
+                >
+                  <Music2 :size="26" />
+                </a>
+              </div>
+            </div>
+          </article>
         </div>
-
-        <CardHeader>
-          <CardTitle>{{ artist.name }}</CardTitle>
-          <CardDescription>
-            Artista del festival
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent class="artist-card-content">
-          <p class="artist-card-note">
-            Vista previa editorial pensada para integrar la información del Excel.
-          </p>
-        </CardContent>
-      </Card>
+      </Transition>
     </section>
   </main>
 </template>
@@ -91,82 +143,40 @@ const visibleArtists = computed(() => {
 <style scoped>
 .artists-gallery-page {
   min-height: 100vh;
-  padding: 0 32px 72px;
-  background:
-    radial-gradient(circle at top left, rgb(255 255 255 / 5%), transparent 28%),
-    radial-gradient(circle at top right, rgb(255 255 255 / 3%), transparent 24%),
-    #000;
-  color: white;
+  padding: 32px;
+  background-color: #000;
+  color: #fff;
 }
 
-.artists-gallery-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.7fr);
-  gap: 32px;
-  min-height: calc(100vh - 92px);
-  padding: 32px 0 24px;
-  align-items: end;
-}
-
-.artists-gallery-hero-copy {
-  max-width: 52rem;
+.artists-gallery-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 56px;
 }
 
 .artists-gallery-kicker {
-  margin: 0 0 16px;
+  margin: 0 0 10px;
   font-size: 12px;
-  font-weight: 400;
   letter-spacing: 0.28em;
-  color: rgb(255 255 255 / 56%);
+  color: rgb(255 255 255 / 58%);
 }
 
 .artists-gallery-title {
   margin: 0;
-  font-size: clamp(40px, 6vw, 86px);
-  line-height: 0.95;
+  font-size: clamp(42px, 6vw, 92px);
+  line-height: 0.9;
   font-weight: 900;
 }
 
-.artists-gallery-text {
-  max-width: 42ch;
-  margin: 18px 0 0;
-  font-size: 15px;
-  line-height: 1.7;
-  letter-spacing: 0.02em;
-  color: rgb(255 255 255 / 66%);
-}
-
-.artists-gallery-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: flex-end;
-  justify-content: flex-end;
-}
-
-.artists-gallery-count {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  font-size: clamp(28px, 4vw, 54px);
-  line-height: 1;
-  text-align: right;
-}
-
-.artists-gallery-count span {
-  margin-top: 10px;
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0.32em;
-  color: rgb(255 255 255 / 56%);
-}
-
 .artists-gallery-back {
-  color: white;
-  font-size: 11px;
-  letter-spacing: 0.26em;
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.24em;
   text-decoration: none;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .artists-gallery-back:hover {
@@ -174,107 +184,234 @@ const visibleArtists = computed(() => {
   text-underline-offset: 4px;
 }
 
-.artists-gallery-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 28px;
+.artists-gallery-stage {
+  display: grid;
+  gap: 28px;
 }
 
-.filter-chip {
-  border: 1px solid rgb(255 255 255 / 12%);
-  background: rgb(255 255 255 / 4%);
-  color: rgb(255 255 255 / 72%);
-  padding: 10px 14px;
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
-}
-
-.filter-chip:hover {
-  border-color: rgb(255 255 255 / 28%);
-  background: rgb(255 255 255 / 8%);
-  color: white;
-}
-
-.filter-chip--active {
-  border-color: rgb(255 255 255 / 42%);
-  background: rgb(255 255 255 / 12%);
-  color: white;
-}
-
-.artists-gallery-grid {
+.artists-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
+  padding-top: 8px;
+  align-items: start;
 }
 
-.artist-card {
-  background: rgb(255 255 255 / 2%);
+.artist-thumb {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  position: relative;
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
-.artist-card:hover {
+.artist-thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(255 255 255 / 10%);
+  pointer-events: none;
+  transition: border-color 180ms ease;
+}
+
+.artist-thumb:hover {
   transform: translateY(-2px);
 }
 
-.artist-card-image-wrap {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 1 / 1;
+.artist-thumb:hover::after,
+.artist-thumb--active::after {
+  border-color: rgb(255 255 255 / 34%);
 }
 
-.artist-card-image {
+.artist-thumb-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(6%);
-  transition: transform 300ms ease;
+  display: block;
 }
 
-.artist-card:hover .artist-card-image {
-  transform: scale(1.03);
+.artist-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background: rgb(0 0 0 / 58%);
+  backdrop-filter: blur(8px);
 }
 
-.artist-card-content {
-  padding-top: 0;
+.artist-modal {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(280px, 0.58fr);
+  gap: 72px;
+  width: min(1060px, 100%);
+  max-height: min(82vh, 820px);
+  padding: 40px 44px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  background: #000;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
 }
 
-.artist-card-note {
+.artist-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 160ms ease, opacity 160ms ease;
+  z-index: 2;
+}
+
+.artist-modal-close:hover {
+  transform: translateY(-1px);
+  opacity: 0.8;
+}
+
+.artist-modal-media {
+  overflow: hidden;
+  align-self: stretch;
+  min-height: 0;
+  background: rgb(255 255 255 / 4%);
+  aspect-ratio: 1 / 1;
+  max-width: 620px;
+}
+
+.artist-modal-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.artist-modal-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  padding: 18px 8px 18px 0;
+}
+
+.artist-modal-name {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.6;
-  color: rgb(255 255 255 / 56%);
+  font-size: clamp(20px, 2.4vw, 34px);
+  line-height: 0.92;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-@media (max-width: 1024px) {
-  .artists-gallery-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.artist-modal-text {
+  margin: 0;
+  max-width: 36ch;
+  font-size: clamp(14px, 0.95vw, 16px);
+  line-height: 1.55;
+  color: rgb(255 255 255 / 82%);
+}
+
+.artist-modal-links {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.artist-modal-link {
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.artist-modal-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.8;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 180ms ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 1100px) {
+  .artist-modal {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-height: 88vh;
+    width: min(920px, 100%);
+  }
+
+  .artist-modal-media {
+    max-width: none;
   }
 }
 
 @media (max-width: 760px) {
   .artists-gallery-page {
-    padding: 0 18px 56px;
+    padding: 20px 18px 28px;
   }
 
-  .artists-gallery-hero {
-    grid-template-columns: 1fr;
-    min-height: calc(100svh - 76px);
-    padding-top: 24px;
+  .artists-gallery-header {
+    margin-bottom: 28px;
   }
 
-  .artists-gallery-meta {
-    align-items: flex-start;
+  .artists-gallery-title {
+    font-size: clamp(36px, 14vw, 64px);
   }
 
-  .artists-gallery-count {
-    text-align: left;
+  .artists-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
   }
 
-  .artists-gallery-grid {
-    grid-template-columns: 1fr;
+  .artist-modal-backdrop {
+    padding: 10px;
+  }
+
+  .artist-modal {
+    width: 100%;
+    max-height: 92vh;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .artist-modal-copy {
+    padding: 0;
+    gap: 16px;
+  }
+
+  .artist-modal-name {
+    padding-right: 44px;
+    font-size: clamp(20px, 8vw, 28px);
+  }
+
+  .artist-modal-text {
+    font-size: 14px;
+  }
+
+  .artist-modal-link {
+    width: 28px;
+    height: 28px;
   }
 }
 </style>
