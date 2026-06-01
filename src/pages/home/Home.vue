@@ -4,14 +4,12 @@
       <canvas
         ref="animationCanvas"
         class="home-sequence-canvas"
-        :class="{ 'is-hidden': sequenceOpacity <= 0.01 }"
-        :style="{ opacity: sequenceOpacity }"
+        :style="sequenceCanvasStyles"
       ></canvas>
 
       <div
         class="home-meta font-monument"
-        :class="{ 'is-hidden': metaOpacity <= 0.01 }"
-        :style="{ opacity: metaOpacity }"
+        :class="{ 'is-transformed': revealProgress > 0.18, 'is-complete': isRevealComplete }"
       >
         <p class="home-date">
           23.10—<br />
@@ -25,7 +23,7 @@
       </div>
     </section>
 
-    <section class="home-intro" :class="{ 'is-revealed': isIntroRevealed }">
+    <section class="home-intro">
       <div class="home-intro-content">
         <h2 class="home-intro-title font-monument">
           <span>FESTIVAL DE MÚSICA,</span>
@@ -42,14 +40,19 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 const scrollContainer = ref<HTMLElement | null>(null);
 const animationCanvas = ref<HTMLCanvasElement | null>(null);
-const sequenceOpacity = ref(1);
-const metaOpacity = ref(1);
-const isIntroRevealed = ref(false);
+const revealProgress = ref(0);
+
+const isRevealComplete = computed(() => revealProgress.value >= 0.995);
+const sequenceCanvasStyles = computed(() => {
+  return {
+    "--sequence-exit-progress": revealProgress.value.toFixed(4),
+  };
+});
 
 let cleanupAnimation = () => {};
 
@@ -190,23 +193,18 @@ onMounted(async () => {
 
   const updateFrameFromWindowScroll = () => {
     const sectionTop = container.offsetTop;
-    const sectionHeight = container.offsetHeight;
-    const scrollDistance = Math.max(sectionHeight - window.innerHeight, 1);
+    const documentHeight = document.documentElement.scrollHeight;
+    const scrollDistance = Math.max(documentHeight - window.innerHeight - sectionTop, 1);
     const localScroll = window.scrollY - sectionTop;
     const progress = clamp(localScroll / scrollDistance, 0, 1);
 
     targetFrame = progress * (frameCount - 1);
-    sequenceOpacity.value = 1 - smoothStep(0.9, 1, progress);
-    metaOpacity.value = 1 - smoothStep(0.72, 0.86, progress);
-    isIntroRevealed.value = progress >= 0.78;
-
-    console.log(
-      `Frame actual: ${Math.round(targetFrame + frameStart)} | progreso: ${progress.toFixed(3)} | scrollY: ${Math.round(window.scrollY)}`,
-    );
+    revealProgress.value = smoothStep(0.82, 0.98, progress);
   };
 
   const animate = () => {
     const distance = targetFrame - displayedFrame;
+
     displayedFrame += distance * lerpFactor;
 
     if (Math.abs(distance) < 0.001) {
@@ -281,13 +279,12 @@ onUnmounted(() => {
   width: 100vw;
   height: 100vh;
   background-color: black;
-  transition: opacity 280ms ease-out;
-  will-change: opacity;
-}
-
-.home-sequence-canvas.is-hidden {
-  opacity: 0;
+  opacity: calc(1 - var(--sequence-exit-progress));
+  filter: blur(calc(var(--sequence-exit-progress) * 8px));
+  transform: scale(calc(1 + (var(--sequence-exit-progress) * 0.015)));
+  transform-origin: 50% 42%;
   pointer-events: none;
+  will-change: opacity, filter, transform;
 }
 
 .home-meta {
@@ -300,12 +297,19 @@ onUnmounted(() => {
   grid-template-columns: 1fr 1fr;
   gap: clamp(18px, 3vw, 32px);
   pointer-events: none;
-  transition: opacity 260ms ease-out;
-  will-change: opacity;
+  transform-origin: center;
+  transition:
+    filter 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.home-meta.is-hidden {
-  opacity: 0;
+.home-meta.is-transformed {
+  filter: blur(18px);
+  transform: scale(0.88);
+}
+
+.home-meta.is-complete {
+  visibility: hidden;
 }
 
 .home-date,
@@ -323,28 +327,19 @@ onUnmounted(() => {
 .home-intro {
   position: relative;
   z-index: 3;
-  margin-top: -42vh;
-  min-height: 48vh;
-  padding: clamp(18px, 5vh, 56px) var(--page-padding) clamp(90px, 18vh, 180px);
-  opacity: 0;
-  transform: translateY(32px);
-  transition:
-    opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
-}
-
-.home-intro.is-revealed {
-  opacity: 1;
-  transform: translateY(0);
+  margin-top: -46vh;
+  min-height: auto;
+  padding: clamp(18px, 5vh, 56px) var(--page-padding) clamp(0px, 1vh, 12px);
 }
 
 .home-intro-content {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;
   gap: clamp(28px, 5vw, 68px);
-  min-height: 12vh;
+  min-height: auto;
 }
 
 .home-intro-title {
@@ -395,8 +390,9 @@ onUnmounted(() => {
 
   .home-intro {
     min-height: auto;
-    padding-top: 56px;
-    padding-bottom: 112px;
+    margin-top: -44vh;
+    padding-top: 46px;
+    padding-bottom: 20px;
   }
 
   .home-intro-content {

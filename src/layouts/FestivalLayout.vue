@@ -16,7 +16,7 @@ const showFooter = computed(() => route.name !== 'menu');
       <RouterView />
     </main>
 
-    <footer v-if="showFooter" class="site-footer mt-20 border-t border-white/10 bg-black py-8 text-white/80 md:mt-28">
+    <footer v-if="showFooter" class="site-footer mt-0 border-t border-white/10 bg-black pb-8 pt-2 text-white/80">
       <div class="footer-inner flex flex-col gap-8">
         <div class="footer-brands grid gap-8 lg:grid-cols-[1.2fr_1fr]">
           <div>
