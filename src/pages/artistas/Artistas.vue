@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { RouterLink } from "vue-router";
-import { ChevronLeft, ChevronRight } from "lucide-vue-next";
 
 const artists = [
   { name: "CATERINA BARBERI", image: "/assets/artistas/1.jpg" },
@@ -82,12 +81,40 @@ const goToPrevSlide = () => {
   startCarousel();
 };
 
+const handleCarouselKeydown = (event: KeyboardEvent) => {
+  const target = event.target as HTMLElement | null;
+
+  if (
+    target &&
+    (target.tagName === "INPUT" ||
+      target.tagName === "TEXTAREA" ||
+      target.tagName === "SELECT" ||
+      target.isContentEditable)
+  ) {
+    return;
+  }
+
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    goToPrevSlide();
+    return;
+  }
+
+  if (event.key === "ArrowRight") {
+    event.preventDefault();
+    goToNextSlide();
+    return;
+  }
+};
+
 onMounted(() => {
   startCarousel();
+  window.addEventListener("keydown", handleCarouselKeydown);
 });
 
 onUnmounted(() => {
   stopCarousel();
+  window.removeEventListener("keydown", handleCarouselKeydown);
 });
 </script>
 
@@ -104,35 +131,21 @@ onUnmounted(() => {
         </RouterLink>
       </div>
 
-      <div class="carousel-arrows" aria-label="Controles del carrusel">
-        <button
-          type="button"
-          class="carousel-arrow carousel-arrow--prev"
-          @click="goToPrevSlide"
-          aria-label="Ir al slide anterior"
-        >
-          <component :is="ChevronLeft" class="carousel-arrow-icon" aria-hidden="true" />
-        </button>
-
-        <button
-          type="button"
-          class="carousel-arrow carousel-arrow--next"
-          @click="goToNextSlide"
-          aria-label="Ir al slide siguiente"
-        >
-          <component :is="ChevronRight" class="carousel-arrow-icon" aria-hidden="true" />
-        </button>
-      </div>
-
       <div
-        class="artists-track"
-        :style="{ transform: `translateX(calc(-${activeSlide} * (100% + 32px)))` }"
+        tabindex="0"
+        class="artists-stage"
+        aria-label="Carrusel de artistas. Usa las flechas izquierda y derecha del teclado para navegar."
       >
-        <div v-for="(slide, index) in slides" :key="index" class="artists-slide">
-          <article v-for="artist in slide" :key="artist.name" class="artist-card">
-            <img :src="artist.image" :alt="artist.name" class="artist-image" />
-            <h2 class="artist-name">{{ artist.name }}</h2>
-          </article>
+        <div
+          class="artists-track"
+          :style="{ transform: `translateX(calc(-${activeSlide} * (100% + 32px)))` }"
+        >
+          <div v-for="(slide, index) in slides" :key="index" class="artists-slide">
+            <article v-for="artist in slide" :key="artist.name" class="artist-card">
+              <img :src="artist.image" :alt="artist.name" class="artist-image" />
+              <h2 class="artist-name">{{ artist.name }}</h2>
+            </article>
+          </div>
         </div>
       </div>
     </section>
@@ -191,53 +204,18 @@ onUnmounted(() => {
   text-underline-offset: 4px;
 }
 
-.carousel-arrows {
-  position: absolute;
-  top: 52%;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 14px;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.carousel-arrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  border: 0;
-  border-radius: 9999px;
-  background: rgb(0 0 0 / 58%);
-  color: white;
-  font-size: 22px;
-  font-weight: 300;
-  line-height: 1;
-  cursor: pointer;
-  pointer-events: auto;
-  transition: transform 180ms ease, background-color 180ms ease;
-}
-
-.carousel-arrow-icon {
-  width: 22px;
-  height: 22px;
-  stroke-width: 1.75;
-}
-
-.carousel-arrow:hover {
-  background: rgb(0 0 0 / 72%);
-  transform: translateY(-1px);
-}
-
-.carousel-arrow:focus-visible,
 .artists-view-all:focus-visible {
   outline: 2px solid white;
   outline-offset: 3px;
+}
+
+.artists-stage {
+  outline: none;
+}
+
+.artists-stage:focus-visible .artists-track {
+  outline: 1px solid rgb(255 255 255 / 28%);
+  outline-offset: 6px;
 }
 
 .artists-track {
@@ -295,19 +273,8 @@ onUnmounted(() => {
     letter-spacing: 0.18em;
   }
 
-  .carousel-arrows {
-    top: 53%;
-    padding: 0 6px;
-  }
-
-  .carousel-arrow {
-    width: 44px;
-    height: 44px;
-  }
-
-  .carousel-arrow-icon {
-    width: 18px;
-    height: 18px;
+  .artists-stage:focus-visible .artists-track {
+    outline-offset: 4px;
   }
 }
 </style>
