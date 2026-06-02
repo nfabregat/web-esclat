@@ -145,6 +145,12 @@ onUnmounted(() => {
   line-height: 1.2;
 }
 
+@media (min-width: 1025px) {
+  .shop-hero {
+    min-height: 88vh;
+  }
+}
+
 @media (max-width: 1024px) {
   .shop-hero {
     min-height: 88vh;

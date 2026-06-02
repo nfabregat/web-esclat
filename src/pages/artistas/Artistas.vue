@@ -168,6 +168,22 @@ onUnmounted(() => {
   aspect-ratio: 1 / 1;
 }
 
+@media (min-width: 1025px) {
+  .artists-page {
+    --page-padding: max(24px, 3vw);
+  }
+
+  .artists-hero {
+    min-height: 88vh;
+  }
+
+  .artists-title {
+    bottom: 32px;
+    left: var(--page-padding);
+    font-size: clamp(46px, 6.6vw, 90px);
+  }
+}
+
 @media (max-width: 760px) {
   .artists-page {
     --page-padding: max(24px, 3vw);
