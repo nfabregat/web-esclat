@@ -371,11 +371,11 @@ onUnmounted(() => {
 .artist-modal {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 0.82fr) minmax(280px, 0.58fr);
-  gap: 72px;
-  width: min(1060px, 100%);
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.72fr);
+  gap: 48px;
+  width: min(1260px, 100%);
   max-height: min(82vh, 820px);
-  padding: 40px 44px;
+  padding: 36px 40px;
   border: 1px solid rgb(255 255 255 / 12%);
   background: #000;
   box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
@@ -384,23 +384,30 @@ onUnmounted(() => {
 
 .artist-modal-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 18px;
+  right: 18px;
   border: 0;
-  background: transparent;
+  background: rgb(0 0 0 / 56%);
   color: #fff;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: transform 160ms ease, opacity 160ms ease;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
   z-index: 2;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
 }
 
 .artist-modal-close:hover {
   transform: translateY(-1px);
-  opacity: 0.8;
+  opacity: 0.9;
+  background: rgb(0 0 0 / 72%);
 }
 
 .artist-modal-media {
@@ -409,7 +416,7 @@ onUnmounted(() => {
   min-height: 0;
   background: rgb(255 255 255 / 4%);
   aspect-ratio: 1 / 1;
-  max-width: 620px;
+  width: 100%;
 }
 
 .artist-modal-image {
@@ -425,7 +432,7 @@ onUnmounted(() => {
   justify-content: flex-start;
   align-items: flex-start;
   gap: 22px;
-  padding: 18px 8px 18px 0;
+  padding: 18px 4px 18px 0;
   text-align: left;
 }
 
@@ -482,14 +489,15 @@ onUnmounted(() => {
 
 @media (max-width: 1100px) {
   .artist-modal {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.58fr);
+    gap: 24px;
     max-height: 88vh;
-    width: min(920px, 100%);
+    width: min(1100px, calc(100vw - 48px));
+    padding: 24px;
   }
 
   .artist-modal-media {
-    max-width: none;
+    width: 100%;
   }
 }
 
@@ -535,6 +543,7 @@ onUnmounted(() => {
     padding: 16px;
     gap: 16px;
     align-items: start;
+    grid-template-columns: 1fr;
   }
 
   .artist-modal-copy {
@@ -559,6 +568,13 @@ onUnmounted(() => {
   .artist-modal-link {
     width: 28px;
     height: 28px;
+  }
+
+  .artist-modal-close {
+    width: 34px;
+    height: 34px;
+    top: 14px;
+    right: 14px;
   }
 }
 </style>
