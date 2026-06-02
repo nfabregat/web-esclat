@@ -1,125 +1,28 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import { ChevronLeft, Minus, Plus, Search, ShoppingCart, X } from "lucide-vue-next";
-import { useRoute, useRouter } from "vue-router";
+import { Search, ShoppingCart, X, Minus, Plus } from "lucide-vue-next";
+import { useRouter } from "vue-router";
+import { formatShopPrice, shopProducts, type ShopProduct } from "@/data/shop";
+import { useShopCart, type CartItem } from "@/composables/useShopCart";
 
-type Product = {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  hoverImage: string;
-  description: string;
-  sizes: string[];
-};
-
-type CartItem = {
-  productId: string;
-  size: string;
-  quantity: number;
-};
-
-const resolveAsset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, "")}`;
-
-const products: Product[] = [
-  {
-    id: "camiseta",
-    name: "CAMISETA",
-    price: 30,
-    image: resolveAsset("/assets/artistas/1.jpg"),
-    hoverImage: resolveAsset("/assets/artistas/2.jpg"),
-    description: "Camiseta de corte recto con gráfico principal de ESCLAT y tejido de algodón grueso.",
-    sizes: ["S", "M", "L"],
-  },
-  {
-    id: "gorra",
-    name: "GORRA",
-    price: 30,
-    image: resolveAsset("/assets/artistas/3.jpg"),
-    hoverImage: resolveAsset("/assets/artistas/4.jpg"),
-    description: "Gorra de perfil bajo con bordado frontal y ajuste trasero regulable.",
-    sizes: ["U"],
-  },
-  {
-    id: "sudadera",
-    name: "SUDADERA",
-    price: 48,
-    image: resolveAsset("/assets/artistas/5.jpg"),
-    hoverImage: resolveAsset("/assets/artistas/6.jpg"),
-    description: "Sudadera oversize con felpa interior y acabado pesado para un tacto premium.",
-    sizes: ["M", "L", "XL"],
-  },
-  {
-    id: "tote",
-    name: "TOTE BAG",
-    price: 18,
-    image: resolveAsset("/assets/artistas/7.jpg"),
-    hoverImage: resolveAsset("/assets/artistas/8.jpg"),
-    description: "Tote bag de lona resistente para uso diario y transporte de vinilos o fanzines.",
-    sizes: ["U"],
-  },
-  {
-    id: "vinilo",
-    name: "VINILO",
-    price: 35,
-    image: resolveAsset("/assets/artistas/9.jpg"),
-    hoverImage: resolveAsset("/assets/artistas/10.jpg"),
-    description: "Edición física con selección musical del universo ESCLAT.",
-    sizes: ["U"],
-  },
-  {
-    id: "poster",
-    name: "POSTER",
-    price: 12,
-    image: resolveAsset("/assets/artistas/11.jpg"),
-    hoverImage: resolveAsset("/assets/artistas/12.jpg"),
-    description: "Póster de edición limitada impreso en papel de alto gramaje.",
-    sizes: ["30x40"],
-  },
-];
-
-const productById = computed<Record<string, Product>>(() => {
-  return Object.fromEntries(products.map((product) => [product.id, product]));
-});
-
-const route = useRoute();
 const router = useRouter();
+const { cartItems, cartCount, cartTotal, incrementItem, decrementItem, getCartLineTotal, getCartProduct } =
+  useShopCart();
+const formatPrice = formatShopPrice;
+
 const searchQuery = ref("");
 const searchInputRef = ref<HTMLInputElement | null>(null);
 const isSearchOpen = ref(false);
 const isCartOpen = ref(false);
-const selectedProductId = ref<string | null>(null);
-const selectedSize = ref("");
-const cartItems = ref<CartItem[]>([]);
-
-const formatPrice = (value: number) => {
-  return `${value.toFixed(2).replace(".", ",")}€`;
-};
-
-const selectedProduct = computed(() => {
-  if (!selectedProductId.value) return null;
-  return productById.value[selectedProductId.value] ?? null;
-});
-
-const cartCount = computed(() => {
-  return cartItems.value.reduce((total, item) => total + item.quantity, 0);
-});
-
-const cartTotal = computed(() => {
-  return cartItems.value.reduce((total, item) => {
-    const product = productById.value[item.productId];
-    return total + (product?.price ?? 0) * item.quantity;
-  }, 0);
-});
 
 const filteredProducts = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
 
   if (!query) {
-    return products;
+    return shopProducts;
   }
 
-  return products.filter((product) => {
+  return shopProducts.filter((product) => {
     const haystack = `${product.name} ${product.description} ${product.price}`.toLowerCase();
     return haystack.includes(query);
   });
@@ -134,23 +37,24 @@ const searchResults = computed(() => {
   return filteredProducts.value;
 });
 
-const recommendedProducts = computed(() => products.slice(0, 3));
-const completeLookProducts = computed(() => products.slice(3, 6));
+const recommendedProducts = computed(() => shopProducts.slice(0, 3));
+const completeLookProducts = computed(() => shopProducts.slice(3, 6));
+const cartEntries = computed(() =>
+  cartItems.value
+    .map((item) => ({
+      item,
+      product: getCartProduct(item.productId),
+    }))
+    .filter((entry): entry is { item: CartItem; product: ShopProduct } => Boolean(entry.product)),
+);
 
-const closeAllPanels = () => {
+const closeSearch = () => {
   isSearchOpen.value = false;
-  isCartOpen.value = false;
-  selectedProductId.value = null;
 };
 
 const openSearch = () => {
   isCartOpen.value = false;
-  selectedProductId.value = null;
   isSearchOpen.value = true;
-};
-
-const closeSearch = () => {
-  isSearchOpen.value = false;
 };
 
 const toggleSearch = () => {
@@ -162,14 +66,13 @@ const toggleSearch = () => {
   openSearch();
 };
 
-const openCart = () => {
-  isSearchOpen.value = false;
-  selectedProductId.value = null;
-  isCartOpen.value = true;
-};
-
 const closeCart = () => {
   isCartOpen.value = false;
+};
+
+const openCart = () => {
+  isSearchOpen.value = false;
+  isCartOpen.value = true;
 };
 
 const toggleCart = () => {
@@ -181,101 +84,25 @@ const toggleCart = () => {
   openCart();
 };
 
-const closeProduct = () => {
-  router.push({ name: "tienda" });
-};
-
-const addToCart = (product: Product, size: string) => {
-  const cartSize = size || product.sizes[0] || "U";
-  const existingItem = cartItems.value.find(
-    (item) => item.productId === product.id && item.size === cartSize,
-  );
-
-  if (existingItem) {
-    existingItem.quantity += 1;
-  } else {
-    cartItems.value.push({
-      productId: product.id,
-      size: cartSize,
-      quantity: 1,
-    });
-  }
-};
-
-const addSelectedProductToCart = () => {
-  if (!selectedProduct.value) return;
-
-  addToCart(selectedProduct.value, selectedSize.value);
-  router.push({ name: "tienda" });
-  openCart();
-};
-
-const incrementItem = (item: CartItem) => {
-  item.quantity += 1;
-};
-
-const decrementItem = (item: CartItem) => {
-  item.quantity -= 1;
-
-  if (item.quantity <= 0) {
-    cartItems.value = cartItems.value.filter((entry) => entry !== item);
-  }
-};
-
-const getCartLineTotal = (item: CartItem) => {
-  const product = productById.value[item.productId];
-  return formatPrice((product?.price ?? 0) * item.quantity);
-};
-
-const openProductPage = (product: Product) => {
-  closeAllPanels();
-  router.push({ name: "tienda", params: { productId: product.id } });
-};
-
-const syncSelectedProductFromRoute = (productId: unknown) => {
-  if (typeof productId === "string" && productById.value[productId]) {
-    selectedProductId.value = productId;
-    return;
-  }
-
-  if (productId === undefined || productId === null || productId === "") {
-    selectedProductId.value = null;
-    return;
-  }
-
-  selectedProductId.value = null;
+const openProductPage = (productId: string) => {
+  closeSearch();
+  closeCart();
+  router.push({ name: "tienda-product", params: { productId } });
 };
 
 const handleEscape = (event: KeyboardEvent) => {
   if (event.key !== "Escape") return;
 
-  if (selectedProduct.value) {
-    closeProduct();
-    return;
-  }
-
-  closeAllPanels();
+  closeSearch();
+  closeCart();
 };
 
-watch(selectedProduct, (product) => {
-  selectedSize.value = product?.sizes[0] ?? "";
-});
-
 watch(
-  () => route.params.productId,
-  (productId) => {
-    syncSelectedProductFromRoute(productId);
-  },
-  { immediate: true },
-);
-
-watch(
-  [isSearchOpen, isCartOpen, selectedProductId],
-  async ([searchOpen, cartOpen, productId]) => {
+  [isSearchOpen, isCartOpen],
+  async ([searchOpen, cartOpen]) => {
     if (typeof document === "undefined") return;
 
-    const shouldLock = Boolean(searchOpen || cartOpen || productId);
-    document.body.style.overflow = shouldLock ? "hidden" : "";
+    document.body.style.overflow = Boolean(searchOpen || cartOpen) ? "hidden" : "";
 
     if (searchOpen) {
       await nextTick();
@@ -336,16 +163,16 @@ onUnmounted(() => {
           :key="product.id"
           class="shop-product"
           type="button"
-          @click="openProductPage(product)"
+          @click="openProductPage(product.id)"
         >
           <span class="shop-product-visual">
             <img
-              :src="product.image"
+              :src="product.images[0]"
               :alt="product.name"
               class="shop-product-image shop-product-image--primary"
             />
             <img
-              :src="product.hoverImage"
+              :src="product.images[1] ?? product.images[0]"
               :alt="product.name"
               class="shop-product-image shop-product-image--secondary"
             />
@@ -391,7 +218,7 @@ onUnmounted(() => {
             :key="product.id"
             class="shop-search-result"
             type="button"
-            @click="openProductPage(product)"
+            @click="openProductPage(product.id)"
           >
             <span class="shop-search-result-name">{{ product.name }}</span>
             <span class="shop-search-result-price">{{ formatPrice(product.price) }}</span>
@@ -433,13 +260,13 @@ onUnmounted(() => {
                 <h3 class="shop-cart-section-title">RECOMENDADOS</h3>
                 <div class="shop-mini-list">
                   <button
-                  v-for="product in recommendedProducts"
-                  :key="product.id"
-                  class="shop-mini-product"
-                  type="button"
-                  @click="openProductPage(product)"
-                >
-                    <img :src="product.image" :alt="product.name" class="shop-mini-image" />
+                    v-for="product in recommendedProducts"
+                    :key="product.id"
+                    class="shop-mini-product"
+                    type="button"
+                    @click="openProductPage(product.id)"
+                  >
+                    <img :src="product.images[0]" :alt="product.name" class="shop-mini-image" />
                     <span class="shop-mini-copy">
                       <span class="shop-mini-name">{{ product.name }}</span>
                       <span class="shop-mini-price">{{ formatPrice(product.price) }}</span>
@@ -452,32 +279,32 @@ onUnmounted(() => {
             <template v-else>
               <div class="shop-cart-list">
                 <article
-                  v-for="item in cartItems"
-                  :key="`${item.productId}-${item.size}`"
+                  v-for="entry in cartEntries"
+                  :key="`${entry.item.productId}-${entry.item.size}`"
                   class="shop-cart-item"
                 >
                   <img
-                    :src="productById[item.productId]?.image"
-                    :alt="productById[item.productId]?.name"
+                    :src="entry.product.images[0]"
+                    :alt="entry.product.name"
                     class="shop-cart-thumb"
                   />
 
                   <div class="shop-cart-item-copy">
-                    <p class="shop-cart-item-name">{{ productById[item.productId]?.name }}</p>
+                    <p class="shop-cart-item-name">{{ entry.product.name }}</p>
                     <p class="shop-cart-item-meta">
-                      <span>{{ item.size }}</span>
-                      <span>x{{ item.quantity }}</span>
+                      <span>{{ entry.item.size }}</span>
+                      <span>x{{ entry.item.quantity }}</span>
                     </p>
                   </div>
 
                   <div class="shop-cart-item-right">
-                    <span class="shop-cart-item-price">{{ getCartLineTotal(item) }}</span>
+                    <span class="shop-cart-item-price">{{ getCartLineTotal(entry.item) }}</span>
                     <div class="shop-cart-qty">
                       <button
                         class="shop-cart-qty-button"
                         type="button"
                         aria-label="Reducir cantidad"
-                        @click="decrementItem(item)"
+                        @click="decrementItem(entry.item)"
                       >
                         <Minus :size="14" />
                       </button>
@@ -485,7 +312,7 @@ onUnmounted(() => {
                         class="shop-cart-qty-button"
                         type="button"
                         aria-label="Aumentar cantidad"
-                        @click="incrementItem(item)"
+                        @click="incrementItem(entry.item)"
                       >
                         <Plus :size="14" />
                       </button>
@@ -498,13 +325,13 @@ onUnmounted(() => {
                 <h3 class="shop-cart-section-title">COMPLETA EL LOOK</h3>
                 <div class="shop-mini-list">
                   <button
-                  v-for="product in completeLookProducts"
-                  :key="product.id"
-                  class="shop-mini-product"
-                  type="button"
-                  @click="openProductPage(product)"
-                >
-                    <img :src="product.image" :alt="product.name" class="shop-mini-image" />
+                    v-for="product in completeLookProducts"
+                    :key="product.id"
+                    class="shop-mini-product"
+                    type="button"
+                    @click="openProductPage(product.id)"
+                  >
+                    <img :src="product.images[0]" :alt="product.name" class="shop-mini-image" />
                     <span class="shop-mini-copy">
                       <span class="shop-mini-name">{{ product.name }}</span>
                       <span class="shop-mini-price">{{ formatPrice(product.price) }}</span>
@@ -527,52 +354,6 @@ onUnmounted(() => {
       </div>
     </transition>
 
-    <transition name="shop-modal">
-      <div
-        v-if="selectedProduct"
-        class="shop-modal-backdrop"
-        @click.self="closeProduct"
-      >
-        <section class="shop-product-modal" role="dialog" aria-modal="true">
-          <button class="shop-modal-close" type="button" aria-label="Cerrar ficha" @click="closeProduct">
-            <ChevronLeft :size="18" />
-          </button>
-
-          <div class="shop-modal-media">
-            <img :src="selectedProduct.image" :alt="selectedProduct.name" class="shop-modal-image" />
-          </div>
-
-          <div class="shop-modal-copy">
-            <p class="shop-modal-kicker">PRODUCTO</p>
-            <h2 class="shop-modal-title">{{ selectedProduct.name }}</h2>
-            <p class="shop-modal-description">{{ selectedProduct.description }}</p>
-
-            <div class="shop-size-group">
-              <p class="shop-size-label">TALLA</p>
-              <div class="shop-size-list">
-                <button
-                  v-for="size in selectedProduct.sizes"
-                  :key="size"
-                  class="shop-size-button"
-                  :class="{ 'is-active': selectedSize === size }"
-                  type="button"
-                  @click="selectedSize = size"
-                >
-                  {{ size }}
-                </button>
-              </div>
-            </div>
-
-            <div class="shop-modal-footer">
-              <span class="shop-modal-price">{{ formatPrice(selectedProduct.price) }}</span>
-              <button class="shop-add-button" type="button" @click="addSelectedProductToCart">
-                AÑADIR AL CARRITO
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
-    </transition>
   </main>
 </template>
 

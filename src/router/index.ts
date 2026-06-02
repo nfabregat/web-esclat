@@ -6,6 +6,7 @@ import Entradas from "@/pages/entradas/Entradas.vue";
 import Info from "@/pages/info/Info.vue";
 import Menu from "@/pages/menu/Menu.vue";
 import Programa from "@/pages/programa/Programa.vue";
+import Producto from "@/pages/tienda/Producto.vue";
 import Tienda from "@/pages/tienda/Tienda.vue";
 import FestivalLayout from "@/layouts/FestivalLayout.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
@@ -69,6 +70,11 @@ export const router = createRouter({
         },
         {
           path: "tienda/:productId?",
+          name: "tienda-product",
+          component: Producto,
+        },
+        {
+          path: "tienda",
           name: "tienda",
           component: Tienda,
         },
