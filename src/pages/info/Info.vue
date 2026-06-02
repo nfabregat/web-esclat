@@ -1,51 +1,123 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, computed } from "vue";
 
 const festivalSpaces = [
   {
-    name: "LA MUTANT",
+    id: "01",
+    name: "Hall La Polivalent",
     description:
-      "El escenario principal del festival. Aquí tendrán lugar las sesiones más intensas, shows audiovisuales y directos principales.",
+      "El hall principal donde se mezclan las entradas, el bar y los espacios de encuentro. Punto de conexión con las salas principales.",
+    path: "M60 60 H420 V240 H60 Z",
+    labelX: 80,
+    labelY: 120,
   },
   {
-    name: "LA POLIVALENT",
+    id: "02",
+    name: "La Polivalent",
     description:
       "Espacio dedicado a workshops, instalaciones inmersivas y experiencias interactivas relacionadas con arte, música y tecnología.",
+    path: "M520 60 H940 V240 H520 Z",
+    labelX: 720,
+    labelY: 120,
   },
   {
-    name: "FACTORÍA",
+    id: "03",
+    name: "Factoría",
     description: "Zona de experimentación sonora y creación musical en directo.",
+    path: "M60 280 H360 V420 H60 Z",
+    labelX: 110,
+    labelY: 340,
   },
   {
-    name: "VISUAL ROOM",
+    id: "04",
+    name: "Visual Room",
     description:
       "Sala centrada en visuales, luces, mapping y experiencias audiovisuales inmersivas.",
+    path: "M420 280 H740 V420 H420 Z",
+    labelX: 540,
+    labelY: 340,
   },
   {
-    name: "SALA DE EXPOSICIONES",
+    id: "05",
+    name: "Sala de Exposiciones",
     description:
       "Espacio dedicado a arte contemporáneo, instalaciones y colaboraciones visuales.",
+    path: "M760 280 H940 V420 H760 Z",
+    labelX: 780,
+    labelY: 340,
   },
   {
-    name: "PATIO 1",
+    id: "06",
+    name: "Patio 1",
     description:
       "Zona exterior pensada para descansar, socializar y desconectar entre actividades. Lugar donde se encuentra el confesionario.",
+    path: "M60 470 H360 V650 H60 Z",
+    labelX: 100,
+    labelY: 540,
   },
   {
-    name: "PATIO 2",
+    id: "07",
+    name: "Patio 2",
     description:
       "Espacio dedicado a performances y arte urbano en vivo, incluyendo murales y acciones colectivas.",
+    path: "M420 470 H760 V650 H420 Z",
+    labelX: 520,
+    labelY: 540,
   },
   {
-    name: "HALL Y VESTÍBULO",
+    id: "08",
+    name: "Vestíbulo La Mutant",
     description:
-      "Áreas de conexión entre espacios con ambientación visual, sonido e intervenciones artísticas.",
+      "El escenario principal del festival. Aquí tendrán lugar las sesiones más intensas, shows audiovisuales y directos principales.",
+    path: "M60 690 H940 V780 H60 Z",
+    labelX: 460,
+    labelY: 740,
+  },
+  {
+    id: "09",
+    name: "La Mutant",
+    description:
+      "El escenario principal del festival. Aquí tendrán lugar las sesiones más intensas, shows audiovisuales y directos principales.",
+    path: "M60 820 H940 V900 H60 Z",
+    labelX: 460,
+    labelY: 860,
   },
 ];
 
 const activeSpace = ref<string | null>(null);
 const activeFaq = ref<string | null>(null);
 const activeRule = ref<string | null>(null);
+
+const nivel1Svg = ref<string | null>(null);
+const nivel2Svg = ref<string | null>(null);
+const mutantSvg = ref<string | null>(null);
+const selectedMap = ref<string>("nivel1");
+
+const currentMapSvg = computed(() => {
+  if (selectedMap.value === "nivel1") return nivel1Svg.value;
+  if (selectedMap.value === "nivel2") return nivel2Svg.value;
+  return mutantSvg.value;
+});
+
+const loadSvgs = async () => {
+  try {
+    const [r1, r2, r3] = await Promise.all([
+      fetch("/assets/mapa/Mapa-LASNAVES-Nivel1.svg"),
+      fetch("/assets/mapa/Mapa-LASNAVES-Nivel2.svg"),
+      fetch("/assets/mapa/Mapa-LASNAVES-Mutant.svg"),
+    ]);
+
+    nivel1Svg.value = r1.ok ? await r1.text() : null;
+    nivel2Svg.value = r2.ok ? await r2.text() : null;
+    mutantSvg.value = r3.ok ? await r3.text() : null;
+  } catch (e) {
+    console.error("Error loading SVGs", e);
+  }
+};
+
+onMounted(() => {
+  loadSvgs();
+});
 
 const toggleSpace = (space: string) => {
   activeSpace.value = activeSpace.value === space ? null : space;
@@ -208,22 +280,73 @@ const ruleItems = [
     <section class="space-section">
       <h2 class="space-title font-monument">EL ESPACIO</h2>
 
-      <div class="space-layout">
+      <div class="space-grid">
+        <div class="space-map-card">
+          <div class="space-map-header">
+            <span>Mapa interactivo</span>
+            <small>Hover para resaltar, click para mostrar la descripción.</small>
+          </div>
+
+          <div class="space-map-header" style="gap:10px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button
+                class="space-button"
+                :class="{ 'active-map-button': selectedMap === 'nivel1' }"
+                type="button"
+                @click="selectedMap = 'nivel1'"
+              >
+                Planta Baja
+              </button>
+
+              <button
+                class="space-button"
+                :class="{ 'active-map-button': selectedMap === 'nivel2' }"
+                type="button"
+                @click="selectedMap = 'nivel2'"
+              >
+                Planta 1
+              </button>
+
+              <button
+                class="space-button"
+                :class="{ 'active-map-button': selectedMap === 'mutant' }"
+                type="button"
+                @click="selectedMap = 'mutant'"
+              >
+                La Mutant
+              </button>
+            </div>
+            <small style="color:rgba(255,255,255,0.6);">Selecciona un nivel</small>
+          </div>
+
+          <div
+            class="space-map"
+            role="img"
+            aria-label="Mapa interactivo del espacio ESCLAT"
+            v-html="currentMapSvg"
+          ></div>
+
+          <p class="map-hint">
+            Si quieres un mapa real, guarda solo la imagen base en <code>src/assets/mapa-espacio.png</code> o
+            <code>src/assets/mapa-espacio.svg</code> y sustituye el <code>&lt;rect&gt;</code> de fondo por la imagen.
+          </p>
+        </div>
+
         <ol class="space-list">
           <li
-            v-for="(space, index) in festivalSpaces"
-            :key="space.name"
+            v-for="space in festivalSpaces"
+            :key="space.id"
             class="space-list-item"
           >
             <button
               class="space-button"
               type="button"
-              @click="toggleSpace(space.name)"
+              @click="toggleSpace(space.id)"
             >
-              {{ index + 1 }}. {{ space.name }}
+              {{ space.id }}. {{ space.name }}
             </button>
 
-            <p v-if="activeSpace === space.name" class="space-description">
+            <p v-if="activeSpace === space.id" class="space-description">
               {{ space.description }}
             </p>
           </li>
@@ -432,6 +555,92 @@ const ruleItems = [
 
 .space-layout {
   padding-top: 8vh;
+}
+
+.space-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(280px, 360px);
+  gap: 40px;
+  align-items: start;
+  margin-top: 5vh;
+}
+
+.space-map-card {
+  background-color: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 15%);
+  padding: 28px;
+  border-radius: 18px;
+}
+
+.space-map-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  color: rgb(255 255 255 / 0.9);
+  font-family: "Roboto Mono", monospace;
+}
+
+.space-map-header small {
+  color: rgb(255 255 255 / 0.65);
+  font-size: 12px;
+  text-transform: none;
+}
+
+.active-map-button {
+  text-decoration: underline;
+}
+
+.space-map {
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  border-radius: 16px;
+  overflow: hidden;
+  display: block;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
+
+.map-background {
+  fill: transparent;
+}
+
+.map-area {
+  fill: rgba(255,255,255,0.04);
+  stroke: rgba(255,255,255,0.18);
+  stroke-width: 2;
+  cursor: pointer;
+  transition: fill 180ms ease, stroke 180ms ease, filter 180ms ease;
+}
+
+.map-area-hover {
+  fill: rgba(255,255,255,0.16);
+}
+
+.map-area-active {
+  fill: rgba(255,255,255,0.25);
+  stroke: rgba(255,255,255,0.95);
+  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.15));
+}
+
+.map-label {
+  font-family: "Roboto Mono", monospace;
+  font-size: 22px;
+  fill: rgba(255,255,255,0.9);
+  pointer-events: none;
+}
+
+.map-label,
+.space-list,
+.space-button {
+  font-weight: 400;
+}
+
+.map-hint {
+  margin-top: 18px;
+  color: rgb(255 255 255 / 0.6);
+  font-family: "Roboto Mono", monospace;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .space-list {
