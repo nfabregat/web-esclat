@@ -524,6 +524,7 @@ const programDays = [
     gap: 0;
     min-height: auto;
     padding-top: 0;
+    margin-left: 18px;
   }
 
   .program-grid::before {
@@ -547,7 +548,7 @@ const programDays = [
 
   .program-space-name {
     position: relative;
-    margin: 0 0 12px 0;
+    margin: 0 0 35px 0;
     padding-bottom: 0;
     font-size: 12px;
     font-weight: 400;
@@ -560,7 +561,7 @@ const programDays = [
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -6px;
+    bottom: -8px;
     height: 1px;
     background-color: #8a8a8a;
     transform: scaleY(0.5);
