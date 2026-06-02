@@ -87,6 +87,7 @@ onUnmounted(() => {
   min-height: 200vh;
   background-color: black;
   color: white;
+  --page-padding: max(24px, 3vw);
 }
 
 .shop-hero {
@@ -97,8 +98,8 @@ onUnmounted(() => {
 .shop-title {
   position: absolute;
   bottom: 32px;
-  left: 32px;
-  font-size: 42px;
+  left: var(--page-padding);
+  font-size: clamp(46px, 6.6vw, 90px);
   font-weight: 400;
   line-height: 1;
 }
@@ -142,5 +143,22 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 400;
   line-height: 1.2;
+}
+
+@media (max-width: 1024px) {
+  .shop-hero {
+    min-height: 88vh;
+  }
+
+  .shop-title {
+    bottom: 32px;
+    left: var(--page-padding);
+    font-size: clamp(46px, 6.6vw, 90px);
+  }
+
+  .shop-carousel {
+    min-height: auto;
+    padding: 7vh var(--page-padding) 80px;
+  }
 }
 </style>

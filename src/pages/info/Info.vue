@@ -587,17 +587,17 @@ const ruleItems = [
 
 @media (max-width: 760px) {
   .info-page {
-    --page-padding: 14px;
-    letter-spacing: 0.02em;
+    --page-padding: max(24px, 3vw);
+    padding-bottom: 14vh;
   }
 
   .info-hero {
-    min-height: 34vh;
+    min-height: 88vh;
   }
 
   .info-title {
-    bottom: 18px;
-    font-size: clamp(28px, 11vw, 44px);
+    bottom: 32px;
+    font-size: clamp(46px, 6.6vw, 90px);
   }
 
   .info-intro {
@@ -619,7 +619,8 @@ const ruleItems = [
     gap: 28px;
     min-height: 0;
     margin-top: 8vh;
-    padding-inline: var(--page-padding);
+    padding-left: calc(var(--page-padding) + var(--balance-shift));
+    padding-right: var(--page-padding);
   }
 
   .info-balance::before {
@@ -628,7 +629,7 @@ const ruleItems = [
 
   .info-balance::after {
     top: 50%;
-    left: var(--page-padding);
+    left: calc(var(--page-padding) + var(--balance-shift));
     right: var(--page-padding);
   }
 
@@ -644,8 +645,12 @@ const ruleItems = [
     font-size: 13px;
   }
 
+  .balance-item-music {
+    padding-left: 20px;
+  }
+
   .balance-item-thinking {
-    padding-left: 0;
+    padding-left: 20px;
   }
 
   .balance-circle-large,
@@ -689,6 +694,5 @@ const ruleItems = [
     font-size: 12px;
     margin-top: 24px;
   }
-
 }
 </style>

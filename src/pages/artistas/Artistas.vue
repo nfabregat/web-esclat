@@ -169,9 +169,23 @@ onUnmounted(() => {
 }
 
 @media (max-width: 760px) {
+  .artists-page {
+    --page-padding: max(24px, 3vw);
+  }
+
+  .artists-hero {
+    min-height: 88vh;
+  }
+
+  .artists-title {
+    bottom: 32px;
+    left: var(--page-padding);
+    font-size: clamp(46px, 6.6vw, 90px);
+  }
+
   .artists-carousel {
-    padding-top: 72px;
-    padding-bottom: 48px;
+    min-height: auto;
+    padding: 7vh var(--page-padding) 48px;
   }
 
   .artists-stage:focus-visible .artists-track {
