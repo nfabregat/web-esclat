@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, nextTick, watch } from "vue";
 
 const festivalSpaces = [
   {
@@ -117,6 +117,106 @@ const loadSvgs = async () => {
 
 onMounted(() => {
   loadSvgs();
+});
+
+const mappedElements: Record<string, Element[]> = {};
+
+const attachSvgListeners = async () => {
+  await nextTick();
+  const container = document.querySelector('.space-map');
+  if (!container) return;
+  const svg = container.querySelector('svg');
+  if (!svg) return;
+
+  // clear previous mappings
+  Object.keys(mappedElements).forEach(k => delete mappedElements[k]);
+
+  const texts = Array.from(svg.querySelectorAll('text'));
+  texts.forEach((textEl) => {
+    const raw = (textEl.textContent || '').trim();
+    if (!raw) return;
+
+    // normalize: accept '1' or '01'
+    let id = raw;
+    if (id.length === 1) id = '0' + id;
+
+    const space = festivalSpaces.find(s => s.id === id);
+    if (!space) return;
+
+    // try to find enclosing shapes by bbox containment
+    const allShapes = Array.from(svg.querySelectorAll('path, rect, polygon, polyline, g'));
+    const foundShapes: Element[] = [];
+    try {
+      const textBox = (textEl as any).getBBox();
+      allShapes.forEach((s) => {
+        try {
+          const box = (s as any).getBBox();
+          if (
+            box.x <= textBox.x + 0.5 &&
+            box.y <= textBox.y + 0.5 &&
+            box.x + box.width >= textBox.x + textBox.width - 0.5 &&
+            box.y + box.height >= textBox.y + textBox.height - 0.5
+          ) {
+            // shape fully contains the text bbox
+            foundShapes.push(s);
+          }
+        } catch (e) {
+          // ignore shapes that can't compute bbox
+        }
+      });
+    } catch (e) {
+      // getBBox may fail; ignore and fallback
+    }
+
+    // fallback: siblings in same group
+    if (foundShapes.length === 0) {
+      const parent = textEl.parentElement || svg;
+      const sibs = Array.from(parent.querySelectorAll('path, rect, polygon, polyline, g'))
+        .filter(el => el !== textEl);
+      mappedElements[id] = sibs.length ? sibs : [textEl];
+    } else {
+      mappedElements[id] = foundShapes;
+    }
+
+    const setHover = (on: boolean) => {
+      const els = mappedElements[id] || [];
+      els.forEach(el => el.classList.toggle('svg-area-hover', on));
+      (textEl as Element).classList.toggle('svg-area-hover', on);
+    };
+
+    const setActive = (active: boolean) => {
+      // remove active from others
+      Object.keys(mappedElements).forEach(otherId => {
+        const others = mappedElements[otherId] || [];
+        others.forEach(el => el.classList.toggle('svg-area-active', false));
+      });
+      if (active) {
+        const els = mappedElements[id] || [];
+        els.forEach(el => el.classList.add('svg-area-active'));
+      }
+    };
+
+    textEl.addEventListener('mouseenter', () => setHover(true));
+    textEl.addEventListener('mouseleave', () => setHover(false));
+    textEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSpace(id);
+      setActive(true);
+    });
+    textEl.addEventListener('keydown', (ev: KeyboardEvent) => {
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        toggleSpace(id);
+        setActive(true);
+      }
+    });
+  });
+};
+
+watch(currentMapSvg, async () => {
+  // reattach when map changes
+  await nextTick();
+  attachSvgListeners();
 });
 
 const toggleSpace = (space: string) => {
@@ -620,6 +720,17 @@ const ruleItems = [
   fill: rgba(255,255,255,0.25);
   stroke: rgba(255,255,255,0.95);
   filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.15));
+}
+
+.svg-area-hover {
+  fill: rgba(255,255,255,0.16) !important;
+  stroke: rgba(255,255,255,0.85) !important;
+}
+
+.svg-area-active {
+  fill: rgba(255,255,255,0.28) !important;
+  stroke: rgba(255,255,255,0.98) !important;
+  filter: drop-shadow(0 0 22px rgba(255,255,255,0.18));
 }
 
 .map-label {
