@@ -634,6 +634,7 @@ const ruleItems = [
   }
 
   .balance-item {
+    
     min-height: 180px;
   }
 

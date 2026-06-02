@@ -68,7 +68,7 @@ export const router = createRouter({
           component: Entradas,
         },
         {
-          path: "tienda",
+          path: "tienda/:productId?",
           name: "tienda",
           component: Tienda,
         },

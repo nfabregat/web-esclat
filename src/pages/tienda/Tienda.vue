@@ -1,56 +1,300 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { ChevronLeft, Minus, Plus, Search, ShoppingCart, X } from "lucide-vue-next";
+import { useRoute, useRouter } from "vue-router";
 
-const products = [
-  "RICARDO VILLALOBOS",
-  "ARCA",
-  "ALVA NOTO",
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  hoverImage: string;
+  description: string;
+  sizes: string[];
+};
+
+type CartItem = {
+  productId: string;
+  size: string;
+  quantity: number;
+};
+
+const resolveAsset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, "")}`;
+
+const products: Product[] = [
+  {
+    id: "camiseta",
+    name: "CAMISETA",
+    price: 30,
+    image: resolveAsset("/assets/artistas/1.jpg"),
+    hoverImage: resolveAsset("/assets/artistas/2.jpg"),
+    description: "Camiseta de corte recto con gráfico principal de ESCLAT y tejido de algodón grueso.",
+    sizes: ["S", "M", "L"],
+  },
+  {
+    id: "gorra",
+    name: "GORRA",
+    price: 30,
+    image: resolveAsset("/assets/artistas/3.jpg"),
+    hoverImage: resolveAsset("/assets/artistas/4.jpg"),
+    description: "Gorra de perfil bajo con bordado frontal y ajuste trasero regulable.",
+    sizes: ["U"],
+  },
+  {
+    id: "sudadera",
+    name: "SUDADERA",
+    price: 48,
+    image: resolveAsset("/assets/artistas/5.jpg"),
+    hoverImage: resolveAsset("/assets/artistas/6.jpg"),
+    description: "Sudadera oversize con felpa interior y acabado pesado para un tacto premium.",
+    sizes: ["M", "L", "XL"],
+  },
+  {
+    id: "tote",
+    name: "TOTE BAG",
+    price: 18,
+    image: resolveAsset("/assets/artistas/7.jpg"),
+    hoverImage: resolveAsset("/assets/artistas/8.jpg"),
+    description: "Tote bag de lona resistente para uso diario y transporte de vinilos o fanzines.",
+    sizes: ["U"],
+  },
+  {
+    id: "vinilo",
+    name: "VINILO",
+    price: 35,
+    image: resolveAsset("/assets/artistas/9.jpg"),
+    hoverImage: resolveAsset("/assets/artistas/10.jpg"),
+    description: "Edición física con selección musical del universo ESCLAT.",
+    sizes: ["U"],
+  },
+  {
+    id: "poster",
+    name: "POSTER",
+    price: 12,
+    image: resolveAsset("/assets/artistas/11.jpg"),
+    hoverImage: resolveAsset("/assets/artistas/12.jpg"),
+    description: "Póster de edición limitada impreso en papel de alto gramaje.",
+    sizes: ["30x40"],
+  },
 ];
 
-const activeSlide = ref(0);
-const dragStartX = ref(0);
-const slides = computed(() => {
-  const groups = [];
-
-  for (let i = 0; i < products.length; i += 3) {
-    groups.push(products.slice(i, i + 3));
-  }
-
-  return groups;
+const productById = computed<Record<string, Product>>(() => {
+  return Object.fromEntries(products.map((product) => [product.id, product]));
 });
 
-let carouselInterval: number | undefined;
+const route = useRoute();
+const router = useRouter();
+const searchQuery = ref("");
+const searchInputRef = ref<HTMLInputElement | null>(null);
+const isSearchOpen = ref(false);
+const isCartOpen = ref(false);
+const selectedProductId = ref<string | null>(null);
+const selectedSize = ref("");
+const cartItems = ref<CartItem[]>([]);
 
-const nextSlide = () => {
-  activeSlide.value = (activeSlide.value + 1) % slides.value.length;
+const formatPrice = (value: number) => {
+  return `${value.toFixed(2).replace(".", ",")}€`;
 };
 
-const startDrag = (event: MouseEvent | TouchEvent) => {
-  const pointX = "touches" in event ? event.touches[0]?.clientX : event.clientX;
+const selectedProduct = computed(() => {
+  if (!selectedProductId.value) return null;
+  return productById.value[selectedProductId.value] ?? null;
+});
 
-  if (pointX === undefined) return;
+const cartCount = computed(() => {
+  return cartItems.value.reduce((total, item) => total + item.quantity, 0);
+});
 
-  dragStartX.value = pointX;
+const cartTotal = computed(() => {
+  return cartItems.value.reduce((total, item) => {
+    const product = productById.value[item.productId];
+    return total + (product?.price ?? 0) * item.quantity;
+  }, 0);
+});
+
+const filteredProducts = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase();
+
+  if (!query) {
+    return products;
+  }
+
+  return products.filter((product) => {
+    const haystack = `${product.name} ${product.description} ${product.price}`.toLowerCase();
+    return haystack.includes(query);
+  });
+});
+
+const searchResults = computed(() => {
+  const query = searchQuery.value.trim();
+  if (!query) {
+    return [];
+  }
+
+  return filteredProducts.value;
+});
+
+const recommendedProducts = computed(() => products.slice(0, 3));
+const completeLookProducts = computed(() => products.slice(3, 6));
+
+const closeAllPanels = () => {
+  isSearchOpen.value = false;
+  isCartOpen.value = false;
+  selectedProductId.value = null;
 };
 
-const endDrag = (event: MouseEvent | TouchEvent) => {
-  const endX = "changedTouches" in event ? event.changedTouches[0]?.clientX : event.clientX;
+const openSearch = () => {
+  isCartOpen.value = false;
+  selectedProductId.value = null;
+  isSearchOpen.value = true;
+};
 
-  if (endX === undefined) return;
+const closeSearch = () => {
+  isSearchOpen.value = false;
+};
 
-  const distance = dragStartX.value - endX;
+const toggleSearch = () => {
+  if (isSearchOpen.value) {
+    closeSearch();
+    return;
+  }
 
-  if (distance > 40) {
-    nextSlide();
+  openSearch();
+};
+
+const openCart = () => {
+  isSearchOpen.value = false;
+  selectedProductId.value = null;
+  isCartOpen.value = true;
+};
+
+const closeCart = () => {
+  isCartOpen.value = false;
+};
+
+const toggleCart = () => {
+  if (isCartOpen.value) {
+    closeCart();
+    return;
+  }
+
+  openCart();
+};
+
+const closeProduct = () => {
+  router.push({ name: "tienda" });
+};
+
+const addToCart = (product: Product, size: string) => {
+  const cartSize = size || product.sizes[0] || "U";
+  const existingItem = cartItems.value.find(
+    (item) => item.productId === product.id && item.size === cartSize,
+  );
+
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    cartItems.value.push({
+      productId: product.id,
+      size: cartSize,
+      quantity: 1,
+    });
   }
 };
 
+const addSelectedProductToCart = () => {
+  if (!selectedProduct.value) return;
+
+  addToCart(selectedProduct.value, selectedSize.value);
+  router.push({ name: "tienda" });
+  openCart();
+};
+
+const incrementItem = (item: CartItem) => {
+  item.quantity += 1;
+};
+
+const decrementItem = (item: CartItem) => {
+  item.quantity -= 1;
+
+  if (item.quantity <= 0) {
+    cartItems.value = cartItems.value.filter((entry) => entry !== item);
+  }
+};
+
+const getCartLineTotal = (item: CartItem) => {
+  const product = productById.value[item.productId];
+  return formatPrice((product?.price ?? 0) * item.quantity);
+};
+
+const openProductPage = (product: Product) => {
+  closeAllPanels();
+  router.push({ name: "tienda", params: { productId: product.id } });
+};
+
+const syncSelectedProductFromRoute = (productId: unknown) => {
+  if (typeof productId === "string" && productById.value[productId]) {
+    selectedProductId.value = productId;
+    return;
+  }
+
+  if (productId === undefined || productId === null || productId === "") {
+    selectedProductId.value = null;
+    return;
+  }
+
+  selectedProductId.value = null;
+};
+
+const handleEscape = (event: KeyboardEvent) => {
+  if (event.key !== "Escape") return;
+
+  if (selectedProduct.value) {
+    closeProduct();
+    return;
+  }
+
+  closeAllPanels();
+};
+
+watch(selectedProduct, (product) => {
+  selectedSize.value = product?.sizes[0] ?? "";
+});
+
+watch(
+  () => route.params.productId,
+  (productId) => {
+    syncSelectedProductFromRoute(productId);
+  },
+  { immediate: true },
+);
+
+watch(
+  [isSearchOpen, isCartOpen, selectedProductId],
+  async ([searchOpen, cartOpen, productId]) => {
+    if (typeof document === "undefined") return;
+
+    const shouldLock = Boolean(searchOpen || cartOpen || productId);
+    document.body.style.overflow = shouldLock ? "hidden" : "";
+
+    if (searchOpen) {
+      await nextTick();
+      searchInputRef.value?.focus();
+    }
+  },
+  { immediate: true },
+);
+
 onMounted(() => {
-  carouselInterval = window.setInterval(nextSlide, 5000);
+  window.addEventListener("keydown", handleEscape);
 });
 
 onUnmounted(() => {
-  window.clearInterval(carouselInterval);
+  window.removeEventListener("keydown", handleEscape);
+
+  if (typeof document !== "undefined") {
+    document.body.style.overflow = "";
+  }
 });
 </script>
 
@@ -60,94 +304,972 @@ onUnmounted(() => {
       <h1 class="shop-title font-monument">TIENDA</h1>
     </section>
 
-    <section
-      class="shop-carousel"
-      @mousedown="startDrag"
-      @mouseup="endDrag"
-      @touchstart="startDrag"
-      @touchend="endDrag"
-    >
-      <div
-        class="shop-track"
-        :style="{ transform: `translateX(-${activeSlide * 100}%)` }"
-      >
-        <div v-for="(slide, index) in slides" :key="index" class="shop-slide">
-          <article v-for="product in slide" :key="product" class="shop-card">
-            <div class="shop-image"></div>
-            <h2 class="shop-name">{{ product }}</h2>
-          </article>
-        </div>
+    <section class="shop-catalog">
+      <div class="shop-toolbar">
+        <button
+          class="shop-icon-button"
+          type="button"
+          aria-label="Abrir buscador"
+          @click.stop="toggleSearch"
+        >
+          <Search :size="22" />
+        </button>
+
+        <button
+          class="shop-icon-button"
+          type="button"
+          aria-label="Abrir carrito"
+          @click.stop="toggleCart"
+        >
+          <ShoppingCart :size="22" />
+          <span v-if="cartCount > 0" class="shop-cart-badge">{{ cartCount }}</span>
+        </button>
+      </div>
+
+      <p v-if="filteredProducts.length === 0" class="shop-no-results font-monument">
+        NO SE HAN ENCONTRADO PRODUCTOS
+      </p>
+
+      <div v-else class="shop-grid">
+        <button
+          v-for="product in filteredProducts"
+          :key="product.id"
+          class="shop-product"
+          type="button"
+          @click="openProductPage(product)"
+        >
+          <span class="shop-product-visual">
+            <img
+              :src="product.image"
+              :alt="product.name"
+              class="shop-product-image shop-product-image--primary"
+            />
+            <img
+              :src="product.hoverImage"
+              :alt="product.name"
+              class="shop-product-image shop-product-image--secondary"
+            />
+          </span>
+
+          <span class="shop-product-meta">
+            <span class="shop-product-name">{{ product.name }}</span>
+            <span class="shop-product-price">{{ formatPrice(product.price) }}</span>
+          </span>
+        </button>
       </div>
     </section>
+
+    <transition name="shop-panel">
+      <div v-if="isSearchOpen" class="shop-search-backdrop" @click="closeSearch"></div>
+    </transition>
+
+    <transition name="shop-panel">
+      <section v-if="isSearchOpen" class="shop-search-panel">
+        <div class="shop-search-row">
+          <input
+            ref="searchInputRef"
+            v-model="searchQuery"
+            class="shop-search-input"
+            type="text"
+            placeholder="BUSCAR..."
+            aria-label="Buscar productos"
+          />
+
+          <button
+            class="shop-panel-close"
+            type="button"
+            aria-label="Cerrar buscador"
+            @click="closeSearch"
+          >
+            <X :size="18" />
+          </button>
+        </div>
+
+        <div class="shop-search-results">
+          <button
+            v-for="product in searchResults"
+            :key="product.id"
+            class="shop-search-result"
+            type="button"
+            @click="openProductPage(product)"
+          >
+            <span class="shop-search-result-name">{{ product.name }}</span>
+            <span class="shop-search-result-price">{{ formatPrice(product.price) }}</span>
+          </button>
+
+          <p v-if="searchQuery.trim() && searchResults.length === 0" class="shop-search-empty">
+            SIN RESULTADOS
+          </p>
+        </div>
+      </section>
+    </transition>
+
+    <transition name="shop-drawer">
+      <div v-if="isCartOpen" class="shop-drawer-backdrop" @click.self="closeCart">
+        <aside class="shop-cart-drawer" role="dialog" aria-modal="true" aria-label="Carrito">
+          <header class="shop-cart-header">
+            <h2 class="shop-cart-title">CARRITO</h2>
+            <button
+              class="shop-panel-close"
+              type="button"
+              aria-label="Cerrar carrito"
+              @click="closeCart"
+            >
+              <X :size="18" />
+            </button>
+          </header>
+
+          <p class="shop-cart-shipping">ENVÍOS GRATIS EN LOS PEDIDOS DESDE 35,00€</p>
+          <div class="shop-cart-divider"></div>
+
+          <div class="shop-cart-body">
+            <template v-if="cartItems.length === 0">
+              <div class="shop-cart-empty">
+                <p class="shop-cart-empty-title">TU CARRITO ESTÁ VACÍO</p>
+                <p class="shop-cart-empty-subtitle">¿NO SABES POR DÓNDE EMPEZAR?</p>
+              </div>
+
+              <div class="shop-cart-section">
+                <h3 class="shop-cart-section-title">RECOMENDADOS</h3>
+                <div class="shop-mini-list">
+                  <button
+                  v-for="product in recommendedProducts"
+                  :key="product.id"
+                  class="shop-mini-product"
+                  type="button"
+                  @click="openProductPage(product)"
+                >
+                    <img :src="product.image" :alt="product.name" class="shop-mini-image" />
+                    <span class="shop-mini-copy">
+                      <span class="shop-mini-name">{{ product.name }}</span>
+                      <span class="shop-mini-price">{{ formatPrice(product.price) }}</span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="shop-cart-list">
+                <article
+                  v-for="item in cartItems"
+                  :key="`${item.productId}-${item.size}`"
+                  class="shop-cart-item"
+                >
+                  <img
+                    :src="productById[item.productId]?.image"
+                    :alt="productById[item.productId]?.name"
+                    class="shop-cart-thumb"
+                  />
+
+                  <div class="shop-cart-item-copy">
+                    <p class="shop-cart-item-name">{{ productById[item.productId]?.name }}</p>
+                    <p class="shop-cart-item-meta">
+                      <span>{{ item.size }}</span>
+                      <span>x{{ item.quantity }}</span>
+                    </p>
+                  </div>
+
+                  <div class="shop-cart-item-right">
+                    <span class="shop-cart-item-price">{{ getCartLineTotal(item) }}</span>
+                    <div class="shop-cart-qty">
+                      <button
+                        class="shop-cart-qty-button"
+                        type="button"
+                        aria-label="Reducir cantidad"
+                        @click="decrementItem(item)"
+                      >
+                        <Minus :size="14" />
+                      </button>
+                      <button
+                        class="shop-cart-qty-button"
+                        type="button"
+                        aria-label="Aumentar cantidad"
+                        @click="incrementItem(item)"
+                      >
+                        <Plus :size="14" />
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <div class="shop-cart-section">
+                <h3 class="shop-cart-section-title">COMPLETA EL LOOK</h3>
+                <div class="shop-mini-list">
+                  <button
+                  v-for="product in completeLookProducts"
+                  :key="product.id"
+                  class="shop-mini-product"
+                  type="button"
+                  @click="openProductPage(product)"
+                >
+                    <img :src="product.image" :alt="product.name" class="shop-mini-image" />
+                    <span class="shop-mini-copy">
+                      <span class="shop-mini-name">{{ product.name }}</span>
+                      <span class="shop-mini-price">{{ formatPrice(product.price) }}</span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <div class="shop-cart-summary">
+            <div class="shop-cart-total">
+              <span>TOTAL</span>
+              <strong>{{ formatPrice(cartTotal) }}</strong>
+            </div>
+
+            <button class="shop-pay-button" type="button">PAGAR</button>
+          </div>
+        </aside>
+      </div>
+    </transition>
+
+    <transition name="shop-modal">
+      <div
+        v-if="selectedProduct"
+        class="shop-modal-backdrop"
+        @click.self="closeProduct"
+      >
+        <section class="shop-product-modal" role="dialog" aria-modal="true">
+          <button class="shop-modal-close" type="button" aria-label="Cerrar ficha" @click="closeProduct">
+            <ChevronLeft :size="18" />
+          </button>
+
+          <div class="shop-modal-media">
+            <img :src="selectedProduct.image" :alt="selectedProduct.name" class="shop-modal-image" />
+          </div>
+
+          <div class="shop-modal-copy">
+            <p class="shop-modal-kicker">PRODUCTO</p>
+            <h2 class="shop-modal-title">{{ selectedProduct.name }}</h2>
+            <p class="shop-modal-description">{{ selectedProduct.description }}</p>
+
+            <div class="shop-size-group">
+              <p class="shop-size-label">TALLA</p>
+              <div class="shop-size-list">
+                <button
+                  v-for="size in selectedProduct.sizes"
+                  :key="size"
+                  class="shop-size-button"
+                  :class="{ 'is-active': selectedSize === size }"
+                  type="button"
+                  @click="selectedSize = size"
+                >
+                  {{ size }}
+                </button>
+              </div>
+            </div>
+
+            <div class="shop-modal-footer">
+              <span class="shop-modal-price">{{ formatPrice(selectedProduct.price) }}</span>
+              <button class="shop-add-button" type="button" @click="addSelectedProductToCart">
+                AÑADIR AL CARRITO
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </transition>
   </main>
 </template>
 
 <style scoped>
 .shop-page {
-  min-height: 200vh;
-  background-color: black;
-  color: white;
+  min-height: 100vh;
+  background-color: #000;
+  color: #fff;
+  overflow-x: hidden;
   --page-padding: max(24px, 3vw);
+  --header-offset: 92px;
 }
 
 .shop-hero {
   position: relative;
-  min-height: 100vh;
+  min-height: 80vh;
 }
 
 .shop-title {
   position: absolute;
-  bottom: 32px;
+  bottom: 24px;
   left: var(--page-padding);
   font-size: clamp(46px, 6.6vw, 90px);
   font-weight: 400;
   line-height: 1;
 }
 
-.shop-carousel {
-  overflow: hidden;
-  min-height: 100vh;
-  padding: 140px 32px 80px;
-  cursor: grab;
+.shop-catalog {
+  position: relative;
+  padding: 0 var(--page-padding) 12vh;
 }
 
-.shop-carousel:active {
-  cursor: grabbing;
-}
-
-.shop-track {
+.shop-toolbar {
   display: flex;
-  transition: transform 500ms ease;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.shop-slide {
+.shop-icon-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background-color: transparent;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.shop-icon-button:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.shop-cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  font-family: "Roboto Mono", monospace;
+  font-size: 9px;
+  line-height: 14px;
+  text-align: center;
+}
+
+.shop-no-results {
+  margin: 40px 0 0;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+.shop-grid {
   display: grid;
-  min-width: 100%;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px 24px;
 }
 
-.shop-card {
+.shop-product {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  text-align: left;
+}
+
+.shop-product-visual {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  overflow: hidden;
+  background-color: #060606;
+}
+
+.shop-product-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: opacity 280ms ease;
+}
+
+.shop-product-image--secondary {
+  opacity: 0;
+}
+
+.shop-product:hover .shop-product-image--primary,
+.shop-product:focus-visible .shop-product-image--primary {
+  opacity: 0;
+}
+
+.shop-product:hover .shop-product-image--secondary,
+.shop-product:focus-visible .shop-product-image--secondary {
+  opacity: 1;
+}
+
+.shop-product-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  font-family: "Roboto Mono", monospace;
+  letter-spacing: 0.05em;
+  min-height: 16px;
+  width: 100%;
+}
+
+.shop-product-name,
+.shop-product-price {
+  font-size: 13px;
+  line-height: 1.1;
+}
+
+.shop-product-name {
+  justify-self: start;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-product-price {
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.shop-search-backdrop,
+.shop-drawer-backdrop,
+.shop-modal-backdrop {
+  position: fixed;
+  inset: var(--header-offset) 0 0 0;
+  z-index: 40;
+}
+
+.shop-search-backdrop {
+  background: rgb(0 0 0 / 0.82);
+}
+
+.shop-search-panel {
+  position: fixed;
+  inset: var(--header-offset) 0 auto 0;
+  z-index: 50;
+  padding: 22px var(--page-padding) 26px;
+  background-color: #000;
+  border-bottom: 1px solid rgb(255 255 255 / 0.72);
+}
+
+.shop-search-row {
+  display: flex;
+  align-items: center;
   gap: 16px;
 }
 
-.shop-image {
-  aspect-ratio: 4 / 5;
-  border: 0.5px solid rgb(255 255 255 / 45%);
-  background-color: transparent;
+.shop-search-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 0.72);
+  background: transparent;
+  color: #fff;
+  font-family: "Roboto Mono", monospace;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  padding: 14px 0 10px;
+  text-transform: uppercase;
+  outline: none;
 }
 
-.shop-name {
-  font-size: 16px;
+.shop-search-input::placeholder {
+  color: rgb(255 255 255 / 0.7);
+}
+
+.shop-panel-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.shop-panel-close:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+.shop-search-results {
+  display: grid;
+  gap: 10px;
+  padding-top: 18px;
+}
+
+.shop-search-result {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 0.16);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  padding: 10px 0 12px;
+  text-align: left;
+}
+
+.shop-search-result:last-child {
+  border-bottom: 0;
+}
+
+.shop-search-result-name,
+.shop-search-result-price {
+  font-family: "Roboto Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.shop-search-result-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-search-result-price {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.shop-search-empty {
+  margin: 0;
+  padding-top: 6px;
+  font-family: "Roboto Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgb(255 255 255 / 0.7);
+}
+
+.shop-drawer-backdrop {
+  display: flex;
+  justify-content: flex-end;
+  background: rgb(0 0 0 / 0.35);
+}
+
+.shop-cart-drawer {
+  width: min(520px, 100vw);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  border-left: 1px solid rgb(255 255 255 / 0.16);
+  padding: 18px 18px 22px;
+}
+
+.shop-cart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.shop-cart-title {
+  margin: 0;
+  font-size: 14px;
   font-weight: 400;
-  line-height: 1.2;
+  letter-spacing: 0.12em;
+}
+
+.shop-cart-shipping {
+  margin: 14px 0 0;
+  padding: 12px 0 0;
+  font-family: "Roboto Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.shop-cart-divider {
+  margin-top: 10px;
+  border-top: 1px solid rgb(255 255 255 / 0.28);
+}
+
+.shop-cart-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
+  padding-top: 12px;
+}
+
+.shop-cart-empty {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 120px;
+  text-align: center;
+  padding-top: 6px;
+}
+
+.shop-cart-empty-title,
+.shop-cart-empty-subtitle {
+  margin: 0;
+  font-family: "Roboto Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.shop-cart-section {
+  display: grid;
+  gap: 16px;
+}
+
+.shop-cart-section-title {
+  margin: 0;
+  font-family: "Roboto Mono", monospace;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+}
+
+.shop-mini-list {
+  display: grid;
+  gap: 14px;
+}
+
+.shop-mini-product {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 16px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.shop-mini-image {
+  width: 88px;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: #050505;
+}
+
+.shop-mini-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 4px 0;
+  font-family: "Roboto Mono", monospace;
+}
+
+.shop-mini-name,
+.shop-mini-price {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.shop-mini-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shop-cart-list {
+  display: grid;
+  gap: 14px;
+}
+
+.shop-cart-item {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.shop-cart-thumb {
+  width: 56px;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: #050505;
+}
+
+.shop-cart-item-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.shop-cart-item-name,
+.shop-cart-item-meta,
+.shop-cart-item-price {
+  margin: 0;
+  font-family: "Roboto Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.shop-cart-item-meta {
+  display: flex;
+  gap: 10px;
+  color: rgb(255 255 255 / 0.7);
+}
+
+.shop-cart-item-right {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.shop-cart-qty {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.shop-cart-qty-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgb(255 255 255 / 0.24);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+}
+
+.shop-cart-summary {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.shop-cart-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  font-family: "Roboto Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.shop-pay-button {
+  width: 100%;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Roboto Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  padding: 12px 16px;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.shop-pay-button:hover {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+.shop-modal-backdrop {
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.78);
+  padding: 18px;
+}
+
+.shop-product-modal {
+  position: relative;
+  width: min(980px, 100%);
+  max-height: calc(100vh - var(--header-offset) - 36px);
+  overflow: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  background: #000;
+  border: 1px solid rgb(255 255 255 / 0.14);
+}
+
+.shop-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.shop-modal-media {
+  min-height: 100%;
+  background: #050505;
+}
+
+.shop-modal-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  object-fit: cover;
+}
+
+.shop-modal-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 54px 30px 28px;
+}
+
+.shop-modal-kicker,
+.shop-size-label {
+  margin: 0;
+  font-family: "Roboto Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+.shop-modal-title {
+  margin: 0;
+  font-size: clamp(28px, 3.6vw, 46px);
+  font-weight: 400;
+  line-height: 0.95;
+}
+
+.shop-modal-description {
+  margin: 0;
+  max-width: 34ch;
+  color: rgb(255 255 255 / 0.76);
+  font-family: "Roboto Mono", monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.shop-size-group {
+  display: grid;
+  gap: 10px;
+}
+
+.shop-size-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shop-size-button {
+  min-width: 42px;
+  border: 1px solid rgb(255 255 255 / 0.24);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Roboto Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 9px 10px;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.shop-size-button.is-active,
+.shop-size-button:hover {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+.shop-modal-footer {
+  margin-top: auto;
+  display: grid;
+  gap: 14px;
+}
+
+.shop-modal-price {
+  font-family: "Roboto Mono", monospace;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.shop-add-button {
+  width: 100%;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Roboto Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  padding: 13px 16px;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.shop-add-button:hover {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+.shop-panel-enter-active,
+.shop-panel-leave-active,
+.shop-drawer-enter-active,
+.shop-drawer-leave-active,
+.shop-modal-enter-active,
+.shop-modal-leave-active {
+  transition: opacity 240ms ease, transform 240ms ease;
+}
+
+.shop-panel-enter-from,
+.shop-panel-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.shop-drawer-enter-from,
+.shop-drawer-leave-to {
+  opacity: 0;
+}
+
+.shop-drawer-enter-from .shop-cart-drawer,
+.shop-drawer-leave-to .shop-cart-drawer {
+  transform: translateX(100%);
+}
+
+.shop-drawer-enter-active .shop-cart-drawer,
+.shop-drawer-leave-active .shop-cart-drawer {
+  transition: transform 260ms ease;
+}
+
+.shop-modal-enter-from,
+.shop-modal-leave-to {
+  opacity: 0;
+}
+
+.shop-modal-enter-from .shop-product-modal,
+.shop-modal-leave-to .shop-product-modal {
+  transform: translateY(14px) scale(0.98);
 }
 
 @media (min-width: 1025px) {
   .shop-hero {
-    min-height: 88vh;
+    min-height: 80vh;
+  }
+
+  .shop-title {
+    bottom: 24px;
   }
 }
 
@@ -162,9 +1284,67 @@ onUnmounted(() => {
     font-size: clamp(46px, 6.6vw, 90px);
   }
 
-  .shop-carousel {
-    min-height: auto;
-    padding: 7vh var(--page-padding) 80px;
+  .shop-catalog {
+    padding-bottom: 10vh;
+  }
+
+  .shop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 18px;
+  }
+
+  .shop-product-name,
+  .shop-product-price {
+    font-size: 12px;
+  }
+
+  .shop-product-meta {
+    gap: 8px;
+  }
+
+  .shop-product:hover .shop-product-image--primary,
+  .shop-product:focus-visible .shop-product-image--primary {
+    opacity: 1;
+  }
+
+  .shop-search-panel {
+    padding-top: 18px;
+  }
+
+  .shop-cart-drawer {
+    width: min(100vw, 520px);
+    padding: 16px 14px 18px;
+  }
+
+  .shop-product-modal {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-modal-copy {
+    padding: 26px 18px 18px;
+  }
+}
+
+@media (max-width: 760px) {
+  .shop-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-search-input {
+    font-size: 14px;
+  }
+
+  .shop-cart-item {
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+  }
+
+  .shop-cart-thumb,
+  .shop-mini-image {
+    width: 64px;
+  }
+
+  .shop-cart-drawer {
+    width: 100vw;
   }
 }
 </style>

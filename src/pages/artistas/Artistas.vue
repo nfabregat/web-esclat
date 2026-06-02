@@ -173,11 +173,11 @@ onUnmounted(() => {
   }
 
   .artists-hero {
-    min-height: 88vh;
+    min-height: 80vh;
   }
 
   .artists-title {
-    bottom: 32px;
+    bottom: 24px;
     left: var(--page-padding);
     font-size: clamp(46px, 6.6vw, 90px);
   }
