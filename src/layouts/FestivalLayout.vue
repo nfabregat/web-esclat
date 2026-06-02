@@ -90,6 +90,7 @@ const showFooter = computed(() => route.name !== 'menu');
 <style scoped>
 .site-footer {
   --footer-padding: clamp(18px, 3vw, 48px);
+  --footer-logo-scale: 1;
 }
 
 .footer-inner {
@@ -103,6 +104,8 @@ const showFooter = computed(() => route.name !== 'menu');
 }
 .brand-row img {
   filter: brightness(0) invert(1);
+  transform: scale(var(--footer-logo-scale));
+  transform-origin: left center;
 }
 
 .brand-row .footer-logo-diputacio {
@@ -192,11 +195,64 @@ const showFooter = computed(() => route.name !== 'menu');
 }
 
 @media (max-width: 640px) {
+  .site-footer {
+    --footer-padding: 12px;
+    --footer-logo-scale: 0.82;
+  }
+
+  .footer-inner {
+    gap: 20px;
+  }
+
+  .footer-brands {
+    gap: 22px;
+  }
+
+  .footer-label {
+    margin-bottom: 10px;
+  }
+
+  .brand-row {
+    gap: 14px;
+  }
+
+  .brand-row .footer-logo-diputacio {
+    height: 22px;
+    max-width: 104px;
+  }
+
+  .brand-row .footer-logo-ivaj {
+    height: 26px;
+    max-width: 82px;
+    transform: translateY(2px) scale(var(--footer-logo-scale));
+  }
+
+  .brand-row .footer-logo-cocacola {
+    height: 24px;
+    max-width: 86px;
+  }
+
+  .footer-meta {
+    gap: 16px;
+    padding-top: 16px;
+  }
+
+  .footer-social {
+    gap: 10px;
+  }
+
+  .footer-social-link,
+  .social-svg,
+  .lucide-icon {
+    width: 18px;
+    height: 18px;
+  }
+
   .footer-links {
     display: none;
   }
   .footer-copy {
-    font-size: 10px;
+    font-size: 9px;
   }
 }
 </style>

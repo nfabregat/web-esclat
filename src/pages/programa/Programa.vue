@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 
 type ProgramFilter = "EVENTOS" | "ARTISTAS" | "TALLERES";
 type ProgramItem =
@@ -8,9 +8,16 @@ type ProgramItem =
       text: string;
       category: ProgramFilter;
     };
+type ProgramDisplayItem = {
+  key: string;
+  title: string;
+  times: string[];
+  item: ProgramItem;
+};
 
 const programFilters: ProgramFilter[] = ["EVENTOS", "ARTISTAS", "TALLERES"];
 const activeFilters = ref<Record<string, ProgramFilter | null>>({});
+const isCompactLayout = ref(false);
 
 const eventItem = (text: string): ProgramItem => ({ text, category: "EVENTOS" });
 const artistItem = (text: string): ProgramItem => ({ text, category: "ARTISTAS" });
@@ -28,6 +35,10 @@ const getItemText = (item: ProgramItem) => {
   return typeof item === "string" ? item : item.text;
 };
 
+const getItemCategory = (item: ProgramItem) => {
+  return typeof item === "string" ? null : item.category;
+};
+
 const isItemHidden = (date: string, item: ProgramItem) => {
   const activeFilter = activeFilters.value[date];
 
@@ -37,6 +48,84 @@ const isItemHidden = (date: string, item: ProgramItem) => {
     (typeof item === "string" || item.category !== activeFilter)
   );
 };
+
+const splitProgramText = (text: string) => {
+  const lines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const time = lines[lines.length - 1] ?? "";
+  const hasTime = /^\d{2}:\d{2}\s*-\s*\d{2}:\d{2}$/.test(time);
+  const titleLines = hasTime ? lines.slice(0, -1) : lines;
+
+  return {
+    time: hasTime ? time.replace(/\s*-\s*/g, "–") : "",
+    title: titleLines.join("\n"),
+  };
+};
+
+const getProgramDetails = (item: ProgramItem) => splitProgramText(getItemText(item));
+
+const getProgramDisplayItems = (items: ProgramItem[]) => {
+  if (!isCompactLayout.value) {
+    return items.map<ProgramDisplayItem>((item, index) => {
+      const details = getProgramDetails(item);
+
+      return {
+        key: `${getItemText(item)}-${index}`,
+        title: details.title,
+        times: details.time ? [details.time] : [],
+        item,
+      };
+    });
+  }
+
+  const groupedItems: ProgramDisplayItem[] = [];
+
+  for (const item of items) {
+    const details = getProgramDetails(item);
+    const itemCategory = getItemCategory(item);
+    const previousItem = groupedItems[groupedItems.length - 1];
+
+    if (
+      previousItem &&
+      previousItem.title === details.title &&
+      getItemCategory(previousItem.item) === itemCategory
+    ) {
+      if (details.time) {
+        previousItem.times.push(details.time);
+      }
+      continue;
+    }
+
+    groupedItems.push({
+      key: `${details.title}-${groupedItems.length}`,
+      title: details.title,
+      times: details.time ? [details.time] : [],
+      item,
+    });
+  }
+
+  return groupedItems;
+};
+
+let compactMediaQuery: MediaQueryList | null = null;
+
+const syncCompactLayout = () => {
+  isCompactLayout.value = Boolean(compactMediaQuery?.matches);
+};
+
+onMounted(() => {
+  compactMediaQuery = window.matchMedia("(max-width: 1024px)");
+  syncCompactLayout();
+
+  compactMediaQuery.addEventListener("change", syncCompactLayout);
+});
+
+onUnmounted(() => {
+  compactMediaQuery?.removeEventListener("change", syncCompactLayout);
+});
 
 const programDays = [
   {
@@ -236,20 +325,34 @@ const programDays = [
 
       <div class="program-grid">
         <article v-for="column in day.columns" :key="column.space" class="program-column">
-          <h3 class="program-space-name">{{ column.space }}</h3>
+          <h3
+            class="program-space-name"
+            :class="{ 'program-space-name--single-line': column.space.includes('\n') }"
+          >
+            {{ column.space }}
+          </h3>
 
           <div class="program-events">
             <p
-              v-for="item in column.items"
-              :key="getItemText(item)"
+              v-for="displayItem in getProgramDisplayItems(column.items)"
+              :key="displayItem.key"
               class="program-event"
-              :class="{ 'is-hidden': isItemHidden(day.date, item) }"
+              :class="{ 'is-hidden': isItemHidden(day.date, displayItem.item) }"
             >
-              {{ getItemText(item) }}
+              <span class="program-event-time">
+                <template v-if="displayItem.times.length > 0">
+                  <span v-for="time in displayItem.times" :key="time" class="program-event-time-line">
+                    {{ time }}
+                  </span>
+                </template>
+                <span v-else class="program-event-time-line">&nbsp;</span>
+              </span>
+              <span class="program-event-title">{{ displayItem.title }}</span>
             </p>
           </div>
         </article>
       </div>
+
     </section>
 
   </main>
@@ -332,7 +435,7 @@ const programDays = [
 .program-grid::before {
   content: "";
   position: absolute;
-  top: 96px;
+  top: 90px;
   left: 0;
   right: 0;
   height: 1px;
@@ -348,7 +451,7 @@ const programDays = [
 
 .program-space-name {
   margin: 0;
-  min-height: 36px;
+  min-height: 34px;
   white-space: pre-line;
   font-family: "Roboto Mono", monospace;
   font-size: 14px;
@@ -360,7 +463,7 @@ const programDays = [
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding-top: 40px;
+  padding-top: 20px;
 }
 
 .program-event {
@@ -378,49 +481,39 @@ const programDays = [
   color: black;
 }
 
-@media (max-width: 760px) {
-  .program-page {
-    --page-padding: 12px;
-    letter-spacing: 0.02em;
-  }
+.program-event-title {
+  display: block;
+  white-space: pre-line;
+}
 
-  .program-hero {
-    min-height: 56vh;
-  }
+.program-event-time {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.75);
+}
 
-  .program-title {
-    bottom: 20px;
-    font-size: clamp(30px, 12vw, 46px);
-  }
-
+@media (max-width: 1024px) {
   .program-day {
-    padding: 72px var(--page-padding) 0;
-  }
-
-  .program-day:last-child {
-    padding-bottom: 72px;
+    padding: 7vh calc(var(--page-padding) + 18px) 0;
   }
 
   .program-filters {
     flex-wrap: wrap;
     gap: 14px;
-    margin-bottom: 24px;
+    margin-bottom: 12px;
   }
 
   .program-filter {
-    font-size: 12px;
-  }
-
-  .program-date {
-    font-size: clamp(22px, 8vw, 31px);
+    font-size: 15px;
+    line-height: 1.1;
   }
 
   .program-grid {
+    grid-template-columns: 1fr;
     min-height: auto;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    column-gap: 8px;
-    row-gap: 34px;
-    padding-top: 30px;
+    padding-top: 10px;
   }
 
   .program-grid::before {
@@ -428,46 +521,84 @@ const programDays = [
   }
 
   .program-column {
-    position: relative;
+    margin-bottom: 16px;
+    padding: 0;
+    border: none;
   }
 
-  .program-column:nth-child(1)::after,
-  .program-column:nth-child(5)::after {
-    content: "";
-    position: absolute;
-    top: 40px;
-    left: 0;
-    height: 1px;
-    background-color: white;
-    transform: scaleY(0.5);
-    transform-origin: top;
-  }
-
-  .program-column:nth-child(1)::after {
-    width: calc(400% + 24px);
-  }
-
-  .program-column:nth-child(5)::after {
-    width: calc(300% + 16px);
+  .program-column:last-child {
+    margin-bottom: 0;
   }
 
   .program-space-name {
-    min-height: 28px;
-    overflow-wrap: anywhere;
-    font-size: clamp(7px, 2vw, 10px);
-    line-height: 1.18;
+    position: relative;
+    margin: 0 0 2px 0;
+    padding-bottom: 3px;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.2;
+    border-bottom: none;
+  }
+
+  .program-space-name::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 4px;
+    height: 1px;
+    background-color: #7a7a7a;
+    transform: scaleY(0.5);
+    transform-origin: bottom;
+  }
+
+  .program-space-name--single-line {
+    white-space: nowrap;
+    font-size: 12px;
+    line-height: 1.05;
+    letter-spacing: 0.03em;
   }
 
   .program-events {
-    gap: 13px;
-    padding-top: 22px;
+    gap: 0;
+    padding-top: 0;
   }
 
   .program-event {
-    overflow-wrap: anywhere;
-    font-size: clamp(6.5px, 1.8vw, 9px);
-    line-height: 1.18;
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: start;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.1;
+    margin-bottom: 5px;
   }
 
+  .program-event:last-child {
+    margin-bottom: 0;
+  }
+
+  .program-event-time {
+    width: 120px;
+    margin-top: 0;
+    white-space: nowrap;
+    text-align: left;
+    align-self: start;
+    line-height: 1.05;
+  }
+
+  .program-event-time-line {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .program-event-title {
+    min-width: 0;
+    white-space: pre-line;
+    text-align: left;
+    line-height: 1.18;
+  }
 }
+
 </style>

@@ -586,60 +586,108 @@ const ruleItems = [
 }
 
 @media (max-width: 760px) {
+  .info-page {
+    --page-padding: 14px;
+    letter-spacing: 0.02em;
+  }
+
   .info-hero {
-    min-height: 38vh;
+    min-height: 34vh;
+  }
+
+  .info-title {
+    bottom: 18px;
+    font-size: clamp(28px, 11vw, 44px);
+  }
+
+  .info-intro {
+    padding-top: 4vh;
+  }
+
+  .info-intro br {
+    display: none;
   }
 
   .info-intro p {
-    font-size: 12px;
+    max-width: 34rem;
+    font-size: 11px;
+    line-height: 1.45;
   }
 
   .info-balance {
     grid-template-columns: 1fr;
-    gap: 48px;
+    gap: 28px;
     min-height: 0;
+    margin-top: 8vh;
+    padding-inline: var(--page-padding);
+  }
+
+  .info-balance::before {
+    display: none;
   }
 
   .info-balance::after {
-    top: 42%;
+    top: 50%;
+    left: var(--page-padding);
+    right: var(--page-padding);
   }
 
   .balance-item {
-    min-height: 240px;
+    min-height: 180px;
+  }
+
+  .balance-item h2 {
+    font-size: 13px;
+  }
+
+  .balance-item p {
+    font-size: 13px;
   }
 
   .balance-item-thinking {
-    padding-left: 20px;
+    padding-left: 0;
   }
 
   .balance-circle-large,
   .balance-circle-small {
-    width: min(58vw, 240px);
+    width: min(54vw, 200px);
     margin-right: 0;
   }
 
+  .space-section {
+    padding-top: 10vh;
+  }
+
+  .space-layout {
+    padding-top: 4vh;
+  }
+
   .space-list {
-    font-size: 17px;
+    gap: 22px;
+    font-size: 15px;
   }
 
   .space-description {
+    padding-left: 18px;
     font-size: 13px;
   }
 
   .faq-question {
-    font-size: 17px;
+    font-size: 15px;
   }
 
   .faq-answer {
-    font-size: 13px;
+    font-size: 12px;
+    margin-top: 24px;
   }
 
   .rules-question {
-    font-size: 17px;
+    font-size: 15px;
   }
 
   .rules-answer {
-    font-size: 13px;
+    font-size: 12px;
+    margin-top: 24px;
   }
 
 }
