@@ -494,7 +494,145 @@ const programDays = [
   color: rgba(255, 255, 255, 0.75);
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1024px) and (min-width: 761px) {
+  .program-page {
+    letter-spacing: 0.045em;
+  }
+
+  .program-hero {
+    display: none;
+  }
+
+  .program-day {
+    padding: 8px 18px 72px;
+  }
+
+  .program-filter {
+    font-size: 15px;
+    line-height: 1.1;
+    margin-top: 18px;
+  }
+
+  .program-date {
+    margin: 0 0 28px;
+    font-size: clamp(26px, 8vw, 28px);
+  }
+
+  .program-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 58px;
+    row-gap: 34px;
+    min-height: auto;
+    padding-top: 0;
+    margin-left: 18px;
+  }
+
+  .program-grid::before {
+    display: none;
+  }
+
+  .program-space-name {
+    position: relative;
+    margin: 0 0 35px 0;
+    padding-bottom: 0;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.05;
+    border-bottom: none;
+  }
+
+  .program-column:nth-child(odd) .program-space-name::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: calc(-100% - 58px);
+    bottom: -8px;
+    height: 1px;
+    background-color: #8a8a8a;
+    transform: scaleY(0.5);
+    transform-origin: bottom;
+  }
+
+  .program-column:nth-child(even) .program-space-name::after {
+    display: none;
+  }
+
+  .program-column {
+    margin-bottom: 20px;
+    padding: 0;
+    border: none;
+    margin-top: 12px;
+  }
+
+  .program-column:first-child {
+    margin-top: 0;
+  }
+
+  .program-column:last-child {
+    margin-bottom: 0;
+  }
+
+  .program-space-name--single-line {
+    white-space: nowrap;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.03em;
+  }
+
+  .program-events {
+    gap: 0;
+    padding-top: 0;
+  }
+
+  .program-event {
+    display: flex;
+    gap: 70px;
+    align-items: start;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1.05;
+    margin-bottom: 8px;
+  }
+
+  .program-event:last-child {
+    margin-bottom: 0;
+  }
+
+  .program-event--multiple-times {
+    margin-bottom: 12px;
+  }
+
+  .program-event-time {
+    flex: 0 0 112px;
+    width: 112px;
+    margin-top: 0;
+    margin-left: 8px;
+    white-space: nowrap;
+    text-align: left;
+    align-self: start;
+    line-height: 1;
+    font-size: 11px;
+  }
+
+  .program-event-time-line {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .program-event-time-line:not(:first-child) {
+    margin-top: 2px;
+  }
+
+  .program-event-title {
+    min-width: 0;
+    white-space: pre-line;
+    text-align: left;
+    line-height: 1.05;
+  }
+}
+
+@media (max-width: 760px) {
   .program-page {
     letter-spacing: 0.045em;
   }
