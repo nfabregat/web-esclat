@@ -137,7 +137,7 @@ onUnmounted(() => {
                 :alt="artist.name"
                 class="artist-image h-[9.5rem] w-[9.5rem] shrink-0 object-cover md:h-auto md:w-full"
               />
-              <h2 class="artist-name text-[1.1rem] font-normal leading-tight md:text-base">
+              <h2 class="artist-name text-[1.1rem] font-normal leading-tight md:text-lg">
                 {{ artist.name.toUpperCase() }}
               </h2>
             </article>
@@ -180,6 +180,10 @@ onUnmounted(() => {
     bottom: 32px;
     left: var(--page-padding);
     font-size: clamp(46px, 6.6vw, 90px);
+  }
+
+  .artist-name {
+    font-size: 1.2rem;
   }
 }
 

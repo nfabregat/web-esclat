@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
 
 type ProgramFilter = "EVENTOS" | "ARTISTAS" | "TALLERES";
@@ -60,7 +60,7 @@ const splitProgramText = (text: string) => {
   const titleLines = hasTime ? lines.slice(0, -1) : lines;
 
   return {
-    time: hasTime ? time.replace(/\s*-\s*/g, "–") : "",
+    time: hasTime ? time.replace(/\s*-\s*/g, " - ") : "",
     title: titleLines.join("\n"),
   };
 };
@@ -302,13 +302,13 @@ const programDays = [
 </script>
 
 <template>
-  <main class="program-page" @click="clearFilter">
-    <section class="program-hero">
+  <main class="program-page flex flex-col" @click="clearFilter">
+    <section class="program-hero hidden md:block">
       <h1 class="program-title font-monument">PROGRAMA</h1>
     </section>
 
-    <section v-for="day in programDays" :key="day.date" class="program-day">
-      <div class="program-filters">
+    <section v-for="day in programDays" :key="day.date" class="program-day flex flex-col">
+      <div class="program-filters hidden md:flex">
         <button
           v-for="filter in programFilters"
           :key="filter"
@@ -323,8 +323,8 @@ const programDays = [
 
       <h2 class="program-date font-monument">{{ day.date }}</h2>
 
-      <div class="program-grid">
-        <article v-for="column in day.columns" :key="column.space" class="program-column">
+      <div class="program-grid flex flex-col md:grid">
+        <article v-for="column in day.columns" :key="column.space" class="program-column flex flex-col">
           <h3
             class="program-space-name"
             :class="{ 'program-space-name--single-line': column.space.includes('\n') }"
@@ -337,7 +337,7 @@ const programDays = [
               v-for="displayItem in getProgramDisplayItems(column.items)"
               :key="displayItem.key"
               class="program-event"
-              :class="{ 'is-hidden': isItemHidden(day.date, displayItem.item) }"
+              :class="{ 'is-hidden': isItemHidden(day.date, displayItem.item), 'program-event--multiple-times': displayItem.times.length > 1 }"
             >
               <span class="program-event-time">
                 <template v-if="displayItem.times.length > 0">
@@ -495,25 +495,35 @@ const programDays = [
 }
 
 @media (max-width: 1024px) {
-  .program-day {
-    padding: 7vh calc(var(--page-padding) + 18px) 0;
+  .program-page {
+    letter-spacing: 0.045em;
   }
 
-  .program-filters {
-    flex-wrap: wrap;
-    gap: 14px;
-    margin-bottom: 12px;
+  .program-hero {
+    display: none;
+  }
+
+  .program-day {
+    padding: 8px 18px 72px;
   }
 
   .program-filter {
     font-size: 15px;
     line-height: 1.1;
+    margin-top: 18px;
+  }
+
+  .program-date {
+    margin: 0 0 28px;
+    font-size: clamp(26px, 8vw, 28px);
   }
 
   .program-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
     min-height: auto;
-    padding-top: 10px;
+    padding-top: 0;
   }
 
   .program-grid::before {
@@ -521,9 +531,14 @@ const programDays = [
   }
 
   .program-column {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     padding: 0;
     border: none;
+    margin-top: 12px;
+  }
+
+  .program-column:first-child {
+    margin-top: 0;
   }
 
   .program-column:last-child {
@@ -532,11 +547,11 @@ const programDays = [
 
   .program-space-name {
     position: relative;
-    margin: 0 0 2px 0;
-    padding-bottom: 3px;
-    font-size: 13px;
+    margin: 0 0 12px 0;
+    padding-bottom: 0;
+    font-size: 12px;
     font-weight: 400;
-    line-height: 1.2;
+    line-height: 1.05;
     border-bottom: none;
   }
 
@@ -545,17 +560,17 @@ const programDays = [
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 4px;
+    bottom: -6px;
     height: 1px;
-    background-color: #7a7a7a;
+    background-color: #8a8a8a;
     transform: scaleY(0.5);
     transform-origin: bottom;
   }
 
   .program-space-name--single-line {
     white-space: nowrap;
-    font-size: 12px;
-    line-height: 1.05;
+    font-size: 11px;
+    line-height: 1;
     letter-spacing: 0.03em;
   }
 
@@ -565,27 +580,33 @@ const programDays = [
   }
 
   .program-event {
-    display: grid;
-    grid-template-columns: 120px minmax(0, 1fr);
-    column-gap: 12px;
+    display: flex;
+    gap: 70px;
     align-items: start;
     padding: 0;
-    font-size: 13px;
-    line-height: 1.1;
-    margin-bottom: 5px;
+    font-size: 12px;
+    line-height: 1.05;
+    margin-bottom: 8px;
   }
 
   .program-event:last-child {
     margin-bottom: 0;
   }
 
+  .program-event--multiple-times {
+    margin-bottom: 12px;
+  }
+
   .program-event-time {
-    width: 120px;
+    flex: 0 0 112px;
+    width: 112px;
     margin-top: 0;
+    margin-left: 8px;
     white-space: nowrap;
     text-align: left;
     align-self: start;
-    line-height: 1.05;
+    line-height: 1;
+    font-size: 11px;
   }
 
   .program-event-time-line {
@@ -593,12 +614,17 @@ const programDays = [
     white-space: nowrap;
   }
 
+  .program-event-time-line:not(:first-child) {
+    margin-top: 2px;
+  }
+
   .program-event-title {
     min-width: 0;
     white-space: pre-line;
     text-align: left;
-    line-height: 1.18;
+    line-height: 1.05;
   }
 }
 
 </style>
+
