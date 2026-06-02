@@ -103,12 +103,12 @@ onUnmounted(() => {
 
 <template>
   <main class="artists-gallery-page">
-    <header class="artists-gallery-header">
+    <header class="artists-gallery-header flex items-end justify-between gap-6">
       <div>
         <h1 class="artists-gallery-title font-monument">GALERÍA</h1>
       </div>
 
-      <RouterLink class="artists-gallery-back font-monument" to="/artistas#carrusel">
+      <RouterLink class="artists-gallery-back font-monument mr-4 text-[11px] uppercase tracking-[0.24em] no-underline hover:underline hover:underline-offset-4 sm:mr-6 md:mr-10 lg:mr-12" to="/artistas#carrusel">
         VOLVER
       </RouterLink>
     </header>
@@ -379,6 +379,7 @@ onUnmounted(() => {
   border: 1px solid rgb(255 255 255 / 12%);
   background: #000;
   box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
+  align-items: start;
 }
 
 .artist-modal-close {
@@ -421,9 +422,11 @@ onUnmounted(() => {
 .artist-modal-copy {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: flex-start;
   gap: 22px;
   padding: 18px 8px 18px 0;
+  text-align: left;
 }
 
 .artist-modal-name {
@@ -504,7 +507,7 @@ onUnmounted(() => {
   }
 
   .artists-gallery-title {
-    font-size: clamp(36px, 14vw, 64px);
+    font-size: clamp(30px, 12vw, 54px);
   }
 
   .artists-grid {
@@ -518,7 +521,7 @@ onUnmounted(() => {
 
   .artist-thumb-overlay-name {
     padding: 12px 10px 10px;
-    font-size: 13px;
+    font-size: 11px;
     letter-spacing: 0.16em;
   }
 
@@ -531,20 +534,26 @@ onUnmounted(() => {
     max-height: 92vh;
     padding: 16px;
     gap: 16px;
+    align-items: start;
   }
 
   .artist-modal-copy {
     padding: 0;
     gap: 16px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
   }
 
   .artist-modal-name {
-    padding-right: 44px;
-    font-size: clamp(20px, 8vw, 28px);
+    padding-right: 0;
+    font-size: clamp(18px, 7vw, 24px);
   }
 
   .artist-modal-text {
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: none;
   }
 
   .artist-modal-link {
