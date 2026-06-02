@@ -163,7 +163,6 @@ onUnmounted(() => {
 }
 
 .artist-image {
-  border: 0.5px solid rgb(255 255 255 / 45%);
   background-color: transparent;
   aspect-ratio: 1 / 1;
 }
@@ -201,7 +200,7 @@ onUnmounted(() => {
 
   .artists-carousel {
     min-height: auto;
-    padding: 7vh var(--page-padding) 48px;
+    padding: 12vh var(--page-padding) 48px;
   }
 
   .artists-stage:focus-visible .artists-track {
@@ -209,22 +208,29 @@ onUnmounted(() => {
   }
 
   .artists-slide {
-    gap: 16px;
+    gap: 18px;
   }
 
   .artist-card {
-    gap: 14px;
-    align-items: stretch;
+    gap: 18px;
+    align-items: center;
+    width: 100%;
+    min-height: 12rem;
   }
 
   .artist-image {
-    width: 100%;
-    height: clamp(13rem, 42vw, 16rem);
+    width: clamp(11rem, 44vw, 13rem);
+    height: clamp(11rem, 44vw, 13rem);
+    flex-shrink: 0;
   }
 
   .artist-name {
-    font-size: 1.12rem;
+    flex: 1;
+    font-size: clamp(1rem, 4.4vw, 1.25rem);
     letter-spacing: 0.04em;
+    text-align: right;
+    align-self: end;
+    padding-bottom: 0.3rem;
   }
 }
 </style>
