@@ -120,6 +120,12 @@ const openProductPage = (productId: string) => {
   router.push({ name: "tienda-product", params: { productId } });
 };
 
+const goToCheckout = () => {
+  if (cartItems.value.length === 0) return;
+
+  router.push({ name: "checkout" });
+};
+
 const addSelectedProductToCart = () => {
   if (!product.value) return;
 
@@ -440,7 +446,7 @@ onUnmounted(() => {
               <strong>{{ formatPrice(cartTotal) }}</strong>
             </div>
 
-            <button class="shop-pay-button" type="button">PAGAR</button>
+            <button class="shop-pay-button" type="button" @click="goToCheckout">COMPRAR</button>
           </div>
         </aside>
       </div>

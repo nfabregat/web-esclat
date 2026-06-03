@@ -6,6 +6,7 @@ import Entradas from "@/pages/entradas/Entradas.vue";
 import Info from "@/pages/info/Info.vue";
 import Menu from "@/pages/menu/Menu.vue";
 import Programa from "@/pages/programa/Programa.vue";
+import CheckoutPage from "@/pages/tienda/CheckoutPage.vue";
 import Producto from "@/pages/tienda/Producto.vue";
 import Tienda from "@/pages/tienda/Tienda.vue";
 import FestivalLayout from "@/layouts/FestivalLayout.vue";
@@ -67,6 +68,11 @@ export const router = createRouter({
           path: "entradas",
           name: "entradas",
           component: Entradas,
+        },
+        {
+          path: "tienda/checkout",
+          name: "checkout",
+          component: CheckoutPage,
         },
         {
           path: "tienda/:productId?",

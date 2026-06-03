@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import { Search, ShoppingCart, X, Minus, Plus } from "lucide-vue-next";
 import { useRoute, useRouter } from "vue-router";
+import { ArrowLeft, Minus, Plus, Search, ShoppingCart, X } from "lucide-vue-next";
+import CheckoutForm from "@/components/checkout/CheckoutForm.vue";
+import OrderSummary from "@/components/checkout/OrderSummary.vue";
+import PaymentSuccess from "@/components/checkout/PaymentSuccess.vue";
+import { type CheckoutValues } from "@/components/checkout/types";
 import { formatShopPrice, shopProducts, type ShopProduct } from "@/data/shop";
 import { useShopCart, type CartItem } from "@/composables/useShopCart";
 
-const router = useRouter();
 const route = useRoute();
+const router = useRouter();
 const { cartItems, cartCount, cartTotal, incrementItem, decrementItem, getCartLineTotal, getCartProduct } =
   useShopCart();
 const formatPrice = formatShopPrice;
@@ -15,6 +19,38 @@ const searchQuery = ref("");
 const searchInputRef = ref<HTMLInputElement | null>(null);
 const isSearchOpen = ref(false);
 const isCartOpen = ref(false);
+const paymentSuccess = ref(false);
+const isPaid = paymentSuccess;
+const successRef = ref<HTMLDivElement | null>(null);
+const paymentMessage = ref("");
+
+const email = ref("");
+const name = ref("");
+const phone = ref("");
+const address = ref("");
+const postalCode = ref("");
+const city = ref("");
+const province = ref("");
+const holder = ref("");
+const cardNumber = ref("");
+const expiry = ref("");
+const cvc = ref("");
+const rememberPayment = ref(false);
+
+const form = computed<CheckoutValues>(() => ({
+  email: email.value,
+  name: name.value,
+  phone: phone.value,
+  address: address.value,
+  postalCode: postalCode.value,
+  city: city.value,
+  province: province.value,
+  holder: holder.value,
+  cardNumber: cardNumber.value,
+  expiry: expiry.value,
+  cvc: cvc.value,
+  rememberPayment: rememberPayment.value,
+}));
 
 const filteredProducts = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
@@ -49,6 +85,47 @@ const cartEntries = computed(() =>
     .filter((entry): entry is { item: CartItem; product: ShopProduct } => Boolean(entry.product)),
 );
 
+const updateField = (field: keyof CheckoutValues, value: string | boolean) => {
+  switch (field) {
+    case "email":
+      email.value = String(value);
+      break;
+    case "name":
+      name.value = String(value);
+      break;
+    case "phone":
+      phone.value = String(value);
+      break;
+    case "address":
+      address.value = String(value);
+      break;
+    case "postalCode":
+      postalCode.value = String(value);
+      break;
+    case "city":
+      city.value = String(value);
+      break;
+    case "province":
+      province.value = String(value);
+      break;
+    case "holder":
+      holder.value = String(value);
+      break;
+    case "cardNumber":
+      cardNumber.value = String(value);
+      break;
+    case "expiry":
+      expiry.value = String(value);
+      break;
+    case "cvc":
+      cvc.value = String(value);
+      break;
+    case "rememberPayment":
+      rememberPayment.value = Boolean(value);
+      break;
+  }
+};
+
 const closeSearch = () => {
   isSearchOpen.value = false;
 };
@@ -76,12 +153,6 @@ const openCart = () => {
   isCartOpen.value = true;
 };
 
-const goToCheckout = () => {
-  if (cartItems.value.length === 0) return;
-
-  router.push({ name: "checkout" });
-};
-
 const toggleCart = () => {
   if (isCartOpen.value) {
     closeCart();
@@ -97,22 +168,71 @@ const openProductPage = (productId: string) => {
   router.push({ name: "tienda-product", params: { productId } });
 };
 
+const goBackToCart = () => {
+  closeSearch();
+  closeCart();
+  router.push({ name: "tienda", query: { cart: "open" } });
+};
+
+const goToCheckout = () => {
+  closeCart();
+
+  if (route.name !== "checkout") {
+    router.push({ name: "checkout" });
+  }
+};
+
+const submitCheckout = async () => {
+  console.log("BOTON PULSADO");
+  console.log({
+    email: email.value,
+    nombre: name.value,
+    telefono: phone.value,
+    direccion: address.value,
+    cp: postalCode.value,
+    ciudad: city.value,
+    provincia: province.value,
+    titular: holder.value,
+    tarjeta: cardNumber.value,
+    fecha: expiry.value,
+    cvv: cvc.value,
+  });
+
+  const allFieldsCompleted =
+    email.value.trim() &&
+    name.value.trim() &&
+    phone.value.trim() &&
+    address.value.trim() &&
+    postalCode.value.trim() &&
+    city.value.trim() &&
+    province.value.trim() &&
+    holder.value.trim() &&
+    cardNumber.value.trim() &&
+    expiry.value.trim() &&
+    cvc.value.trim();
+
+  if (!allFieldsCompleted) {
+    paymentMessage.value = "Completa todos los campos.";
+    return;
+  }
+
+  paymentMessage.value = "";
+  paymentSuccess.value = true;
+  console.log("PAYMENT SUCCESS");
+
+  await nextTick();
+  successRef.value?.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
+};
+
 const handleEscape = (event: KeyboardEvent) => {
   if (event.key !== "Escape") return;
 
   closeSearch();
   closeCart();
 };
-
-watch(
-  () => route.query.cart,
-  (cartQuery) => {
-    if (cartQuery === "open") {
-      openCart();
-    }
-  },
-  { immediate: true },
-);
 
 watch(
   [isSearchOpen, isCartOpen],
@@ -129,6 +249,16 @@ watch(
   { immediate: true },
 );
 
+watch(
+  () => route.name,
+  (routeName) => {
+    if (routeName !== "checkout") {
+      closeSearch();
+      closeCart();
+    }
+  },
+);
+
 onMounted(() => {
   window.addEventListener("keydown", handleEscape);
 });
@@ -143,63 +273,47 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="shop-page">
-    <section class="shop-hero">
-      <h1 class="shop-title font-monument">TIENDA</h1>
-    </section>
-
-    <section class="shop-catalog">
-      <div class="shop-toolbar">
-        <button
-          class="shop-icon-button"
-          type="button"
-          aria-label="Abrir buscador"
-          @click.stop="toggleSearch"
-        >
-          <Search :size="22" />
+  <main class="checkout-page">
+    <section class="checkout-shell">
+      <div class="checkout-toolbar">
+        <button class="checkout-icon-button checkout-icon-button--back" type="button" aria-label="Volver al carrito" @click="goBackToCart">
+          <ArrowLeft :size="22" />
         </button>
 
-        <button
-          class="shop-icon-button"
-          type="button"
-          aria-label="Abrir carrito"
-          @click.stop="toggleCart"
-        >
-          <ShoppingCart :size="22" />
-          <span v-if="cartCount > 0" class="shop-cart-badge">{{ cartCount }}</span>
-        </button>
+        <div class="checkout-toolbar-actions">
+          <button
+            class="checkout-icon-button"
+            type="button"
+            aria-label="Abrir buscador"
+            @click.stop="toggleSearch"
+          >
+            <Search :size="22" />
+          </button>
+
+          <button
+            class="checkout-icon-button"
+            type="button"
+            aria-label="Abrir carrito"
+            @click.stop="toggleCart"
+          >
+            <ShoppingCart :size="22" />
+            <span v-if="cartCount > 0" class="checkout-cart-badge">{{ cartCount }}</span>
+          </button>
+        </div>
       </div>
 
-      <p v-if="filteredProducts.length === 0" class="shop-no-results font-monument">
-        NO SE HAN ENCONTRADO PRODUCTOS
-      </p>
+      <section class="checkout-summary-wrap">
+        <OrderSummary :entries="cartEntries" :format-price="formatPrice" />
+      </section>
 
-      <div v-else class="shop-grid">
-        <button
-          v-for="product in filteredProducts"
-          :key="product.id"
-          class="shop-product"
-          type="button"
-          @click="openProductPage(product.id)"
-        >
-          <span class="shop-product-visual">
-            <img
-              :src="product.images[0]"
-              :alt="product.name"
-              class="shop-product-image shop-product-image--primary"
-            />
-            <img
-              :src="product.images[1] ?? product.images[0]"
-              :alt="product.name"
-              class="shop-product-image shop-product-image--secondary"
-            />
-          </span>
+      <div class="checkout-divider"></div>
 
-          <span class="shop-product-meta">
-            <span class="shop-product-name">{{ product.name }}</span>
-            <span class="shop-product-price">{{ formatPrice(product.price) }}</span>
-          </span>
-        </button>
+      <CheckoutForm :form="form" :is-paid="isPaid" @update-field="updateField" @submit="submitCheckout" />
+
+      <p v-if="paymentMessage" class="checkout-notice">{{ paymentMessage }}</p>
+
+      <div v-if="isPaid" ref="successRef" class="checkout-success-anchor">
+        <PaymentSuccess v-if="isPaid" />
       </div>
     </section>
 
@@ -365,53 +479,50 @@ onUnmounted(() => {
               <strong>{{ formatPrice(cartTotal) }}</strong>
             </div>
 
-            <button class="shop-pay-button" type="button" @click="goToCheckout">COMPRAR</button>
+            <button class="shop-pay-button" type="button" @click="goToCheckout">
+              COMPRAR
+            </button>
           </div>
         </aside>
       </div>
     </transition>
-
   </main>
 </template>
 
 <style scoped>
-.shop-page {
+.checkout-page {
   min-height: 100vh;
-  background-color: #000;
+  background: #000;
   color: #fff;
-  overflow-x: hidden;
   --page-padding: max(24px, 3vw);
   --header-offset: 92px;
 }
 
-.shop-hero {
+.checkout-shell {
+  display: grid;
+  gap: 0;
+  padding: 8vh var(--page-padding) 14vh;
+}
+
+.checkout-toolbar {
   position: relative;
-  min-height: 80vh;
-}
-
-.shop-title {
-  position: absolute;
-  bottom: 24px;
-  left: var(--page-padding);
-  font-size: clamp(46px, 6.6vw, 90px);
-  font-weight: 400;
-  line-height: 1;
-}
-
-.shop-catalog {
-  position: relative;
-  padding: 0 var(--page-padding) 12vh;
-}
-
-.shop-toolbar {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 28px;
+  margin-bottom: 40px;
+}
+
+.checkout-toolbar-actions {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 18px;
 }
 
-.shop-icon-button {
+.checkout-icon-button {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -419,19 +530,19 @@ onUnmounted(() => {
   width: 28px;
   height: 28px;
   border: 0;
-  background-color: transparent;
+  background: transparent;
   color: #fff;
   cursor: pointer;
   padding: 0;
   transition: opacity 180ms ease, transform 180ms ease;
 }
 
-.shop-icon-button:hover {
+.checkout-icon-button:hover {
   opacity: 0.8;
   transform: translateY(-1px);
 }
 
-.shop-cart-badge {
+.checkout-cart-badge {
   position: absolute;
   top: -5px;
   right: -5px;
@@ -446,98 +557,39 @@ onUnmounted(() => {
   text-align: center;
 }
 
-.shop-no-results {
-  margin: 40px 0 0;
-  font-size: 18px;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-}
-
-.shop-grid {
+.checkout-summary-wrap {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px 24px;
+  width: min(100%, 620px);
 }
 
-.shop-product {
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 0;
-  text-align: left;
+.checkout-divider {
+  margin: 50px 0 40px;
+  border-top: 1px solid #333;
 }
 
-.shop-product-visual {
-  position: relative;
-  display: block;
-  aspect-ratio: 4 / 5;
-  width: 100%;
-  overflow: hidden;
-  background-color: #060606;
+.checkout-form {
+  width: min(100%, 620px);
 }
 
-.shop-product-image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-  transition: opacity 280ms ease;
-}
-
-.shop-product-image--secondary {
-  opacity: 0;
-}
-
-.shop-product:hover .shop-product-image--primary,
-.shop-product:focus-visible .shop-product-image--primary {
-  opacity: 0;
-}
-
-.shop-product:hover .shop-product-image--secondary,
-.shop-product:focus-visible .shop-product-image--secondary {
-  opacity: 1;
-}
-
-.shop-product-meta {
+.checkout-success-anchor {
+  margin-top: 80px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 8px;
+  justify-content: flex-start;
+  width: min(100%, 620px);
+}
+
+.checkout-notice {
+  margin: 16px 0 0;
+  width: min(100%, 620px);
+  color: rgb(255 255 255 / 0.72);
   font-family: "Roboto Mono", monospace;
-  letter-spacing: 0.05em;
-  min-height: 16px;
-  width: 100%;
-}
-
-.shop-product-name,
-.shop-product-price {
-  font-size: 13px;
-  line-height: 1.1;
-}
-
-.shop-product-name {
-  justify-self: start;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.shop-product-price {
-  justify-self: end;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .shop-search-backdrop,
-.shop-drawer-backdrop,
-.shop-modal-backdrop {
+.shop-drawer-backdrop {
   position: fixed;
   inset: var(--header-offset) 0 0 0;
   z-index: 40;
@@ -879,154 +931,10 @@ onUnmounted(() => {
   border-color: #fff;
 }
 
-.shop-modal-backdrop {
-  display: grid;
-  place-items: center;
-  background: rgb(0 0 0 / 0.78);
-  padding: 18px;
-}
-
-.shop-product-modal {
-  position: relative;
-  width: min(980px, 100%);
-  max-height: calc(100vh - var(--header-offset) - 36px);
-  overflow: auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-  background: #000;
-  border: 1px solid rgb(255 255 255 / 0.14);
-}
-
-.shop-modal-close {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  background: transparent;
-  color: #fff;
-  cursor: pointer;
-  z-index: 1;
-}
-
-.shop-modal-media {
-  min-height: 100%;
-  background: #050505;
-}
-
-.shop-modal-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-  object-fit: cover;
-}
-
-.shop-modal-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 54px 30px 28px;
-}
-
-.shop-modal-kicker,
-.shop-size-label {
-  margin: 0;
-  font-family: "Roboto Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.14em;
-}
-
-.shop-modal-title {
-  margin: 0;
-  font-size: clamp(28px, 3.6vw, 46px);
-  font-weight: 400;
-  line-height: 0.95;
-}
-
-.shop-modal-description {
-  margin: 0;
-  max-width: 34ch;
-  color: rgb(255 255 255 / 0.76);
-  font-family: "Roboto Mono", monospace;
-  font-size: 13px;
-  line-height: 1.45;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.shop-size-group {
-  display: grid;
-  gap: 10px;
-}
-
-.shop-size-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.shop-size-button {
-  min-width: 42px;
-  border: 1px solid rgb(255 255 255 / 0.24);
-  background: transparent;
-  color: #fff;
-  cursor: pointer;
-  font-family: "Roboto Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  padding: 9px 10px;
-  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
-}
-
-.shop-size-button.is-active,
-.shop-size-button:hover {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
-}
-
-.shop-modal-footer {
-  margin-top: auto;
-  display: grid;
-  gap: 14px;
-}
-
-.shop-modal-price {
-  font-family: "Roboto Mono", monospace;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-}
-
-.shop-add-button {
-  width: 100%;
-  border: 1px solid rgb(255 255 255 / 0.55);
-  background: transparent;
-  color: #fff;
-  cursor: pointer;
-  font-family: "Roboto Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  padding: 13px 16px;
-  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
-}
-
-.shop-add-button:hover {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
-}
-
 .shop-panel-enter-active,
 .shop-panel-leave-active,
 .shop-drawer-enter-active,
-.shop-drawer-leave-active,
-.shop-modal-enter-active,
-.shop-modal-leave-active {
+.shop-drawer-leave-active {
   transition: opacity 240ms ease, transform 240ms ease;
 }
 
@@ -1049,100 +957,5 @@ onUnmounted(() => {
 .shop-drawer-enter-active .shop-cart-drawer,
 .shop-drawer-leave-active .shop-cart-drawer {
   transition: transform 260ms ease;
-}
-
-.shop-modal-enter-from,
-.shop-modal-leave-to {
-  opacity: 0;
-}
-
-.shop-modal-enter-from .shop-product-modal,
-.shop-modal-leave-to .shop-product-modal {
-  transform: translateY(14px) scale(0.98);
-}
-
-@media (min-width: 1025px) {
-  .shop-hero {
-    min-height: 80vh;
-  }
-
-  .shop-title {
-    bottom: 24px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .shop-hero {
-    min-height: 88vh;
-  }
-
-  .shop-title {
-    bottom: 32px;
-    left: var(--page-padding);
-    font-size: clamp(46px, 6.6vw, 90px);
-  }
-
-  .shop-catalog {
-    padding-bottom: 10vh;
-  }
-
-  .shop-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px 18px;
-  }
-
-  .shop-product-name,
-  .shop-product-price {
-    font-size: 12px;
-  }
-
-  .shop-product-meta {
-    gap: 8px;
-  }
-
-  .shop-product:hover .shop-product-image--primary,
-  .shop-product:focus-visible .shop-product-image--primary {
-    opacity: 1;
-  }
-
-  .shop-search-panel {
-    padding-top: 18px;
-  }
-
-  .shop-cart-drawer {
-    width: min(100vw, 520px);
-    padding: 16px 14px 18px;
-  }
-
-  .shop-product-modal {
-    grid-template-columns: 1fr;
-  }
-
-  .shop-modal-copy {
-    padding: 26px 18px 18px;
-  }
-}
-
-@media (max-width: 760px) {
-  .shop-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .shop-search-input {
-    font-size: 14px;
-  }
-
-  .shop-cart-item {
-    grid-template-columns: 64px minmax(0, 1fr) auto;
-  }
-
-  .shop-cart-thumb,
-  .shop-mini-image {
-    width: 64px;
-  }
-
-  .shop-cart-drawer {
-    width: 100vw;
-  }
 }
 </style>
