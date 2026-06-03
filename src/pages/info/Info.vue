@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { nextTick, onMounted, reactive, ref } from "vue";
 
 type MapCard = {
   id: "nivel1" | "nivel2" | "mutant";
@@ -39,7 +39,19 @@ const activeFaq = ref<string | null>(null);
 const activeRule = ref<string | null>(null);
 const activeSpaceId = ref<string | null>(null);
 
-const mapSpaceInfo: Record<string, { title: string; subtitle: string; description: string }> = {
+const spaceDisplaySubtitles: Record<SpaceId, string> = {
+  "space-01": "Planta baja",
+  "space-02": "Planta baja",
+  "space-03": "Planta 1",
+  "space-04": "Planta 1",
+  "space-05": "Planta baja",
+  "space-06": "Planta baja",
+  "space-07": "Planta baja",
+  "space-08": "La Mutant",
+  "space-09": "La Mutant",
+};
+
+const mapSpaceInfo = {
   "space-01": {
     title: "01. Hall La Polivalent",
     subtitle: "Hall y conexión",
@@ -94,11 +106,25 @@ const mapSpaceInfo: Record<string, { title: string; subtitle: string; descriptio
     description:
       "El escenario principal del festival. Aquí tendrán lugar las sesiones más intensas, shows audiovisuales y directos principales.",
   },
-};
+} as const;
 
-const activeSpaceInfo = computed(() =>
-  activeSpaceId.value ? mapSpaceInfo[activeSpaceId.value] ?? null : null
-);
+type SpaceId = keyof typeof mapSpaceInfo;
+
+const spaceGuideItems = [
+  { id: "space-01", label: "01. Hall La Polivalent" },
+  { id: "space-02", label: "02. La Polivalent" },
+  { id: "space-03", label: "03. Factoría" },
+  { id: "space-04", label: "04. Visual Room" },
+  { id: "space-05", label: "05. Sala de Exposiciones" },
+  { id: "space-06", label: "06. Patio 1" },
+  { id: "space-07", label: "07. Patio 2" },
+  { id: "space-08", label: "08. Vestíbulo La Mutant" },
+  { id: "space-09", label: "09. La Mutant" },
+] as const satisfies ReadonlyArray<{ id: SpaceId; label: string }>;
+
+const getSpaceSubtitle = (spaceId: SpaceId) => {
+  return spaceDisplaySubtitles[spaceId];
+};
 
 const normalizeSvg = (id: MapCard["id"], svg: string) => {
   if (id !== "mutant") {
@@ -267,7 +293,23 @@ const handleMapClick = (event: MouseEvent) => {
     return;
   }
 
-  activeSpaceId.value = spaceNode.id;
+  const rawSpaceId = spaceNode.getAttribute("data-name") ?? spaceNode.id;
+  const spaceId = rawSpaceId === "space-09-2" ? "space-09" : (rawSpaceId as SpaceId);
+
+  selectSpace(spaceId, true);
+};
+
+const selectSpace = (spaceId: SpaceId, scrollToItem = false) => {
+  activeSpaceId.value = spaceId;
+
+  if (scrollToItem) {
+    nextTick(() => {
+      document.getElementById(spaceId)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    });
+  }
 };
 
 onMounted(() => {
@@ -323,18 +365,30 @@ onMounted(() => {
           </article>
 
           <div class="space-guide">
-            <p>
-              Guía de espacios:<br />
-              01. Hall La Polivalent<br />
-              02. La Polivalent<br />
-              03. Factoría<br />
-              04. Visual Room<br />
-              05. Sala de Exposiciones<br />
-              06. Patio 1<br />
-              07. Patio 2<br />
-              08. Vestíbulo La Mutant<br />
-              09. La Mutant
-            </p>
+            <p class="space-guide-title">Guía de espacios:</p>
+            <ul class="space-guide-list">
+              <li
+                v-for="item in spaceGuideItems"
+                :id="item.id"
+                :key="item.id"
+                class="space-guide-item"
+              >
+                <button
+                  type="button"
+                  class="space-guide-button"
+                  :class="{ active: activeSpaceId === item.id }"
+                  @click="selectSpace(item.id, true)"
+                >
+                  {{ item.label }}
+                </button>
+                <div v-if="activeSpaceId === item.id" class="space-guide-details">
+                  <p class="space-guide-subtitle">{{ getSpaceSubtitle(item.id) }}</p>
+                  <p class="space-guide-description">
+                    {{ mapSpaceInfo[item.id].description }}
+                  </p>
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
 
@@ -356,13 +410,6 @@ onMounted(() => {
           </article>
         </div>
       </div>
-
-      <aside v-if="activeSpaceInfo" class="space-panel" aria-live="polite">
-        <p class="space-panel-label">Espacio seleccionado</p>
-        <h3>{{ activeSpaceInfo.title }}</h3>
-        <p class="space-panel-subtitle">{{ activeSpaceInfo.subtitle }}</p>
-        <p class="space-panel-description">{{ activeSpaceInfo.description }}</p>
-      </aside>
     </section>
 
     <section class="faq-section">
@@ -653,49 +700,69 @@ onMounted(() => {
   border-top: 1px solid rgb(255 255 255 / 0.22);
 }
 
-.space-guide p {
+.space-guide-title {
   margin: 0;
-  max-width: 36rem;
   font-family: "Roboto Mono", monospace;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.45;
   letter-spacing: 0;
   text-transform: none;
   color: rgb(255 255 255 / 0.72);
 }
 
-.space-panel {
-  margin-top: 32px;
-  padding: 18px 0 0;
-  border-top: 1px solid rgb(255 255 255 / 0.18);
-  max-width: 820px;
+.space-guide-list {
+  display: grid;
+  gap: 18px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.space-guide-item {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 6px;
+}
+
+.space-guide-button {
+  border: 0;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  font-family: "Roboto Mono", monospace;
+  font-size: 16px;
+  line-height: 1.25;
+  padding: 0;
+  text-align: left;
+  text-transform: none;
+}
+
+.space-guide-button:hover,
+.space-guide-button.active {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.space-guide-details {
+  display: grid;
+  gap: 8px;
+  padding-left: 14px;
+  padding-top: 10px;
+  border-left: 1px solid rgb(255 255 255 / 0.18);
   font-family: "Roboto Mono", monospace;
   text-transform: none;
   letter-spacing: 0;
 }
 
-.space-panel-label {
-  margin: 0 0 10px;
-  font-size: 11px;
-  color: rgb(255 255 255 / 0.65);
-}
-
-.space-panel h3 {
+.space-guide-subtitle {
   margin: 0;
-  font-size: 22px;
-  font-weight: 400;
-  line-height: 1.2;
-}
-
-.space-panel-subtitle {
-  margin: 10px 0 0;
   font-size: 12px;
   color: rgb(255 255 255 / 0.72);
 }
 
-.space-panel-description {
-  margin: 14px 0 0;
-  font-size: 13px;
+.space-guide-description {
+  margin: 0;
+  font-size: 14px;
   line-height: 1.45;
   color: rgb(255 255 255 / 0.92);
 }
@@ -911,10 +978,6 @@ onMounted(() => {
 
   .space-guide {
     margin-top: 6px;
-  }
-
-  .space-panel {
-    margin-top: 24px;
   }
 
   .faq-question {
