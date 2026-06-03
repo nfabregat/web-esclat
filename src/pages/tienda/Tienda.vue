@@ -79,7 +79,17 @@ const openCart = () => {
 const goToCheckout = () => {
   if (cartItems.value.length === 0) return;
 
-  router.push({ name: "checkout" });
+  const firstEntry = cartEntries.value[0];
+
+  router.push({
+    name: "checkout",
+    query: firstEntry
+      ? {
+          productId: firstEntry.item.productId,
+          size: firstEntry.item.size,
+        }
+      : undefined,
+  });
 };
 
 const toggleCart = () => {

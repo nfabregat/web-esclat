@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { formatShopPrice, getShopProduct, shopProductMap, type ShopProduct } from "@/data/shop";
 
 type CartItem = {
@@ -7,9 +7,51 @@ type CartItem = {
   quantity: number;
 };
 
-const cartItems = ref<CartItem[]>([]);
+const CART_STORAGE_KEY = "esclat-shop-cart-items";
+
+const isCartItem = (value: unknown): value is CartItem => {
+  if (!value || typeof value !== "object") return false;
+
+  const candidate = value as Partial<CartItem>;
+  return (
+    typeof candidate.productId === "string" &&
+    typeof candidate.size === "string" &&
+    typeof candidate.quantity === "number"
+  );
+};
+
+const loadCartItems = () => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter(isCartItem);
+  } catch {
+    return [];
+  }
+};
+
+const cartItems = ref<CartItem[]>(loadCartItems());
+let hasCartPersistenceWatcher = false;
 
 export const useShopCart = () => {
+  if (typeof window !== "undefined" && !hasCartPersistenceWatcher) {
+    hasCartPersistenceWatcher = true;
+
+    watch(
+      cartItems,
+      (items) => {
+        window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+      },
+      { deep: true },
+    );
+  }
+
   const cartCount = computed(() => {
     return cartItems.value.reduce((total, item) => total + item.quantity, 0);
   });

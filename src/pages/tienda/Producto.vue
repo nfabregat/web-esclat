@@ -123,7 +123,13 @@ const openProductPage = (productId: string) => {
 const goToCheckout = () => {
   if (cartItems.value.length === 0) return;
 
-  router.push({ name: "checkout" });
+  router.push({
+    name: "checkout",
+    query: {
+      productId: product.value?.id,
+      size: selectedSize.value,
+    },
+  });
 };
 
 const addSelectedProductToCart = () => {

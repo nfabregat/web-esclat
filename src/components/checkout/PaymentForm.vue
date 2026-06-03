@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CheckoutValues } from "./types";
 
-defineProps<{
+const props = defineProps<{
   form: CheckoutValues;
   isPaid: boolean;
 }>();
@@ -11,7 +11,9 @@ const emit = defineEmits<{
 }>();
 
 const updateText = (field: keyof CheckoutValues) => (event: Event) => {
-  emit("update-field", field, (event.target as HTMLInputElement).value);
+  const value = (event.target as HTMLInputElement).value;
+
+  emit("update-field", field, value);
 };
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
@@ -29,9 +31,19 @@ const formatExpiry = (value: string) => {
 
 const formatCvc = (value: string) => digitsOnly(value).slice(0, 3);
 
-const toggleRemember = (currentValue: boolean) => {
-  console.log("CHECKBOX CLICK");
-  emit("update-field", "rememberPayment", !currentValue);
+const updateCardNumber = (event: Event) => {
+  const value = formatCardNumber((event.target as HTMLInputElement).value);
+  emit("update-field", "cardNumber", value);
+};
+
+const updateExpiry = (event: Event) => {
+  const value = formatExpiry((event.target as HTMLInputElement).value);
+  emit("update-field", "expiry", value);
+};
+
+const updateCvc = (event: Event) => {
+  const value = formatCvc((event.target as HTMLInputElement).value);
+  emit("update-field", "cvc", value);
 };
 </script>
 
@@ -43,7 +55,7 @@ const toggleRemember = (currentValue: boolean) => {
       <label class="checkout-payment-full">
         <span class="sr-only">Nombre del titular</span>
         <input
-          :value="form.holder"
+          :value="props.form.holder"
           type="text"
           placeholder="NOMBRE DEL TITULAR"
           aria-label="Nombre del titular"
@@ -53,56 +65,44 @@ const toggleRemember = (currentValue: boolean) => {
       <label class="checkout-payment-full">
         <span class="sr-only">Número de tarjeta</span>
         <input
-          :value="form.cardNumber"
+          :value="props.form.cardNumber"
           type="text"
           inputmode="numeric"
           maxlength="19"
           placeholder="NÚMERO DE TARJETA"
           aria-label="Número de tarjeta"
-          @input="emit('update-field', 'cardNumber', formatCardNumber(($event.target as HTMLInputElement).value))"
+          @input="updateCardNumber"
         />
       </label>
       <div class="checkout-payment-row">
         <label class="checkout-payment-half">
           <span class="sr-only">Fecha de expiración</span>
           <input
-            :value="form.expiry"
+            :value="props.form.expiry"
             type="text"
             inputmode="numeric"
             maxlength="5"
             placeholder="FECHA DE EXPIRACIÓN (MM / YY)"
             aria-label="Fecha de expiración"
-            @input="emit('update-field', 'expiry', formatExpiry(($event.target as HTMLInputElement).value))"
+            @input="updateExpiry"
           />
         </label>
 
         <label class="checkout-payment-half">
           <span class="sr-only">Código de seguridad</span>
           <input
-            :value="form.cvc"
+            :value="props.form.cvc"
             type="text"
             inputmode="numeric"
             maxlength="3"
             placeholder="CÓDIGO DE SEGURIDAD"
             aria-label="Código de seguridad"
-            @input="emit('update-field', 'cvc', formatCvc(($event.target as HTMLInputElement).value))"
+            @input="updateCvc"
           />
         </label>
       </div>
     </div>
 
-    <div class="checkout-save">
-      <button
-        class="checkout-checkbox"
-        type="button"
-        :aria-pressed="form.rememberPayment"
-        :disabled="isPaid"
-        @click="toggleRemember(form.rememberPayment)"
-      >
-        <span v-if="form.rememberPayment" class="checkout-checkbox-mark">X</span>
-      </button>
-      <span class="checkout-save-text">GUARDAR INFORMACIÓN DE PAGO</span>
-    </div>
   </section>
 </template>
 
@@ -163,41 +163,6 @@ const toggleRemember = (currentValue: boolean) => {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px;
-}
-
-.checkout-save {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  color: #fff;
-  font-family: "Roboto Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-}
-
-.checkout-checkbox {
-  position: relative;
-  width: 14px;
-  height: 14px;
-  border: 1px solid #444;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.checkout-checkbox-mark {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-size: 10px;
-  line-height: 1;
-}
-
-.checkout-save-text {
-  transform: translateY(1px);
 }
 
 .checkout-error {
