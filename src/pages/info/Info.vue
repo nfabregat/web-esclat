@@ -130,6 +130,16 @@ const spaceGuideItems = [
   { id: "space-09", label: "09. La Mutant" },
 ] as const satisfies ReadonlyArray<{ id: SpaceId; label: string }>;
 
+const legendItems = [
+  { label: "Entrada", src: "/assets/mapa/iconos/icono-entrada.svg" },
+  { label: "Escalera", src: "/assets/mapa/iconos/icono-escalera.svg" },
+  { label: "Baños", src: "/assets/mapa/iconos/icono-baños.svg" },
+  {
+    label: "Punto de información",
+    src: "/assets/mapa/iconos/icono-puntodeinformacion.svg",
+  },
+] as const;
+
 const getSpaceSubtitle = (spaceId: SpaceId) => {
   return spaceDisplaySubtitles[spaceId];
 };
@@ -412,47 +422,47 @@ onBeforeUnmount(() => {
           </article>
 
           <div class="space-guide">
-            <div class="space-guide-header">
-              <p class="space-guide-title">iNFORMACIÓN</p>
+            <div class="space-guide-columns">
+              <ul class="space-guide-list">
+                <li
+                  v-for="item in spaceGuideItems"
+                  :id="item.id"
+                  :key="item.id"
+                  class="space-guide-item"
+                  :ref="registerSpaceGuideRef(item.id)"
+                >
+                  <button
+                    type="button"
+                    class="space-guide-button"
+                    :class="{ active: activeSpaceId === item.id }"
+                    :aria-expanded="activeSpaceId === item.id"
+                    :aria-controls="`${item.id}-details`"
+                    @click="selectSpace(item.id, true)"
+                  >
+                    {{ item.label }}
+                  </button>
+                  <div
+                    v-if="activeSpaceId === item.id"
+                    :id="`${item.id}-details`"
+                    class="space-guide-details"
+                  >
+                    <p class="space-guide-subtitle">{{ getSpaceSubtitle(item.id) }}</p>
+                    <p class="space-guide-description">
+                      {{ mapSpaceInfo[item.id].description }}
+                    </p>
+                  </div>
+                </li>
+              </ul>
+
               <div class="space-guide-legend">
                 <div class="space-guide-legend-list" aria-label="Leyenda de iconos">
-                  <div class="space-guide-legend-item">entrada</div>
-                  <div class="space-guide-legend-item">escalera</div>
-                  <div class="space-guide-legend-item">baños</div>
-                  <div class="space-guide-legend-item">punto de información</div>
+                  <div v-for="item in legendItems" :key="item.label" class="space-guide-legend-item">
+                    <img class="space-guide-legend-icon" :src="item.src" :alt="item.label" />
+                    <span>{{ item.label }}</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <ul class="space-guide-list">
-              <li
-                v-for="item in spaceGuideItems"
-                :id="item.id"
-                :key="item.id"
-                class="space-guide-item"
-                :ref="registerSpaceGuideRef(item.id)"
-              >
-                <button
-                  type="button"
-                  class="space-guide-button"
-                  :class="{ active: activeSpaceId === item.id }"
-                  :aria-expanded="activeSpaceId === item.id"
-                  :aria-controls="`${item.id}-details`"
-                  @click="selectSpace(item.id, true)"
-                >
-                  {{ item.label }}
-                </button>
-                <div
-                  v-if="activeSpaceId === item.id"
-                  :id="`${item.id}-details`"
-                  class="space-guide-details"
-                >
-                  <p class="space-guide-subtitle">{{ getSpaceSubtitle(item.id) }}</p>
-                  <p class="space-guide-description">
-                    {{ mapSpaceInfo[item.id].description }}
-                  </p>
-                </div>
-              </li>
-            </ul>
           </div>
         </div>
 
@@ -671,8 +681,11 @@ onBeforeUnmount(() => {
 
 .main-building-stack {
   display: grid;
-  gap: 8px;
+  gap: 4px;
   align-content: start;
+  justify-items: end;
+  padding-left: clamp(24px, 4vw, 60px);
+  padding-right: clamp(24px, 4vw, 60px);
 }
 
 .map-card {
@@ -751,15 +764,17 @@ onBeforeUnmount(() => {
 
 .map-card-main {
   justify-self: end;
-  width: min(100%, 600px);
+  width: min(88%, 560px);
 }
 
 .map-card-nivel1 {
-  width: min(100%, 600px);
+  justify-self: end;
+  width: min(88%, 560px);
 }
 
 .map-card-nivel2 {
-  width: min(78%, 470px);
+  justify-self: end;
+  width: min(78%, 560px);
 }
 
 .map-card-mutant {
@@ -773,51 +788,53 @@ onBeforeUnmount(() => {
   border-top: 1px solid rgb(255 255 255 / 0.22);
 }
 
-.space-guide-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.space-guide-title {
-  flex: 0 0 auto;
-  margin: 0;
-  font-family: "Roboto Mono", monospace;
-  font-size: 13px;
-  line-height: 1.45;
-  letter-spacing: 0;
-  text-transform: none;
-  color: rgb(255 255 255 / 0.72);
+.space-guide-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(220px, 280px);
+  gap: 44px;
+  align-items: start;
 }
 
 .space-guide-legend {
   display: grid;
   gap: 8px;
   justify-items: start;
-  max-width: 340px;
+  align-self: start;
+  justify-self: end;
+  padding-right: clamp(8px, 1vw, 18px);
 }
 
 .space-guide-legend-list {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 6px;
 }
 
 .space-guide-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: "Roboto Mono", monospace;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.25;
   color: white;
   text-transform: uppercase;
   letter-spacing: 0;
+  text-align: left;
+}
+
+.space-guide-legend-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  display: block;
 }
 
 .space-guide-list {
   display: grid;
   gap: 10px;
-  margin: 10px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -1077,12 +1094,17 @@ onBeforeUnmount(() => {
   }
 
   .map-card-nivel2 {
-    width: min(100%, 499px);
+    width: min(100%, 560px);
     justify-self: end;
   }
 
   .space-guide {
     margin-top: 6px;
+  }
+
+  .space-guide-columns {
+    grid-template-columns: 1fr;
+    gap: 18px;
   }
 
   .space-guide-header {
@@ -1093,6 +1115,8 @@ onBeforeUnmount(() => {
   .space-guide-legend {
     justify-items: start;
     max-width: none;
+    justify-self: start;
+    padding-right: 0;
   }
 
   .space-guide-legend-svg {
@@ -1101,6 +1125,7 @@ onBeforeUnmount(() => {
 
   .space-guide-legend-list {
     justify-content: flex-start;
+    align-items: flex-start;
   }
 
   .faq-question {
