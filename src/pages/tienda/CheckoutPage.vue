@@ -6,7 +6,7 @@ import CheckoutForm from "@/components/checkout/CheckoutForm.vue";
 import OrderSummary from "@/components/checkout/OrderSummary.vue";
 import PaymentSuccess from "@/components/checkout/PaymentSuccess.vue";
 import { type CheckoutValues } from "@/components/checkout/types";
-import { formatShopPrice, shopProducts, type ShopProduct } from "@/data/shop";
+import { formatShopPrice, getShopProduct, shopProducts, type ShopProduct } from "@/data/shop";
 import { useShopCart, type CartItem } from "@/composables/useShopCart";
 
 const route = useRoute();
@@ -23,34 +23,20 @@ const paymentSuccess = ref(false);
 const isPaid = paymentSuccess;
 const successRef = ref<HTMLDivElement | null>(null);
 const paymentMessage = ref("");
-
-const email = ref("");
-const name = ref("");
-const phone = ref("");
-const address = ref("");
-const postalCode = ref("");
-const city = ref("");
-const province = ref("");
-const holder = ref("");
-const cardNumber = ref("");
-const expiry = ref("");
-const cvc = ref("");
-const rememberPayment = ref(false);
-
-const form = computed<CheckoutValues>(() => ({
-  email: email.value,
-  name: name.value,
-  phone: phone.value,
-  address: address.value,
-  postalCode: postalCode.value,
-  city: city.value,
-  province: province.value,
-  holder: holder.value,
-  cardNumber: cardNumber.value,
-  expiry: expiry.value,
-  cvc: cvc.value,
-  rememberPayment: rememberPayment.value,
-}));
+const form = ref<CheckoutValues>({
+  email: "",
+  name: "",
+  phone: "",
+  address: "",
+  postalCode: "",
+  city: "",
+  province: "",
+  holder: "",
+  cardNumber: "",
+  expiry: "",
+  cvc: "",
+  rememberPayment: false,
+});
 
 const filteredProducts = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
@@ -84,46 +70,44 @@ const cartEntries = computed(() =>
     }))
     .filter((entry): entry is { item: CartItem; product: ShopProduct } => Boolean(entry.product)),
 );
+const checkoutSummaryProductId = computed(() =>
+  typeof route.query.productId === "string" ? route.query.productId : null,
+);
+const checkoutSummarySize = computed(() => (typeof route.query.size === "string" ? route.query.size : null));
+const checkoutSummaryEntry = computed(() => {
+  const routeProductId = checkoutSummaryProductId.value;
+  const routeSize = checkoutSummarySize.value;
+
+  if (routeProductId) {
+    const matchingCartEntry =
+      cartEntries.value.find((entry) => entry.item.productId === routeProductId && entry.item.size === routeSize) ??
+      cartEntries.value.find((entry) => entry.item.productId === routeProductId) ??
+      null;
+
+    const product = getShopProduct(routeProductId);
+
+    if (product) {
+      return {
+        item: matchingCartEntry?.item ?? {
+          productId: routeProductId,
+          size: routeSize ?? product.sizes[0] ?? "U",
+          quantity: 1,
+        },
+        product,
+      };
+    }
+  }
+
+  return cartEntries.value[0] ?? null;
+});
 
 const updateField = (field: keyof CheckoutValues, value: string | boolean) => {
-  switch (field) {
-    case "email":
-      email.value = String(value);
-      break;
-    case "name":
-      name.value = String(value);
-      break;
-    case "phone":
-      phone.value = String(value);
-      break;
-    case "address":
-      address.value = String(value);
-      break;
-    case "postalCode":
-      postalCode.value = String(value);
-      break;
-    case "city":
-      city.value = String(value);
-      break;
-    case "province":
-      province.value = String(value);
-      break;
-    case "holder":
-      holder.value = String(value);
-      break;
-    case "cardNumber":
-      cardNumber.value = String(value);
-      break;
-    case "expiry":
-      expiry.value = String(value);
-      break;
-    case "cvc":
-      cvc.value = String(value);
-      break;
-    case "rememberPayment":
-      rememberPayment.value = Boolean(value);
-      break;
-  }
+  console.log("UPDATE FIELD", field, value);
+
+  form.value = {
+    ...form.value,
+    [field]: value,
+  } as CheckoutValues;
 };
 
 const closeSearch = () => {
@@ -183,42 +167,10 @@ const goToCheckout = () => {
 };
 
 const submitCheckout = async () => {
-  console.log("BOTON PULSADO");
-  console.log({
-    email: email.value,
-    nombre: name.value,
-    telefono: phone.value,
-    direccion: address.value,
-    cp: postalCode.value,
-    ciudad: city.value,
-    provincia: province.value,
-    titular: holder.value,
-    tarjeta: cardNumber.value,
-    fecha: expiry.value,
-    cvv: cvc.value,
-  });
-
-  const allFieldsCompleted =
-    email.value.trim() &&
-    name.value.trim() &&
-    phone.value.trim() &&
-    address.value.trim() &&
-    postalCode.value.trim() &&
-    city.value.trim() &&
-    province.value.trim() &&
-    holder.value.trim() &&
-    cardNumber.value.trim() &&
-    expiry.value.trim() &&
-    cvc.value.trim();
-
-  if (!allFieldsCompleted) {
-    paymentMessage.value = "Completa todos los campos.";
-    return;
-  }
+  console.log("PAY BUTTON CLICKED");
 
   paymentMessage.value = "";
   paymentSuccess.value = true;
-  console.log("PAYMENT SUCCESS");
 
   await nextTick();
   successRef.value?.scrollIntoView({
@@ -256,6 +208,13 @@ watch(
       closeSearch();
       closeCart();
     }
+  },
+);
+
+watch(
+  () => form.value.cardNumber,
+  (value) => {
+    console.log("CARD NUMBER CHANGED:", value);
   },
 );
 
@@ -303,7 +262,7 @@ onUnmounted(() => {
       </div>
 
       <section class="checkout-summary-wrap">
-        <OrderSummary :entries="cartEntries" :format-price="formatPrice" />
+        <OrderSummary v-if="checkoutSummaryEntry" :entry="checkoutSummaryEntry" :format-price="formatPrice" />
       </section>
 
       <div class="checkout-divider"></div>
