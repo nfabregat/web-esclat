@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick, watch } from "vue";
+import { ref, onMounted, computed } from "vue";
 
 const festivalSpaces = [
   {
@@ -88,120 +88,60 @@ const activeSpace = ref<string | null>(null);
 const activeFaq = ref<string | null>(null);
 const activeRule = ref<string | null>(null);
 
-const nivel1Svg = ref<string | null>(null);
-const nivel2Svg = ref<string | null>(null);
-const mutantSvg = ref<string | null>(null);
-const loadError = ref<string | null>(null);
-const selectedMap = ref<string>("nivel1");
+// Map SVGs
+const nivel1Svg = ref<string>('');
+const nivel2Svg = ref<string>('');
+const mutantSvg = ref<string>('');
+const selectedMap = ref<'nivel1' | 'nivel2' | 'mutant'>('nivel1');
+
+type MapDefinition = {
+  id: 'nivel1' | 'nivel2' | 'mutant';
+  label: string;
+  url: string;
+  svgRef: typeof nivel1Svg | typeof nivel2Svg | typeof mutantSvg;
+  removeGroupId?: string;
+};
+
+const mapDefinitions: MapDefinition[] = [
+  { id: 'nivel1', label: 'Planta Baja', url: '/assets/mapa/Mapa-LASNAVES-Nivel1.svg', svgRef: nivel1Svg },
+  { id: 'nivel2', label: 'Planta 1', url: '/assets/mapa/Mapa-LASNAVES-Nivel2.svg', svgRef: nivel2Svg, removeGroupId: 'Capa_6' },
+  { id: 'mutant', label: 'La Mutant', url: '/assets/mapa/Mapa-LASNAVES-Mutant.svg', svgRef: mutantSvg },
+];
 
 const currentMapSvg = computed(() => {
-  if (selectedMap.value === "nivel1") return nivel1Svg.value;
-  if (selectedMap.value === "nivel2") return nivel2Svg.value;
-  return mutantSvg.value;
+  const map = mapDefinitions.find((item) => item.id === selectedMap.value);
+  return map?.svgRef.value ?? '';
 });
 
-const loadSvgs = async () => {
+const loadMaps = async () => {
   try {
-    const [r1, r2, r3] = await Promise.all([
-      fetch("/assets/mapa/Mapa-LASNAVES-Nivel1.svg"),
-      fetch("/assets/mapa/Mapa-LASNAVES-Nivel2.svg"),
-      fetch("/assets/mapa/Mapa-LASNAVES-Mutant.svg"),
-    ]);
-    if (!r1.ok || !r2.ok || !r3.ok) {
-      loadError.value = `SVG fetch error: ${!r1.ok? 'nivel1':''} ${!r2.ok? 'nivel2':''} ${!r3.ok? 'mutant':''}`;
+    const results = await Promise.all(
+      mapDefinitions.map((item) => fetch(item.url))
+    );
+
+    for (let i = 0; i < mapDefinitions.length; i += 1) {
+      const item = mapDefinitions[i];
+      const res = results[i];
+      if (!res.ok) {
+        console.error(`[Maps] failed to load ${item.id}:`, res.status, res.statusText);
+        continue;
+      }
+
+      let svgText = await res.text();
+      if (item.removeGroupId) {
+        svgText = svgText.replace(new RegExp(`<g id="${item.removeGroupId}"[^>]*>.*?<\/g>`, 's'), '');
+      }
+      item.svgRef.value = svgText;
     }
-    nivel1Svg.value = r1.ok ? await r1.text() : null;
-    nivel2Svg.value = r2.ok ? await r2.text() : null;
-    mutantSvg.value = r3.ok ? await r3.text() : null;
+
+    console.debug('[Maps loaded]', mapDefinitions.map((item) => ({ id: item.id, length: item.svgRef.value.length })));
   } catch (e) {
-    console.error("Error loading SVGs", e);
-    loadError.value = String(e);
+    console.error('Error loading maps:', e);
   }
 };
 
 onMounted(() => {
-  loadSvgs();
-});
-
-const mappedElements: Record<string, Element[]> = {};
-
-const attachSvgListeners = async () => {
-  await nextTick();
-  const container = document.querySelector('.space-map');
-  if (!container) return;
-  const svg = container.querySelector('svg');
-  if (!svg) return;
-  console.debug('[map] attachSvgListeners', { map: selectedMap.value });
-
-  // clear previous mappings
-  Object.keys(mappedElements).forEach(k => delete mappedElements[k]);
-
-  // Direct mapping: search for groups with id="space-NN" in the SVG
-  // The SVG structure is: <g id="space-01"><path.../><text>01</text></g>
-  const spaceGroups = Array.from(svg.querySelectorAll('[id^="space-"]')).filter(el => {
-    const id = el.getAttribute('id') || '';
-    // exclude WC and Escalera
-    return !/^(wc|escalera)/i.test(id);
-  });
-
-  console.debug('[map] found spaceGroups', { count: spaceGroups.length, ids: spaceGroups.map(g => g.getAttribute('id')) });
-
-  spaceGroups.forEach(group => {
-    const idAttr = group.getAttribute('id') || '';
-    // Extract number from id: "space-01" -> "01", "space-09-2" -> "09"
-    const match = /space-(\d+)/i.exec(idAttr);
-    if (!match || !match[1]) return;
-    
-    let spaceId = match[1];
-    if (spaceId.length === 1) spaceId = '0' + spaceId;
-    
-    // Only map if it's a valid festivalSpace
-    if (!festivalSpaces.some(s => s.id === spaceId)) return;
-
-    mappedElements[spaceId] = [group as Element];
-    console.debug('[map] mapped', { spaceId, idAttr });
-  });
-
-  // attach listeners to mapped elements
-  Object.keys(mappedElements).forEach(id => {
-    const els = mappedElements[id] || [];
-
-    const setHover = (on: boolean) => {
-      els.forEach(el => el.classList.toggle('svg-area-hover', on));
-    };
-
-    const setActive = (active: boolean) => {
-      Object.keys(mappedElements).forEach(otherId => {
-        const others = mappedElements[otherId] || [];
-        others.forEach(el => el.classList.toggle('svg-area-active', false));
-      });
-      if (active) {
-        els.forEach(el => el.classList.add('svg-area-active'));
-      }
-    };
-
-    els.forEach(el => {
-      try {
-        (el as any).style.pointerEvents = 'auto';
-      } catch (e) { /* ignore */ }
-
-      el.addEventListener('mouseenter', () => setHover(true));
-      el.addEventListener('mouseleave', () => setHover(false));
-      el.addEventListener('click', (e: Event) => {
-        e.stopPropagation && e.stopPropagation();
-        toggleSpace(id);
-        setActive(true);
-      });
-    });
-  });
-
-  console.debug('[map] done', { mappedCount: Object.keys(mappedElements).length });
-};
-
-watch(currentMapSvg, async () => {
-  // reattach when map changes
-  await nextTick();
-  attachSvgListeners();
+  loadMaps();
 });
 
 const toggleSpace = (space: string) => {
@@ -366,61 +306,22 @@ const ruleItems = [
       <h2 class="space-title font-monument">EL ESPACIO</h2>
 
       <div class="space-grid">
-        <div class="space-map-card">
-          <div class="space-map-header">
-            <span>Mapa interactivo</span>
-            <small>Hover para resaltar, click para mostrar la descripción.</small>
+        <div class="space-map-wrapper">
+          <div style="font-size:12px; color:rgba(255,255,255,0.6); font-family: Roboto Mono, monospace; margin-bottom:10px;">
+            Estado: Nivel1: {{ nivel1Svg.length > 0 ? '✓' : '✗' }} | Nivel2: {{ nivel2Svg.length > 0 ? '✓' : '✗' }} | Mutant: {{ mutantSvg.length > 0 ? '✓' : '✗' }}
+            — Seleccionado: {{ mapDefinitions.find((item) => item.id === selectedMap)?.label }}
           </div>
-
-          <div class="space-map-header" style="gap:10px;">
-            <div style="display:flex;gap:8px;align-items:center;">
-              <button
-                class="space-button"
-                :class="{ 'active-map-button': selectedMap === 'nivel1' }"
-                type="button"
-                @click="selectedMap = 'nivel1'"
-              >
-                Planta Baja
-              </button>
-
-              <button
-                class="space-button"
-                :class="{ 'active-map-button': selectedMap === 'nivel2' }"
-                type="button"
-                @click="selectedMap = 'nivel2'"
-              >
-                Planta 1
-              </button>
-
-              <button
-                class="space-button"
-                :class="{ 'active-map-button': selectedMap === 'mutant' }"
-                type="button"
-                @click="selectedMap = 'mutant'"
-              >
-                La Mutant
-              </button>
-            </div>
-            <small style="color:rgba(255,255,255,0.6);">Selecciona un nivel</small>
+          <div class="map-buttons">
+            <button
+              v-for="map in mapDefinitions"
+              :key="map.id"
+              :class="{ active: selectedMap === map.id }"
+              @click="selectedMap = map.id"
+            >
+              {{ map.label }}
+            </button>
           </div>
-
-          <div style="margin-top:8px;color:rgba(255,255,255,0.7);font-family:Roboto Mono, monospace;font-size:12px;">
-            <span>Mapa cargado:</span>
-            <strong style="margin-left:8px;color:rgba(255,255,255,0.95);">{{ nivel1Svg ? 'Nivel1 ' : '' }}{{ nivel2Svg ? 'Nivel2 ' : '' }}{{ mutantSvg ? 'Mutant' : '' }}</strong>
-            <div v-if="loadError" style="color:#ff9; margin-top:6px;">Error: {{ loadError }}</div>
-          </div>
-
-          <div
-            class="space-map"
-            role="img"
-            aria-label="Mapa interactivo del espacio ESCLAT"
-            v-html="currentMapSvg"
-          ></div>
-
-          <p class="map-hint">
-            Si quieres un mapa real, guarda solo la imagen base en <code>src/assets/mapa-espacio.png</code> o
-            <code>src/assets/mapa-espacio.svg</code> y sustituye el <code>&lt;rect&gt;</code> de fondo por la imagen.
-          </p>
+          <div class="space-map" :key="selectedMap" v-html="currentMapSvg"></div>
         </div>
 
         <ol class="space-list">
@@ -656,72 +557,53 @@ const ruleItems = [
   margin-top: 5vh;
 }
 
-.space-map-card {
-  background-color: rgb(255 255 255 / 6%);
-  border: 1px solid rgb(255 255 255 / 15%);
-  padding: 28px;
-  border-radius: 18px;
-}
-
-.space-map-header {
+.space-map-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 20px;
-  color: rgb(255 255 255 / 0.9);
-  font-family: "Roboto Mono", monospace;
+  gap: 20px;
 }
 
-.space-map-header small {
-  color: rgb(255 255 255 / 0.65);
+.map-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.map-buttons button {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Roboto Mono', monospace;
   font-size: 12px;
-  text-transform: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 180ms ease;
 }
 
-.active-map-button {
-  text-decoration: underline;
+.map-buttons button:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.map-buttons button.active {
+  border-color: white;
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .space-map {
   width: 100%;
-  aspect-ratio: 5 / 4;
-  border-radius: 16px;
-  overflow: hidden;
-  display: block;
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  aspect-ratio: 16 / 9;
+  background: transparent;
 }
 
-.map-background {
-  fill: transparent;
+.space-map :deep(svg) {
+  width: 100%;
+  height: 100%;
 }
 
-.map-area {
-  fill: rgba(255,255,255,0.04);
-  stroke: rgba(255,255,255,0.18);
-  stroke-width: 2;
-  cursor: pointer;
-  transition: fill 180ms ease, stroke 180ms ease, filter 180ms ease;
-}
-
-.map-area-hover {
-  fill: rgba(255,255,255,0.16);
-}
-
-.map-area-active {
-  fill: rgba(255,255,255,0.25);
-  stroke: rgba(255,255,255,0.95);
-  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.15));
-}
-
-.svg-area-hover {
-  fill: rgba(255,255,255,0.16) !important;
-  stroke: rgba(255,255,255,0.85) !important;
-}
-
-.svg-area-active {
-  fill: rgba(255,255,255,0.28) !important;
-  stroke: rgba(255,255,255,0.98) !important;
-  filter: drop-shadow(0 0 22px rgba(255,255,255,0.18));
+.active-map-button {
+  text-decoration: underline;
 }
 
 .map-label {
