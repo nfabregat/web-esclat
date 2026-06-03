@@ -648,7 +648,7 @@ onBeforeUnmount(() => {
 }
 
 .space-section {
-  padding: 14vh var(--page-padding) 0;
+  padding: 20vh var(--page-padding) 0;
 }
 
 .space-title {
@@ -764,22 +764,26 @@ onBeforeUnmount(() => {
 
 .map-card-main {
   justify-self: end;
-  width: min(88%, 560px);
+  --map-card-base: 660px;
+  width: min(100%, calc(var(--map-card-base) * var(--space-map-scale, 1)));
 }
 
 .map-card-nivel1 {
   justify-self: end;
-  width: min(88%, 560px);
+  --map-card-base: 660px;
+  width: min(100%, calc(var(--map-card-base) * var(--space-map-scale, 1)));
 }
 
 .map-card-nivel2 {
   justify-self: end;
-  width: min(78%, 560px);
+  --map-card-base: 560px;
+  width: min(100%, calc(var(--map-card-base) * var(--space-map-scale, 1)));
 }
 
 .map-card-mutant {
-  width: min(100%, 520px);
   justify-self: start;
+  --map-card-base: 550px;
+  width: min(100%, calc(var(--map-card-base) * var(--space-map-scale, 1)));
 }
 
 .space-guide {
@@ -1093,6 +1097,10 @@ onBeforeUnmount(() => {
     width: 100%;
   }
 
+  .map-card-nivel1 {
+    width: 100%;
+  }
+
   .map-card-nivel2 {
     width: min(100%, 560px);
     justify-self: end;
@@ -1144,6 +1152,66 @@ onBeforeUnmount(() => {
   .rules-answer {
     font-size: 12px;
     margin-top: 24px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  .space-section {
+    padding-top: 16vh;
+    --space-map-scale: 0.88;
+  }
+
+  .space-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 34px;
+  }
+
+  .mutant-side-stack {
+    display: contents;
+  }
+
+  .space-guide {
+    display: contents;
+  }
+
+  .space-guide-columns {
+    display: contents;
+  }
+
+  .map-card-mutant {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  .space-guide-list {
+    grid-column: 1;
+    grid-row: 2;
+    margin-top: -300px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .main-building-stack {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 14px;
+    padding-left: 0;
+    padding-right: 0;
+    justify-items: end;
+  }
+
+  .space-guide-legend {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    justify-items: start;
+    padding-right: 0;
+  }
+
+  .space-guide-legend-list {
+    justify-content: flex-start;
+    align-items: flex-start;
   }
 }
 </style>
