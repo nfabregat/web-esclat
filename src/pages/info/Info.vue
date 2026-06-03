@@ -1,52 +1,105 @@
 <script setup lang="ts">
-import { ref } from "vue";
-
-const activeFaq = ref<string | null>(null);
-const activeRule = ref<string | null>(null);
+import { computed, onMounted, reactive, ref } from "vue";
 
 type MapCard = {
   id: "nivel1" | "nivel2" | "mutant";
   label: string;
   description: string;
   src: string;
-  rooms: string[];
+  svg: string;
 };
 
-const mapCards: MapCard[] = [
+const mapCards = reactive<MapCard[]>([
   {
     id: "nivel1",
     label: "Planta Baja",
     description: "Nave principal, planta baja.",
     src: "/assets/mapa/Mapa-LASNAVES-Nivel1.svg",
-    rooms: [
-      "01. Hall La Polivalent",
-      "02. La Polivalent",
-      "05. Sala de Exposiciones",
-      "06. Patio 1",
-      "07. Patio 2",
-      "Entrada",
-      "WC",
-      "Escalera",
-    ],
+    svg: "",
   },
   {
     id: "nivel2",
     label: "Planta 1",
     description: "Nave principal, planta 1.",
     src: "/assets/mapa/Mapa-LASNAVES-Nivel2.svg",
-    rooms: ["03. Factoría", "04. Visual Room", "WC", "Escalera"],
+    svg: "",
   },
   {
     id: "mutant",
     label: "La Mutant",
     description: "Nave 3.",
     src: "/assets/mapa/Mapa-LASNAVES-Mutant.svg",
-    rooms: ["07. Vestíbulo La Mutant", "08. La Mutant", "09. La Mutant", "Entrada", "WC"],
+    svg: "",
   },
-];
+]);
 
 const mainBuildingMaps = mapCards.slice(0, 2);
 const mutantMap = mapCards[2];
+
+const activeFaq = ref<string | null>(null);
+const activeRule = ref<string | null>(null);
+const activeSpaceId = ref<string | null>(null);
+
+const mapSpaceInfo: Record<string, { title: string; subtitle: string; description: string }> = {
+  "space-01": {
+    title: "01. Hall La Polivalent",
+    subtitle: "Planta baja",
+    description:
+      "Acceso principal y punto de conexión con el resto del edificio. Es uno de los espacios de circulación y bienvenida del mapa.",
+  },
+  "space-02": {
+    title: "02. La Polivalent",
+    subtitle: "Planta baja",
+    description:
+      "Espacio pensado para actividades más abiertas y flexibles dentro de la nave principal.",
+  },
+  "space-03": {
+    title: "03. Factoría",
+    subtitle: "Planta 1",
+    description:
+      "Zona de experimentación sonora y creación en directo dentro de la planta superior.",
+  },
+  "space-04": {
+    title: "04. Visual Room",
+    subtitle: "Planta 1",
+    description:
+      "Sala enfocada a imagen, proyección y experiencias audiovisuales inmersivas.",
+  },
+  "space-05": {
+    title: "05. Sala de Exposiciones",
+    subtitle: "Planta baja",
+    description:
+      "Área dedicada a piezas, instalaciones y exposiciones visuales. Es la sala que quieres hacer interactiva primero.",
+  },
+  "space-06": {
+    title: "06. Patio 1",
+    subtitle: "Planta baja",
+    description:
+      "Patio exterior pensado para descanso, encuentro y transición entre espacios.",
+  },
+  "space-07": {
+    title: "07. Patio 2",
+    subtitle: "Espacio compartido",
+    description:
+      "Este espacio aparece repetido entre planos para mantener la continuidad del edificio sin alargar el mapa.",
+  },
+  "space-08": {
+    title: "08. Vestíbulo La Mutant",
+    subtitle: "La Mutant",
+    description:
+      "Vestíbulo de acceso a La Mutant y punto de paso antes de entrar en la nave principal de este bloque.",
+  },
+  "space-09": {
+    title: "09. La Mutant",
+    subtitle: "La Mutant",
+    description:
+      "Espacio principal de La Mutant, pensado para programaciones más intensas y de mayor presencia escénica.",
+  },
+};
+
+const activeSpaceInfo = computed(() =>
+  activeSpaceId.value ? mapSpaceInfo[activeSpaceId.value] ?? null : null
+);
 
 const faqItems = [
   {
@@ -168,6 +221,43 @@ const toggleFaq = (question: string) => {
 const toggleRule = (title: string) => {
   activeRule.value = activeRule.value === title ? null : title;
 };
+
+const loadMaps = async () => {
+  const results = await Promise.all(
+    mapCards.map(async (map) => {
+      const response = await fetch(map.src);
+      if (!response.ok) {
+        throw new Error(`Failed to load ${map.id}: ${response.status} ${response.statusText}`);
+      }
+
+      return { id: map.id, svg: await response.text() };
+    })
+  );
+
+  for (const result of results) {
+    const map = mapCards.find((item) => item.id === result.id);
+    if (map) {
+      map.svg = result.svg;
+    }
+  }
+};
+
+const handleMapClick = (event: MouseEvent) => {
+  const target = event.target as Element | null;
+  const spaceNode = target?.closest?.('[id^="space-"]') as SVGGElement | null;
+
+  if (!spaceNode?.id) {
+    return;
+  }
+
+  activeSpaceId.value = spaceNode.id;
+};
+
+onMounted(() => {
+  loadMaps().catch((error) => {
+    console.error("Error loading SVG maps:", error);
+  });
+});
 </script>
 
 <template>
@@ -204,6 +294,17 @@ const toggleRule = (title: string) => {
 
       <div class="space-layout">
         <div class="mutant-side-stack">
+          <article v-if="mutantMap" class="map-card map-card-mutant">
+            <div class="map-card-header">
+              <h3>{{ mutantMap.label }}</h3>
+              <p>{{ mutantMap.description }}</p>
+            </div>
+
+            <div class="map-frame" @click="handleMapClick">
+              <div v-html="mutantMap.svg" class="map-svg"></div>
+            </div>
+          </article>
+
           <div class="space-guide">
             <p>
               Guía de espacios:<br />
@@ -218,17 +319,6 @@ const toggleRule = (title: string) => {
               09. La Mutant
             </p>
           </div>
-
-          <article v-if="mutantMap" class="map-card map-card-mutant">
-            <div class="map-card-header">
-              <h3>{{ mutantMap.label }}</h3>
-              <p>{{ mutantMap.description }}</p>
-            </div>
-
-            <div class="map-frame">
-              <img :src="mutantMap.src" :alt="mutantMap.label" class="map-image" loading="lazy" decoding="async" />
-            </div>
-          </article>
         </div>
 
         <div class="main-building-stack">
@@ -243,13 +333,19 @@ const toggleRule = (title: string) => {
               <p>{{ map.description }}</p>
             </div>
 
-            <div class="map-frame">
-              <img :src="map.src" :alt="map.label" class="map-image" loading="lazy" decoding="async" />
+            <div class="map-frame" @click="handleMapClick">
+              <div v-html="map.svg" class="map-svg"></div>
             </div>
-
           </article>
         </div>
       </div>
+
+      <aside v-if="activeSpaceInfo" class="space-panel" aria-live="polite">
+        <p class="space-panel-label">Espacio seleccionado</p>
+        <h3>{{ activeSpaceInfo.title }}</h3>
+        <p class="space-panel-subtitle">{{ activeSpaceInfo.subtitle }}</p>
+        <p class="space-panel-description">{{ activeSpaceInfo.description }}</p>
+      </aside>
     </section>
 
     <section class="faq-section">
@@ -484,12 +580,36 @@ const toggleRule = (title: string) => {
 
 .map-frame {
   background: transparent;
+  cursor: pointer;
 }
 
-.map-image {
-  display: block;
+.map-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.map-svg :deep(svg) {
   width: 100%;
   height: auto;
+  display: block;
+}
+
+.map-svg :deep(svg text) {
+  text-transform: none;
+}
+
+.map-svg :deep(g[id^="space-"]) {
+  cursor: pointer;
+}
+
+.map-svg :deep(g[id^="space-"]:hover path),
+.map-svg :deep(g[id^="space-"]:hover polygon),
+.map-svg :deep(g[id^="space-"]:hover rect),
+.map-svg :deep(g[id^="space-"]:hover circle),
+.map-svg :deep(g[id^="space-"]:hover polyline),
+.map-svg :deep(g[id^="space-"]:hover line) {
+  fill: rgba(255, 255, 255, 0.18) !important;
+  stroke: rgba(255, 255, 255, 0.95) !important;
 }
 
 .map-card-main {
@@ -525,6 +645,42 @@ const toggleRule = (title: string) => {
   letter-spacing: 0;
   text-transform: none;
   color: rgb(255 255 255 / 0.72);
+}
+
+.space-panel {
+  margin-top: 32px;
+  padding: 18px 0 0;
+  border-top: 1px solid rgb(255 255 255 / 0.18);
+  max-width: 820px;
+  font-family: "Roboto Mono", monospace;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.space-panel-label {
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: rgb(255 255 255 / 0.65);
+}
+
+.space-panel h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.space-panel-subtitle {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.72);
+}
+
+.space-panel-description {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 0.92);
 }
 
 .faq-section {
@@ -738,6 +894,10 @@ const toggleRule = (title: string) => {
 
   .space-guide {
     margin-top: 6px;
+  }
+
+  .space-panel {
+    margin-top: 24px;
   }
 
   .faq-question {
