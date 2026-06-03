@@ -91,6 +91,7 @@ const activeRule = ref<string | null>(null);
 const nivel1Svg = ref<string | null>(null);
 const nivel2Svg = ref<string | null>(null);
 const mutantSvg = ref<string | null>(null);
+const loadError = ref<string | null>(null);
 const selectedMap = ref<string>("nivel1");
 
 const currentMapSvg = computed(() => {
@@ -106,12 +107,15 @@ const loadSvgs = async () => {
       fetch("/assets/mapa/Mapa-LASNAVES-Nivel2.svg"),
       fetch("/assets/mapa/Mapa-LASNAVES-Mutant.svg"),
     ]);
-
+    if (!r1.ok || !r2.ok || !r3.ok) {
+      loadError.value = `SVG fetch error: ${!r1.ok? 'nivel1':''} ${!r2.ok? 'nivel2':''} ${!r3.ok? 'mutant':''}`;
+    }
     nivel1Svg.value = r1.ok ? await r1.text() : null;
     nivel2Svg.value = r2.ok ? await r2.text() : null;
     mutantSvg.value = r3.ok ? await r3.text() : null;
   } catch (e) {
     console.error("Error loading SVGs", e);
+    loadError.value = String(e);
   }
 };
 
@@ -127,90 +131,71 @@ const attachSvgListeners = async () => {
   if (!container) return;
   const svg = container.querySelector('svg');
   if (!svg) return;
+  console.debug('[map] attachSvgListeners', { map: selectedMap.value });
 
   // clear previous mappings
   Object.keys(mappedElements).forEach(k => delete mappedElements[k]);
 
-  const texts = Array.from(svg.querySelectorAll('text'));
-  texts.forEach((textEl) => {
-    const raw = (textEl.textContent || '').trim();
-    if (!raw) return;
+  // Direct mapping: search for groups with id="space-NN" in the SVG
+  // The SVG structure is: <g id="space-01"><path.../><text>01</text></g>
+  const spaceGroups = Array.from(svg.querySelectorAll('[id^="space-"]')).filter(el => {
+    const id = el.getAttribute('id') || '';
+    // exclude WC and Escalera
+    return !/^(wc|escalera)/i.test(id);
+  });
 
-    // normalize: accept '1' or '01'
-    let id = raw;
-    if (id.length === 1) id = '0' + id;
+  console.debug('[map] found spaceGroups', { count: spaceGroups.length, ids: spaceGroups.map(g => g.getAttribute('id')) });
 
-    const space = festivalSpaces.find(s => s.id === id);
-    if (!space) return;
+  spaceGroups.forEach(group => {
+    const idAttr = group.getAttribute('id') || '';
+    // Extract number from id: "space-01" -> "01", "space-09-2" -> "09"
+    const match = /space-(\d+)/i.exec(idAttr);
+    if (!match || !match[1]) return;
+    
+    let spaceId = match[1];
+    if (spaceId.length === 1) spaceId = '0' + spaceId;
+    
+    // Only map if it's a valid festivalSpace
+    if (!festivalSpaces.some(s => s.id === spaceId)) return;
 
-    // try to find enclosing shapes by bbox containment
-    const allShapes = Array.from(svg.querySelectorAll('path, rect, polygon, polyline, g'));
-    const foundShapes: Element[] = [];
-    try {
-      const textBox = (textEl as any).getBBox();
-      allShapes.forEach((s) => {
-        try {
-          const box = (s as any).getBBox();
-          if (
-            box.x <= textBox.x + 0.5 &&
-            box.y <= textBox.y + 0.5 &&
-            box.x + box.width >= textBox.x + textBox.width - 0.5 &&
-            box.y + box.height >= textBox.y + textBox.height - 0.5
-          ) {
-            // shape fully contains the text bbox
-            foundShapes.push(s);
-          }
-        } catch (e) {
-          // ignore shapes that can't compute bbox
-        }
-      });
-    } catch (e) {
-      // getBBox may fail; ignore and fallback
-    }
+    mappedElements[spaceId] = [group as Element];
+    console.debug('[map] mapped', { spaceId, idAttr });
+  });
 
-    // fallback: siblings in same group
-    if (foundShapes.length === 0) {
-      const parent = textEl.parentElement || svg;
-      const sibs = Array.from(parent.querySelectorAll('path, rect, polygon, polyline, g'))
-        .filter(el => el !== textEl);
-      mappedElements[id] = sibs.length ? sibs : [textEl];
-    } else {
-      mappedElements[id] = foundShapes;
-    }
+  // attach listeners to mapped elements
+  Object.keys(mappedElements).forEach(id => {
+    const els = mappedElements[id] || [];
 
     const setHover = (on: boolean) => {
-      const els = mappedElements[id] || [];
       els.forEach(el => el.classList.toggle('svg-area-hover', on));
-      (textEl as Element).classList.toggle('svg-area-hover', on);
     };
 
     const setActive = (active: boolean) => {
-      // remove active from others
       Object.keys(mappedElements).forEach(otherId => {
         const others = mappedElements[otherId] || [];
         others.forEach(el => el.classList.toggle('svg-area-active', false));
       });
       if (active) {
-        const els = mappedElements[id] || [];
         els.forEach(el => el.classList.add('svg-area-active'));
       }
     };
 
-    textEl.addEventListener('mouseenter', () => setHover(true));
-    textEl.addEventListener('mouseleave', () => setHover(false));
-    textEl.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleSpace(id);
-      setActive(true);
-    });
-    textEl.addEventListener('keydown', (ev: KeyboardEvent) => {
-      if (ev.key === 'Enter') {
-        ev.preventDefault();
+    els.forEach(el => {
+      try {
+        (el as any).style.pointerEvents = 'auto';
+      } catch (e) { /* ignore */ }
+
+      el.addEventListener('mouseenter', () => setHover(true));
+      el.addEventListener('mouseleave', () => setHover(false));
+      el.addEventListener('click', (e: Event) => {
+        e.stopPropagation && e.stopPropagation();
         toggleSpace(id);
         setActive(true);
-      }
+      });
     });
   });
+
+  console.debug('[map] done', { mappedCount: Object.keys(mappedElements).length });
 };
 
 watch(currentMapSvg, async () => {
@@ -417,6 +402,12 @@ const ruleItems = [
               </button>
             </div>
             <small style="color:rgba(255,255,255,0.6);">Selecciona un nivel</small>
+          </div>
+
+          <div style="margin-top:8px;color:rgba(255,255,255,0.7);font-family:Roboto Mono, monospace;font-size:12px;">
+            <span>Mapa cargado:</span>
+            <strong style="margin-left:8px;color:rgba(255,255,255,0.95);">{{ nivel1Svg ? 'Nivel1 ' : '' }}{{ nivel2Svg ? 'Nivel2 ' : '' }}{{ mutantSvg ? 'Mutant' : '' }}</strong>
+            <div v-if="loadError" style="color:#ff9; margin-top:6px;">Error: {{ loadError }}</div>
           </div>
 
           <div
@@ -1015,5 +1006,30 @@ const ruleItems = [
     font-size: 12px;
     margin-top: 24px;
   }
+}
+</style>
+
+<style>
+/* Global SVG styles (not scoped) so they apply to elements injected via v-html */
+.space-map svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.svg-area-hover {
+  fill: rgba(255,255,255,0.16) !important;
+  stroke: rgba(255,255,255,0.85) !important;
+}
+
+.svg-area-active {
+  fill: rgba(255,255,255,0.28) !important;
+  stroke: rgba(255,255,255,0.98) !important;
+  filter: drop-shadow(0 0 22px rgba(255,255,255,0.18));
+}
+
+/* make text inside SVG selectable/visible if needed */
+.space-map svg text {
+  font-family: "Roboto Mono", monospace;
 }
 </style>
