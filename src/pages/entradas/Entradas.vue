@@ -20,6 +20,14 @@ const sendEmail = () => {
         <span>ENTRADA</span>
       </h1>
 
+      <p class="tickets-intro">
+        En ESCLAT creemos que las experiencias capaces de transformar la forma en la que sentimos,
+        pensamos y conectamos con los demás deben estar al alcance de todo el mundo. Por eso el
+        acceso al festival es completamente gratuito. Solo necesitas dejar tu correo electrónico
+        para reservar tu entrada y formar parte de esta exploración colectiva entre arte, música y
+        tecnología.
+      </p>
+
       <form class="tickets-form" @submit.prevent="sendEmail">
         <input
           v-model="email"
@@ -55,6 +63,16 @@ const sendEmail = () => {
   font-size: clamp(30px, 3.8vw, 42px);
   font-weight: 400;
   line-height: 1.16;
+}
+
+.tickets-intro {
+  max-width: 58ch;
+  margin: 0 0 30px;
+  font-size: clamp(15px, 1.35vw, 18px);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  text-wrap: pretty;
 }
 
 .tickets-form {
@@ -107,6 +125,13 @@ const sendEmail = () => {
     line-height: 1.3;
   }
 
+  .tickets-intro {
+    max-width: 42ch;
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
   .tickets-input {
     font-size: 14px;
     padding: 13px 14px;
@@ -125,6 +150,12 @@ const sendEmail = () => {
 
   .tickets-content {
     padding-top: 14vh;
+  }
+
+  .tickets-intro {
+    max-width: none;
+    margin-bottom: 22px;
+    font-size: 13px;
   }
 
   .tickets-title {

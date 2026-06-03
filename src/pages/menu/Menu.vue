@@ -5,13 +5,13 @@ import { RouterLink, useRouter } from "vue-router";
 const router = useRouter();
 
 const menuLinks = [
-  { text: "CONTACTO", path: "/contacto" },
-  { text: "TIENDA", path: "/tienda" },
   { text: "ENTRADAS", path: "/entradas" },
   { text: "ARTISTAS", path: "/artistas" },
   { text: "ACTIVIDADES", path: "/actividades" },
   { text: "PROGRAMA", path: "/programa" },
-  { text: "INFO", path: "/info" },
+  { text: "TIENDA", path: "/tienda" },
+  { text: "INFORMACIÓN", path: "/info" },
+  { text: "CONTACTO", path: "/contacto" },
 ];
 
 const goBack = () => {
@@ -54,17 +54,22 @@ const goBack = () => {
   flex-direction: column;
   align-items: flex-end;
   justify-content: flex-start;
+  box-sizing: border-box;
   gap: 28px;
-  padding: 22vh calc(max(24px, 3vw) + 140px) 64px 32vw;
+  width: min(100%, 980px);
+  margin-left: auto;
+  padding: clamp(118px, 22vh, 240px) clamp(24px, 4vw, 72px) 64px 24px;
   text-align: right;
 }
 
 .menu-link {
   color: inherit;
-  font-size: 42px;
+  max-width: 100%;
+  font-size: clamp(30px, 4.4vw, 42px);
   font-weight: 400;
   line-height: 1;
   text-decoration: none;
+  white-space: nowrap;
   text-underline-offset: 8px;
 }
 
@@ -94,12 +99,14 @@ const goBack = () => {
 
 @media (max-width: 760px) {
   .menu-nav {
+    width: 100%;
     gap: 22px;
-    padding: 20vh 18px 72px;
+    padding: 18vh 18px 72px;
   }
 
   .menu-link {
     font-size: clamp(28px, 9vw, 34px);
+    white-space: normal;
     text-underline-offset: 6px;
   }
 
