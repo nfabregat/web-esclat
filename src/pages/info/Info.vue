@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref } from "vue";
+import {
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  type ComponentPublicInstance,
+} from "vue";
 
 type MapCard = {
   id: "nivel1" | "nivel2" | "mutant";
@@ -38,6 +45,7 @@ const mutantMap = reactive<MapCard>({
 const activeFaq = ref<string | null>(null);
 const activeRule = ref<string | null>(null);
 const activeSpaceId = ref<string | null>(null);
+const spaceGuideRefs = new Map<SpaceId, HTMLElement>();
 
 const spaceDisplaySubtitles: Record<SpaceId, string> = {
   "space-01": "Planta baja",
@@ -124,6 +132,15 @@ const spaceGuideItems = [
 
 const getSpaceSubtitle = (spaceId: SpaceId) => {
   return spaceDisplaySubtitles[spaceId];
+};
+
+const registerSpaceGuideRef =
+  (spaceId: SpaceId) => (el: Element | ComponentPublicInstance | null) => {
+  if (el instanceof HTMLElement) {
+    spaceGuideRefs.set(spaceId, el);
+  } else {
+    spaceGuideRefs.delete(spaceId);
+  }
 };
 
 const normalizeSvg = (id: MapCard["id"], svg: string) => {
@@ -265,6 +282,28 @@ const toggleRule = (title: string) => {
   activeRule.value = activeRule.value === title ? null : title;
 };
 
+const closeSpaceGuide = () => {
+  activeSpaceId.value = null;
+};
+
+const handleDocumentClick = (event: MouseEvent) => {
+  const target = event.target as Element | null;
+
+  if (!target) {
+    return;
+  }
+
+  if (
+    target.closest(".space-guide") ||
+    target.closest(".map-frame") ||
+    target.closest('[id^="space-"]')
+  ) {
+    return;
+  }
+
+  closeSpaceGuide();
+};
+
 const loadMaps = async () => {
   const results = await Promise.all(
     [...mapCards, mutantMap].map(async (map) => {
@@ -304,7 +343,9 @@ const selectSpace = (spaceId: SpaceId, scrollToItem = false) => {
 
   if (scrollToItem) {
     nextTick(() => {
-      document.getElementById(spaceId)?.scrollIntoView({
+      const target = spaceGuideRefs.get(spaceId) ?? document.getElementById(spaceId);
+
+      target?.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
@@ -313,9 +354,15 @@ const selectSpace = (spaceId: SpaceId, scrollToItem = false) => {
 };
 
 onMounted(() => {
+  document.addEventListener("click", handleDocumentClick);
+
   loadMaps().catch((error) => {
     console.error("Error loading SVG maps:", error);
   });
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleDocumentClick);
 });
 </script>
 
@@ -372,16 +419,23 @@ onMounted(() => {
                 :id="item.id"
                 :key="item.id"
                 class="space-guide-item"
+                :ref="registerSpaceGuideRef(item.id)"
               >
                 <button
                   type="button"
                   class="space-guide-button"
                   :class="{ active: activeSpaceId === item.id }"
+                  :aria-expanded="activeSpaceId === item.id"
+                  :aria-controls="`${item.id}-details`"
                   @click="selectSpace(item.id, true)"
                 >
                   {{ item.label }}
                 </button>
-                <div v-if="activeSpaceId === item.id" class="space-guide-details">
+                <div
+                  v-if="activeSpaceId === item.id"
+                  :id="`${item.id}-details`"
+                  class="space-guide-details"
+                >
                   <p class="space-guide-subtitle">{{ getSpaceSubtitle(item.id) }}</p>
                   <p class="space-guide-description">
                     {{ mapSpaceInfo[item.id].description }}
@@ -594,20 +648,20 @@ onMounted(() => {
 .space-layout {
   display: grid;
   grid-template-columns: minmax(360px, 1fr) minmax(0, 1fr);
-  gap: 48px;
+  gap: 28px;
   margin-top: 5vh;
   align-items: start;
 }
 
 .mutant-side-stack {
   display: grid;
-  gap: 28px;
+  gap: 18px;
   align-content: start;
 }
 
 .main-building-stack {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   align-content: start;
 }
 
@@ -678,19 +732,19 @@ onMounted(() => {
 
 .map-card-main {
   justify-self: end;
-  width: min(100%, 640px);
+  width: min(100%, 600px);
 }
 
 .map-card-nivel1 {
-  width: min(100%, 640px);
+  width: min(100%, 600px);
 }
 
 .map-card-nivel2 {
-  width: min(78%, 499px);
+  width: min(78%, 470px);
 }
 
 .map-card-mutant {
-  width: min(100%, 620px);
+  width: min(100%, 520px);
   justify-self: start;
 }
 
@@ -712,7 +766,7 @@ onMounted(() => {
 
 .space-guide-list {
   display: grid;
-  gap: 18px;
+  gap: 10px;
   margin: 10px 0 0;
   padding: 0;
   list-style: none;
@@ -722,6 +776,7 @@ onMounted(() => {
   display: grid;
   gap: 10px;
   padding-bottom: 6px;
+  scroll-margin-top: 120px;
 }
 
 .space-guide-button {
