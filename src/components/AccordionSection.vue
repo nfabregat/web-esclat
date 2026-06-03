@@ -32,7 +32,7 @@ const toggle = () => {
 <style scoped>
 .accordion-item {
   border-bottom: 1px solid rgb(255 255 255 / 70%);
-  padding: 28px 0;
+  padding: 18px 0;
 }
 
 .accordion-item:first-child {
@@ -48,8 +48,9 @@ const toggle = () => {
   color: white;
   cursor: pointer;
   font: inherit;
-  font-size: 19px;
-  line-height: 1.25;
+  font-size: 14px;
+  line-height: 1.05;
+  letter-spacing: 0.08em;
   padding: 0;
   text-align: left;
   text-transform: uppercase;
@@ -57,7 +58,7 @@ const toggle = () => {
 
 .accordion-question:hover {
   text-decoration: underline;
-  text-underline-offset: 5px;
+  text-underline-offset: 4px;
 }
 
 .accordion-answer-wrap {
@@ -66,9 +67,9 @@ const toggle = () => {
 
 .accordion-answer {
   max-width: 880px;
-  margin: 34px 0 8px;
+  margin: 18px 0 4px;
   font-family: "Roboto Mono", monospace;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.35;
   letter-spacing: 0;
   text-transform: none;
@@ -87,16 +88,16 @@ const toggle = () => {
 
 @media (max-width: 760px) {
   .accordion-item {
-    padding: 20px 0;
+    padding: 16px 0;
   }
 
   .accordion-question {
-    font-size: 15px;
+    font-size: 13px;
   }
 
   .accordion-answer {
     font-size: 12px;
-    margin-top: 24px;
+    margin-top: 16px;
   }
 }
 </style>
