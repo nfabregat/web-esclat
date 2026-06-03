@@ -52,26 +52,28 @@ const sendEmail = () => {
 
 .tickets-content {
   width: auto;
-  padding: 16vh var(--page-padding) 0;
+  padding: 11.5vh var(--page-padding) 0;
 }
 
 .tickets-title {
   display: flex;
   gap: 0.32em;
   max-width: none;
-  margin: 0 0 34px;
+  margin: 0 0 12px;
   font-size: clamp(30px, 3.8vw, 42px);
   font-weight: 400;
   line-height: 1.16;
 }
 
 .tickets-intro {
-  max-width: 58ch;
-  margin: 0 0 30px;
-  font-size: clamp(15px, 1.35vw, 18px);
+  max-width: 78ch;
+  margin: 0 0 26px;
+  font-size: clamp(11px, 0.85vw, 13px);
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.7;
   letter-spacing: 0.01em;
+  text-align: justify;
+  text-justify: inter-word;
   text-wrap: pretty;
 }
 
@@ -112,7 +114,7 @@ const sendEmail = () => {
 
 @media (max-width: 760px) {
   .tickets-content {
-    padding-top: 15vh;
+    padding-top: 10.5vh;
   }
 
   .tickets-title {
@@ -120,16 +122,18 @@ const sendEmail = () => {
     flex-direction: column;
     gap: 0;
     max-width: 13ch;
-    margin-bottom: 28px;
+    margin-bottom: 16px;
     font-size: clamp(27px, 8vw, 34px);
     line-height: 1.3;
   }
 
   .tickets-intro {
-    max-width: 42ch;
+    max-width: 41ch;
+    margin-top: -2px;
     margin-bottom: 24px;
-    font-size: 14px;
-    line-height: 1.55;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
   }
 
   .tickets-input {
@@ -149,13 +153,13 @@ const sendEmail = () => {
   }
 
   .tickets-content {
-    padding-top: 14vh;
+    padding-top: 9.5vh;
   }
 
   .tickets-intro {
     max-width: none;
-    margin-bottom: 22px;
-    font-size: 13px;
+    margin-bottom: 20px;
+    font-size: 11px;
   }
 
   .tickets-title {
