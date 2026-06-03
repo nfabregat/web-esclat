@@ -24,17 +24,16 @@ const mapCards = reactive<MapCard[]>([
     src: "/assets/mapa/Mapa-LASNAVES-Nivel2.svg",
     svg: "",
   },
-  {
-    id: "mutant",
-    label: "La Mutant",
-    description: "Nave 3.",
-    src: "/assets/mapa/Mapa-LASNAVES-Mutant.svg",
-    svg: "",
-  },
 ]);
 
 const mainBuildingMaps = mapCards.slice(0, 2);
-const mutantMap = mapCards[2];
+const mutantMap = reactive<MapCard>({
+  id: "mutant",
+  label: "La Mutant",
+  description: "Nave 3.",
+  src: "/assets/mapa/Mapa-LASNAVES-Mutant.svg",
+  svg: "",
+});
 
 const activeFaq = ref<string | null>(null);
 const activeRule = ref<string | null>(null);
@@ -43,63 +42,81 @@ const activeSpaceId = ref<string | null>(null);
 const mapSpaceInfo: Record<string, { title: string; subtitle: string; description: string }> = {
   "space-01": {
     title: "01. Hall La Polivalent",
-    subtitle: "Planta baja",
+    subtitle: "Hall y conexión",
     description:
-      "Acceso principal y punto de conexión con el resto del edificio. Es uno de los espacios de circulación y bienvenida del mapa.",
+      "Áreas de conexión entre espacios con ambientación visual, sonido e intervenciones artísticas. El hall articula la entrada y el flujo entre zonas del recinto.",
   },
   "space-02": {
     title: "02. La Polivalent",
-    subtitle: "Planta baja",
+    subtitle: "Workshop y experiencias",
     description:
-      "Espacio pensado para actividades más abiertas y flexibles dentro de la nave principal.",
+      "Espacio dedicado a workshops, instalaciones inmersivas y experiencias interactivas relacionadas con arte, música y tecnología.",
   },
   "space-03": {
     title: "03. Factoría",
     subtitle: "Planta 1",
     description:
-      "Zona de experimentación sonora y creación en directo dentro de la planta superior.",
+      "Zona de experimentación sonora y creación musical en directo.",
   },
   "space-04": {
     title: "04. Visual Room",
     subtitle: "Planta 1",
     description:
-      "Sala enfocada a imagen, proyección y experiencias audiovisuales inmersivas.",
+      "Sala centrada en visuales, luces, mapping y experiencias audiovisuales inmersivas.",
   },
   "space-05": {
     title: "05. Sala de Exposiciones",
     subtitle: "Planta baja",
     description:
-      "Área dedicada a piezas, instalaciones y exposiciones visuales. Es la sala que quieres hacer interactiva primero.",
+      "Espacio dedicado a arte contemporáneo, instalaciones y colaboraciones visuales.",
   },
   "space-06": {
     title: "06. Patio 1",
     subtitle: "Planta baja",
     description:
-      "Patio exterior pensado para descanso, encuentro y transición entre espacios.",
+      "Zona exterior pensada para descansar, socializar y desconectar entre actividades. Lugar donde se encuentra el confesionario.",
   },
   "space-07": {
     title: "07. Patio 2",
-    subtitle: "Espacio compartido",
+    subtitle: "Patio y performances",
     description:
-      "Este espacio aparece repetido entre planos para mantener la continuidad del edificio sin alargar el mapa.",
+      "Espacio dedicado a performances y arte urbano en vivo, incluyendo murales y acciones colectivas.",
   },
   "space-08": {
     title: "08. Vestíbulo La Mutant",
     subtitle: "La Mutant",
     description:
-      "Vestíbulo de acceso a La Mutant y punto de paso antes de entrar en la nave principal de este bloque.",
+      "Área de conexión entre espacios con ambientación visual, sonido e intervenciones artísticas.",
   },
   "space-09": {
     title: "09. La Mutant",
     subtitle: "La Mutant",
     description:
-      "Espacio principal de La Mutant, pensado para programaciones más intensas y de mayor presencia escénica.",
+      "El escenario principal del festival. Aquí tendrán lugar las sesiones más intensas, shows audiovisuales y directos principales.",
   },
 };
 
 const activeSpaceInfo = computed(() =>
   activeSpaceId.value ? mapSpaceInfo[activeSpaceId.value] ?? null : null
 );
+
+const normalizeSvg = (id: MapCard["id"], svg: string) => {
+  if (id !== "mutant") {
+    return svg;
+  }
+
+  let normalized = svg;
+  normalized = normalized.replace(
+    /fill="#1d1d1b"/g,
+    'fill="rgba(255,255,255,0.10)"'
+  );
+  normalized = normalized.replace(
+    /stroke="#fff"/g,
+    'stroke="#ffffff"'
+  );
+
+  return normalized;
+};
 
 const faqItems = [
   {
@@ -224,18 +241,18 @@ const toggleRule = (title: string) => {
 
 const loadMaps = async () => {
   const results = await Promise.all(
-    mapCards.map(async (map) => {
+    [...mapCards, mutantMap].map(async (map) => {
       const response = await fetch(map.src);
       if (!response.ok) {
         throw new Error(`Failed to load ${map.id}: ${response.status} ${response.statusText}`);
       }
 
-      return { id: map.id, svg: await response.text() };
+      return { id: map.id, svg: normalizeSvg(map.id, await response.text()) };
     })
   );
 
   for (const result of results) {
-    const map = mapCards.find((item) => item.id === result.id);
+    const map = [...mapCards, mutantMap].find((item) => item.id === result.id);
     if (map) {
       map.svg = result.svg;
     }
@@ -268,10 +285,10 @@ onMounted(() => {
 
     <section class="info-intro">
       <p>
-        ESCLAT es una experiencia inmersiva que fusiona música electrónica,<br />
-        arte, tecnología y exploración sensorial. No es solo un festival: es<br />
-        un espacio de conexión, creatividad y experimentación colectiva<br />
-        inspirado en la cultura underground y futurista.
+        ESCLAT transforma Les Naus en un universo inmersivo inspirado en las
+        raves industriales europeas y la cultura underground. El recinto
+        combina arquitectura industrial, luz, sonido y arte para crear una
+        experiencia sensorial y futurista.
       </p>
     </section>
 
