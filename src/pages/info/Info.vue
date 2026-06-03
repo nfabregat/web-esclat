@@ -16,6 +16,8 @@ type MapCard = {
   svg: string;
 };
 
+type MobileMapId = "mutant" | "nivel1" | "nivel2";
+
 const mapCards = reactive<MapCard[]>([
   {
     id: "nivel1",
@@ -33,6 +35,9 @@ const mapCards = reactive<MapCard[]>([
   },
 ]);
 
+const level1Map = mapCards[0]!;
+const level2Map = mapCards[1]!;
+
 const mainBuildingMaps = mapCards.slice(0, 2);
 const mutantMap = reactive<MapCard>({
   id: "mutant",
@@ -45,6 +50,7 @@ const mutantMap = reactive<MapCard>({
 const activeFaq = ref<string | null>(null);
 const activeRule = ref<string | null>(null);
 const activeSpaceId = ref<string | null>(null);
+const activeMobileMap = ref<MobileMapId>("mutant");
 const spaceGuideRefs = new Map<SpaceId, HTMLElement>();
 
 const spaceDisplaySubtitles: Record<SpaceId, string> = {
@@ -152,6 +158,10 @@ const registerSpaceGuideRef =
       spaceGuideRefs.delete(spaceId);
     }
   };
+
+const selectMobileMap = (mapId: MobileMapId) => {
+  activeMobileMap.value = mapId;
+};
 
 const normalizeSvg = (id: MapCard["id"], svg: string) => {
   if (id !== "mutant") {
@@ -406,7 +416,80 @@ onBeforeUnmount(() => {
     </section>
 
     <section class="space-section">
-      <h2 class="space-title font-monument">EL ESPACIO</h2>
+      <div class="space-heading">
+        <h2 class="space-title font-monument">EL ESPACIO</h2>
+
+        <div class="space-title-legend">
+          <div class="space-guide-legend-list" aria-label="Leyenda de iconos">
+            <div v-for="item in legendItems" :key="item.label" class="space-guide-legend-item">
+              <img class="space-guide-legend-icon" :src="item.src" :alt="item.label" />
+              <span>{{ item.label }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-mobile-viewer">
+        <div class="space-mobile-switcher" aria-label="Selecciona un mapa">
+          <button
+            type="button"
+            class="space-mobile-switch-button"
+            :class="{ active: activeMobileMap === 'mutant' }"
+            @click="selectMobileMap('mutant')"
+          >
+            La Mutant
+          </button>
+          <button
+            type="button"
+            class="space-mobile-switch-button"
+            :class="{ active: activeMobileMap === 'nivel1' }"
+            @click="selectMobileMap('nivel1')"
+          >
+            Planta Baja
+          </button>
+          <button
+            type="button"
+            class="space-mobile-switch-button"
+            :class="{ active: activeMobileMap === 'nivel2' }"
+            @click="selectMobileMap('nivel2')"
+          >
+            Planta 1
+          </button>
+        </div>
+
+        <article v-if="activeMobileMap === 'mutant'" class="map-card space-mobile-map-card">
+          <div class="map-card-header">
+            <h3>{{ mutantMap.label }}</h3>
+            <p>{{ mutantMap.description }}</p>
+          </div>
+
+          <div class="map-frame" @click="handleMapClick">
+            <div v-html="mutantMap.svg" class="map-svg"></div>
+          </div>
+        </article>
+
+        <article v-else-if="activeMobileMap === 'nivel1'" class="map-card space-mobile-map-card">
+          <div class="map-card-header">
+            <h3>{{ level1Map.label }}</h3>
+            <p>{{ level1Map.description }}</p>
+          </div>
+
+          <div class="map-frame" @click="handleMapClick">
+            <div v-html="level1Map.svg" class="map-svg"></div>
+          </div>
+        </article>
+
+        <article v-else class="map-card space-mobile-map-card">
+          <div class="map-card-header">
+            <h3>{{ level2Map.label }}</h3>
+            <p>{{ level2Map.description }}</p>
+          </div>
+
+          <div class="map-frame" @click="handleMapClick">
+            <div v-html="level2Map.svg" class="map-svg"></div>
+          </div>
+        </article>
+      </div>
 
       <div class="space-layout">
         <div class="mutant-side-stack">
@@ -453,15 +536,6 @@ onBeforeUnmount(() => {
                   </div>
                 </li>
               </ul>
-
-              <div class="space-guide-legend">
-                <div class="space-guide-legend-list" aria-label="Leyenda de iconos">
-                  <div v-for="item in legendItems" :key="item.label" class="space-guide-legend-item">
-                    <img class="space-guide-legend-icon" :src="item.src" :alt="item.label" />
-                    <span>{{ item.label }}</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -648,7 +722,19 @@ onBeforeUnmount(() => {
 }
 
 .space-section {
-  padding: 20vh var(--page-padding) 0;
+  padding: 24vh var(--page-padding) 0;
+}
+
+.space-mobile-viewer {
+  display: none;
+}
+
+.space-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: clamp(28px, 3.2vw, 54px);
 }
 
 .space-title {
@@ -656,6 +742,30 @@ onBeforeUnmount(() => {
   font-size: clamp(28px, 3.3vw, 46px);
   font-weight: 400;
   line-height: 1;
+}
+
+.space-title-legend {
+  margin-left: auto;
+  margin-right: clamp(65px, 2vw, 28px);
+}
+
+.space-title-legend .space-guide-legend-list {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.space-title-legend .space-guide-legend-item {
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.space-title-legend .space-guide-legend-icon {
+  width: 11px;
+  height: 11px;
 }
 
 .section-title {
@@ -797,15 +907,6 @@ onBeforeUnmount(() => {
   grid-template-columns: minmax(0, 1.45fr) minmax(220px, 280px);
   gap: 44px;
   align-items: start;
-}
-
-.space-guide-legend {
-  display: grid;
-  gap: 8px;
-  justify-items: start;
-  align-self: start;
-  justify-self: end;
-  padding-right: clamp(8px, 1vw, 18px);
 }
 
 .space-guide-legend-list {
@@ -1079,22 +1180,61 @@ onBeforeUnmount(() => {
     padding-top: 10vh;
   }
 
+  .space-mobile-viewer {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .space-mobile-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .space-mobile-switch-button {
+    border: 1px solid rgb(255 255 255 / 0.18);
+    background: rgb(255 255 255 / 0.04);
+    color: rgb(255 255 255 / 0.75);
+    cursor: pointer;
+    font-family: "Roboto Mono", monospace;
+    font-size: 11px;
+    line-height: 1;
+    padding: 8px 10px;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  .space-mobile-switch-button.active {
+    border-color: rgb(255 255 255 / 0.7);
+    background: rgb(255 255 255 / 0.12);
+    color: white;
+  }
+
+  .space-mobile-map-card {
+    width: 100%;
+  }
+
   .space-layout {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 34px;
   }
 
   .mutant-side-stack {
-    gap: 22px;
+    display: contents;
+  }
+
+  .space-layout .mutant-side-stack > .map-card-mutant {
+    display: none;
+  }
+
+  .space-guide {
+    order: 2;
   }
 
   .main-building-stack {
-    gap: 16px;
-  }
-
-  .map-card-mutant,
-  .map-card-main {
-    width: 100%;
+    display: none;
   }
 
   .map-card-nivel1 {
@@ -1102,7 +1242,7 @@ onBeforeUnmount(() => {
   }
 
   .map-card-nivel2 {
-    width: min(100%, 560px);
+    width: 100%;
     justify-self: end;
   }
 
@@ -1118,17 +1258,6 @@ onBeforeUnmount(() => {
   .space-guide-header {
     flex-direction: column;
     gap: 10px;
-  }
-
-  .space-guide-legend {
-    justify-items: start;
-    max-width: none;
-    justify-self: start;
-    padding-right: 0;
-  }
-
-  .space-guide-legend-svg {
-    width: min(100%, 230px);
   }
 
   .space-guide-legend-list {
