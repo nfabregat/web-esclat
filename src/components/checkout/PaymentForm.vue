@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
 import type { CheckoutValues } from "./types";
 
 const props = defineProps<{
@@ -11,49 +10,8 @@ const emit = defineEmits<{
   (event: "update-field", field: keyof CheckoutValues, value: string | boolean): void;
 }>();
 
-const holder = ref("");
-const cardNumber = ref("");
-const expiry = ref("");
-const cvc = ref("");
-
-watch(
-  () => props.form.holder,
-  (value) => {
-    holder.value = value;
-  },
-  { immediate: true },
-);
-
-watch(
-  () => props.form.cardNumber,
-  (value) => {
-    cardNumber.value = value;
-  },
-  { immediate: true },
-);
-
-watch(
-  () => props.form.expiry,
-  (value) => {
-    expiry.value = value;
-  },
-  { immediate: true },
-);
-
-watch(
-  () => props.form.cvc,
-  (value) => {
-    cvc.value = value;
-  },
-  { immediate: true },
-);
-
 const updateText = (field: keyof CheckoutValues) => (event: Event) => {
   const value = (event.target as HTMLInputElement).value;
-
-  if (field === "holder") {
-    holder.value = value;
-  }
 
   emit("update-field", field, value);
 };
@@ -75,19 +33,16 @@ const formatCvc = (value: string) => digitsOnly(value).slice(0, 3);
 
 const updateCardNumber = (event: Event) => {
   const value = formatCardNumber((event.target as HTMLInputElement).value);
-  cardNumber.value = value;
   emit("update-field", "cardNumber", value);
 };
 
 const updateExpiry = (event: Event) => {
   const value = formatExpiry((event.target as HTMLInputElement).value);
-  expiry.value = value;
   emit("update-field", "expiry", value);
 };
 
 const updateCvc = (event: Event) => {
   const value = formatCvc((event.target as HTMLInputElement).value);
-  cvc.value = value;
   emit("update-field", "cvc", value);
 };
 </script>
@@ -100,7 +55,7 @@ const updateCvc = (event: Event) => {
       <label class="checkout-payment-full">
         <span class="sr-only">Nombre del titular</span>
         <input
-          :value="holder"
+          :value="props.form.holder"
           type="text"
           placeholder="NOMBRE DEL TITULAR"
           aria-label="Nombre del titular"
@@ -110,7 +65,7 @@ const updateCvc = (event: Event) => {
       <label class="checkout-payment-full">
         <span class="sr-only">Número de tarjeta</span>
         <input
-          :value="cardNumber"
+          :value="props.form.cardNumber"
           type="text"
           inputmode="numeric"
           maxlength="19"
@@ -123,7 +78,7 @@ const updateCvc = (event: Event) => {
         <label class="checkout-payment-half">
           <span class="sr-only">Fecha de expiración</span>
           <input
-            :value="expiry"
+            :value="props.form.expiry"
             type="text"
             inputmode="numeric"
             maxlength="5"
@@ -136,7 +91,7 @@ const updateCvc = (event: Event) => {
         <label class="checkout-payment-half">
           <span class="sr-only">Código de seguridad</span>
           <input
-            :value="cvc"
+            :value="props.form.cvc"
             type="text"
             inputmode="numeric"
             maxlength="3"

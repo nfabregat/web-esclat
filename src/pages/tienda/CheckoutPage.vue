@@ -6,7 +6,7 @@ import CheckoutForm from "@/components/checkout/CheckoutForm.vue";
 import OrderSummary from "@/components/checkout/OrderSummary.vue";
 import PaymentSuccess from "@/components/checkout/PaymentSuccess.vue";
 import { type CheckoutValues } from "@/components/checkout/types";
-import { formatShopPrice, getShopProduct, shopProducts, type ShopProduct } from "@/data/shop";
+import { formatShopPrice, shopProducts, type ShopProduct } from "@/data/shop";
 import { useShopCart, type CartItem } from "@/composables/useShopCart";
 
 const route = useRoute();
@@ -70,36 +70,6 @@ const cartEntries = computed(() =>
     }))
     .filter((entry): entry is { item: CartItem; product: ShopProduct } => Boolean(entry.product)),
 );
-const checkoutSummaryProductId = computed(() =>
-  typeof route.query.productId === "string" ? route.query.productId : null,
-);
-const checkoutSummarySize = computed(() => (typeof route.query.size === "string" ? route.query.size : null));
-const checkoutSummaryEntry = computed(() => {
-  const routeProductId = checkoutSummaryProductId.value;
-  const routeSize = checkoutSummarySize.value;
-
-  if (routeProductId) {
-    const matchingCartEntry =
-      cartEntries.value.find((entry) => entry.item.productId === routeProductId && entry.item.size === routeSize) ??
-      cartEntries.value.find((entry) => entry.item.productId === routeProductId) ??
-      null;
-
-    const product = getShopProduct(routeProductId);
-
-    if (product) {
-      return {
-        item: matchingCartEntry?.item ?? {
-          productId: routeProductId,
-          size: routeSize ?? product.sizes[0] ?? "U",
-          quantity: 1,
-        },
-        product,
-      };
-    }
-  }
-
-  return cartEntries.value[0] ?? null;
-});
 
 const updateField = (field: keyof CheckoutValues, value: string | boolean) => {
   console.log("UPDATE FIELD", field, value);
@@ -108,6 +78,8 @@ const updateField = (field: keyof CheckoutValues, value: string | boolean) => {
     ...form.value,
     [field]: value,
   } as CheckoutValues;
+
+  console.log("FORM STATE", { ...form.value });
 };
 
 const closeSearch = () => {
@@ -262,7 +234,7 @@ onUnmounted(() => {
       </div>
 
       <section class="checkout-summary-wrap">
-        <OrderSummary v-if="checkoutSummaryEntry" :entry="checkoutSummaryEntry" :format-price="formatPrice" />
+        <OrderSummary v-if="cartEntries.length" :entries="cartEntries" :format-price="formatPrice" />
       </section>
 
       <div class="checkout-divider"></div>

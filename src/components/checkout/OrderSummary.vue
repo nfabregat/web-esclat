@@ -3,17 +3,17 @@ import type { CartItem } from "@/composables/useShopCart";
 import type { ShopProduct } from "@/data/shop";
 
 defineProps<{
-  entry: {
+  entries: Array<{
     item: CartItem;
     product: ShopProduct;
-  } | null;
+  }>;
   formatPrice: (value: number) => string;
 }>();
 </script>
 
 <template>
   <section class="checkout-summary">
-    <article v-if="entry" :key="`${entry.item.productId}-${entry.item.size}`" class="checkout-summary-row">
+    <article v-for="entry in entries" :key="`${entry.item.productId}-${entry.item.size}`" class="checkout-summary-row">
       <img :src="entry.product.images[0]" :alt="entry.product.name" class="checkout-summary-image" />
 
       <div class="checkout-summary-copy">
@@ -28,6 +28,7 @@ defineProps<{
 <style scoped>
 .checkout-summary {
   display: grid;
+  gap: 20px;
 }
 
 .checkout-summary-row {
