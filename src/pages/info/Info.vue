@@ -1,160 +1,49 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref } from "vue";
 
-const festivalSpaces = [
-  {
-    id: "01",
-    name: "Hall La Polivalent",
-    description:
-      "El hall principal donde se mezclan las entradas, el bar y los espacios de encuentro. Punto de conexión con las salas principales.",
-    path: "M60 60 H420 V240 H60 Z",
-    labelX: 80,
-    labelY: 120,
-  },
-  {
-    id: "02",
-    name: "La Polivalent",
-    description:
-      "Espacio dedicado a workshops, instalaciones inmersivas y experiencias interactivas relacionadas con arte, música y tecnología.",
-    path: "M520 60 H940 V240 H520 Z",
-    labelX: 720,
-    labelY: 120,
-  },
-  {
-    id: "03",
-    name: "Factoría",
-    description: "Zona de experimentación sonora y creación musical en directo.",
-    path: "M60 280 H360 V420 H60 Z",
-    labelX: 110,
-    labelY: 340,
-  },
-  {
-    id: "04",
-    name: "Visual Room",
-    description:
-      "Sala centrada en visuales, luces, mapping y experiencias audiovisuales inmersivas.",
-    path: "M420 280 H740 V420 H420 Z",
-    labelX: 540,
-    labelY: 340,
-  },
-  {
-    id: "05",
-    name: "Sala de Exposiciones",
-    description:
-      "Espacio dedicado a arte contemporáneo, instalaciones y colaboraciones visuales.",
-    path: "M760 280 H940 V420 H760 Z",
-    labelX: 780,
-    labelY: 340,
-  },
-  {
-    id: "06",
-    name: "Patio 1",
-    description:
-      "Zona exterior pensada para descansar, socializar y desconectar entre actividades. Lugar donde se encuentra el confesionario.",
-    path: "M60 470 H360 V650 H60 Z",
-    labelX: 100,
-    labelY: 540,
-  },
-  {
-    id: "07",
-    name: "Patio 2",
-    description:
-      "Espacio dedicado a performances y arte urbano en vivo, incluyendo murales y acciones colectivas.",
-    path: "M420 470 H760 V650 H420 Z",
-    labelX: 520,
-    labelY: 540,
-  },
-  {
-    id: "08",
-    name: "Vestíbulo La Mutant",
-    description:
-      "El escenario principal del festival. Aquí tendrán lugar las sesiones más intensas, shows audiovisuales y directos principales.",
-    path: "M60 690 H940 V780 H60 Z",
-    labelX: 460,
-    labelY: 740,
-  },
-  {
-    id: "09",
-    name: "La Mutant",
-    description:
-      "El escenario principal del festival. Aquí tendrán lugar las sesiones más intensas, shows audiovisuales y directos principales.",
-    path: "M60 820 H940 V900 H60 Z",
-    labelX: 460,
-    labelY: 860,
-  },
-];
-
-const activeSpace = ref<string | null>(null);
 const activeFaq = ref<string | null>(null);
 const activeRule = ref<string | null>(null);
 
-// Map SVGs
-const nivel1Svg = ref<string>('');
-const nivel2Svg = ref<string>('');
-const mutantSvg = ref<string>('');
-const selectedMap = ref<'nivel1' | 'nivel2' | 'mutant'>('nivel1');
-
-type MapDefinition = {
-  id: 'nivel1' | 'nivel2' | 'mutant';
+type MapCard = {
+  id: "nivel1" | "nivel2" | "mutant";
   label: string;
-  url: string;
-  svgRef: typeof nivel1Svg | typeof nivel2Svg | typeof mutantSvg;
-  removeGroupId?: string;
+  description: string;
+  src: string;
+  rooms: string[];
 };
 
-const mapDefinitions: MapDefinition[] = [
-  { id: 'nivel1', label: 'Planta Baja', url: '/assets/mapa/Mapa-LASNAVES-Nivel1.svg', svgRef: nivel1Svg },
-  { id: 'nivel2', label: 'Planta 1', url: '/assets/mapa/Mapa-LASNAVES-Nivel2.svg', svgRef: nivel2Svg, removeGroupId: 'Capa_6' },
-  { id: 'mutant', label: 'La Mutant', url: '/assets/mapa/Mapa-LASNAVES-Mutant.svg', svgRef: mutantSvg },
+const mapCards: MapCard[] = [
+  {
+    id: "nivel1",
+    label: "Planta Baja",
+    description: "Nave principal, planta baja.",
+    src: "/assets/mapa/Mapa-LASNAVES-Nivel1.svg",
+    rooms: [
+      "01. Hall La Polivalent",
+      "02. La Polivalent",
+      "05. Sala de Exposiciones",
+      "06. Patio 1",
+      "07. Patio 2",
+      "Entrada",
+      "WC",
+      "Escalera",
+    ],
+  },
+  {
+    id: "nivel2",
+    label: "Planta 1",
+    description: "Nave principal, planta 1.",
+    src: "/assets/mapa/Mapa-LASNAVES-Nivel2.svg",
+    rooms: ["03. Factoría", "04. Visual Room", "WC", "Escalera"],
+  },
+  {
+    id: "mutant",
+    label: "La Mutant",
+    description: "Nave 3.",
+    src: "/assets/mapa/Mapa-LASNAVES-Mutant.svg",
+    rooms: ["07. Vestíbulo La Mutant", "08. La Mutant", "09. La Mutant", "Entrada", "WC"],
+  },
 ];
-
-const currentMapSvg = computed(() => {
-  const map = mapDefinitions.find((item) => item.id === selectedMap.value);
-  return map?.svgRef.value ?? '';
-});
-
-const loadMaps = async () => {
-  try {
-    const results = await Promise.all(
-      mapDefinitions.map((item) => fetch(item.url))
-    );
-
-    for (let i = 0; i < mapDefinitions.length; i += 1) {
-      const item = mapDefinitions[i];
-      const res = results[i];
-      if (!res.ok) {
-        console.error(`[Maps] failed to load ${item.id}:`, res.status, res.statusText);
-        continue;
-      }
-
-      let svgText = await res.text();
-      if (item.removeGroupId) {
-        svgText = svgText.replace(new RegExp(`<g id="${item.removeGroupId}"[^>]*>.*?<\/g>`, 's'), '');
-      }
-      item.svgRef.value = svgText;
-    }
-
-    console.debug('[Maps loaded]', mapDefinitions.map((item) => ({ id: item.id, length: item.svgRef.value.length })));
-  } catch (e) {
-    console.error('Error loading maps:', e);
-  }
-};
-
-onMounted(() => {
-  loadMaps();
-});
-
-const toggleSpace = (space: string) => {
-  activeSpace.value = activeSpace.value === space ? null : space;
-};
-
-const toggleFaq = (question: string) => {
-  activeFaq.value = activeFaq.value === question ? null : question;
-};
-
-const toggleRule = (title: string) => {
-  activeRule.value = activeRule.value === title ? null : title;
-};
 
 const faqItems = [
   {
@@ -192,13 +81,11 @@ const faqItems = [
   },
   {
     question: "¿LOS WORKSHOPS TIENEN AFORO LIMITADO?",
-    answer:
-      "Sí. Algunas actividades tendrán plazas reducidas debido al espacio y al equipamiento técnico.",
+    answer: "Sí. Algunas actividades tendrán plazas reducidas debido al espacio y al equipamiento técnico.",
   },
   {
     question: "¿HABRÁ COMIDA Y BEBIDA?",
-    answer:
-      "Sí. El recinto contará con zonas habilitadas de comida y bebida durante todo el festival.",
+    answer: "Sí. El recinto contará con zonas habilitadas de comida y bebida durante todo el festival.",
   },
   {
     question: "¿EL FESTIVAL ES ACCESIBLE?",
@@ -271,6 +158,13 @@ const ruleItems = [
   },
 ];
 
+const toggleFaq = (question: string) => {
+  activeFaq.value = activeFaq.value === question ? null : question;
+};
+
+const toggleRule = (title: string) => {
+  activeRule.value = activeRule.value === title ? null : title;
+};
 </script>
 
 <template>
@@ -282,7 +176,7 @@ const ruleItems = [
     <section class="info-intro">
       <p>
         ESCLAT es una experiencia inmersiva que fusiona música electrónica,<br />
-        arte, tecnología y exploración sensorial. no es solo un festival: es<br />
+        arte, tecnología y exploración sensorial. No es solo un festival: es<br />
         un espacio de conexión, creatividad y experimentación colectiva<br />
         inspirado en la cultura underground y futurista.
       </p>
@@ -305,44 +199,23 @@ const ruleItems = [
     <section class="space-section">
       <h2 class="space-title font-monument">EL ESPACIO</h2>
 
-      <div class="space-grid">
-        <div class="space-map-wrapper">
-          <div style="font-size:12px; color:rgba(255,255,255,0.6); font-family: Roboto Mono, monospace; margin-bottom:10px;">
-            Estado: Nivel1: {{ nivel1Svg.length > 0 ? '✓' : '✗' }} | Nivel2: {{ nivel2Svg.length > 0 ? '✓' : '✗' }} | Mutant: {{ mutantSvg.length > 0 ? '✓' : '✗' }}
-            — Seleccionado: {{ mapDefinitions.find((item) => item.id === selectedMap)?.label }}
+      <div class="map-gallery">
+        <article v-for="map in mapCards" :key="map.id" class="map-card">
+          <div class="map-card-header">
+            <h3>{{ map.label }}</h3>
+            <p>{{ map.description }}</p>
           </div>
-          <div class="map-buttons">
-            <button
-              v-for="map in mapDefinitions"
-              :key="map.id"
-              :class="{ active: selectedMap === map.id }"
-              @click="selectedMap = map.id"
-            >
-              {{ map.label }}
-            </button>
+
+          <div class="map-frame">
+            <img :src="map.src" :alt="map.label" class="map-image" loading="lazy" decoding="async" />
           </div>
-          <div class="space-map" :key="selectedMap" v-html="currentMapSvg"></div>
-        </div>
 
-        <ol class="space-list">
-          <li
-            v-for="space in festivalSpaces"
-            :key="space.id"
-            class="space-list-item"
-          >
-            <button
-              class="space-button"
-              type="button"
-              @click="toggleSpace(space.id)"
-            >
-              {{ space.id }}. {{ space.name }}
-            </button>
-
-            <p v-if="activeSpace === space.id" class="space-description">
-              {{ space.description }}
-            </p>
-          </li>
-        </ol>
+          <ul class="map-rooms">
+            <li v-for="room in map.rooms" :key="room">
+              {{ room }}
+            </li>
+          </ul>
+        </article>
       </div>
     </section>
 
@@ -350,16 +223,8 @@ const ruleItems = [
       <h2 class="section-title font-monument">DUDAS FRECUENTES</h2>
 
       <ul class="faq-list">
-        <li
-          v-for="item in faqItems"
-          :key="item.question"
-          class="faq-item"
-        >
-          <button
-            class="faq-question"
-            type="button"
-            @click="toggleFaq(item.question)"
-          >
+        <li v-for="item in faqItems" :key="item.question" class="faq-item">
+          <button class="faq-question" type="button" @click="toggleFaq(item.question)">
             {{ item.question }}
           </button>
 
@@ -374,31 +239,19 @@ const ruleItems = [
       <h2 class="section-title font-monument">NORMAS</h2>
 
       <ul class="rules-list">
-        <li
-          v-for="item in ruleItems"
-          :key="item.title"
-          class="rules-item"
-        >
-          <button
-            class="rules-question"
-            type="button"
-            @click="toggleRule(item.title)"
-          >
+        <li v-for="item in ruleItems" :key="item.title" class="rules-item">
+          <button class="rules-question" type="button" @click="toggleRule(item.title)">
             {{ item.title }}
           </button>
 
           <div v-if="activeRule === item.title" class="rules-answer">
-            <p
-              v-for="line in item.lines"
-              :key="line"
-            >
+            <p v-for="line in item.lines" :key="line">
               {{ line }}
             </p>
           </div>
         </li>
       </ul>
     </section>
-
   </main>
 </template>
 
@@ -545,124 +398,55 @@ const ruleItems = [
   line-height: 1;
 }
 
-.space-layout {
-  padding-top: 8vh;
-}
-
-.space-grid {
+.map-gallery {
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(280px, 360px);
-  gap: 40px;
-  align-items: start;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
   margin-top: 5vh;
 }
 
-.space-map-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.map-card {
+  display: grid;
+  gap: 16px;
+  align-content: start;
 }
 
-.map-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.map-buttons button {
-  padding: 8px 16px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.8);
-  font-family: 'Roboto Mono', monospace;
-  font-size: 12px;
-  cursor: pointer;
-  text-transform: uppercase;
-  transition: all 180ms ease;
-}
-
-.map-buttons button:hover {
-  border-color: rgba(255, 255, 255, 0.6);
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.map-buttons button.active {
-  border-color: white;
-  color: white;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.space-map {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background: transparent;
-}
-
-.space-map :deep(svg) {
-  width: 100%;
-  height: 100%;
-}
-
-.active-map-button {
-  text-decoration: underline;
-}
-
-.map-label {
+.map-card-header h3 {
+  margin: 0;
   font-family: "Roboto Mono", monospace;
-  font-size: 22px;
-  fill: rgba(255,255,255,0.9);
-  pointer-events: none;
-}
-
-.map-label,
-.space-list,
-.space-button {
+  font-size: 18px;
   font-weight: 400;
+  line-height: 1.2;
 }
 
-.map-hint {
-  margin-top: 18px;
-  color: rgb(255 255 255 / 0.6);
+.map-card-header p {
+  margin: 8px 0 0;
+  color: rgb(255 255 255 / 0.7);
   font-family: "Roboto Mono", monospace;
   font-size: 12px;
   line-height: 1.4;
+  text-transform: none;
 }
 
-.space-list {
+.map-frame {
+  background: transparent;
+}
+
+.map-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.map-rooms {
   display: grid;
-  gap: 34px;
+  gap: 10px;
   margin: 0;
-  padding-left: 0;
+  padding: 0;
   list-style: none;
   font-family: "Roboto Mono", monospace;
-  font-size: 19px;
-  line-height: 1.25;
-  letter-spacing: 0;
-}
-
-.space-button {
-  border: 0;
-  background-color: transparent;
-  color: white;
-  cursor: pointer;
-  font: inherit;
-  padding: 0;
-  text-align: left;
-  text-transform: uppercase;
-}
-
-.space-button:hover {
-  text-decoration: underline;
-  text-underline-offset: 5px;
-}
-
-.space-description {
-  max-width: 360px;
-  margin: 14px 0 0;
-  padding-left: 40px;
-  color: white;
-  font-family: "Roboto Mono", monospace;
   font-size: 13px;
-  line-height: 1.25;
+  line-height: 1.35;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -812,7 +596,7 @@ const ruleItems = [
     gap: 28px;
     min-height: 0;
     margin-top: 8vh;
-    padding-left: calc(var(--page-padding) + var(--balance-shift));
+    padding-left: var(--page-padding);
     padding-right: var(--page-padding);
   }
 
@@ -822,12 +606,11 @@ const ruleItems = [
 
   .info-balance::after {
     top: 50%;
-    left: calc(var(--page-padding) + var(--balance-shift));
+    left: var(--page-padding);
     right: var(--page-padding);
   }
 
   .balance-item {
-    
     min-height: 180px;
   }
 
@@ -839,10 +622,7 @@ const ruleItems = [
     font-size: 13px;
   }
 
-  .balance-item-music {
-    padding-left: 20px;
-  }
-
+  .balance-item-music,
   .balance-item-thinking {
     padding-left: 20px;
   }
@@ -857,18 +637,9 @@ const ruleItems = [
     padding-top: 10vh;
   }
 
-  .space-layout {
-    padding-top: 4vh;
-  }
-
-  .space-list {
-    gap: 22px;
-    font-size: 15px;
-  }
-
-  .space-description {
-    padding-left: 18px;
-    font-size: 13px;
+  .map-gallery {
+    grid-template-columns: 1fr;
+    gap: 32px;
   }
 
   .faq-question {
@@ -888,30 +659,5 @@ const ruleItems = [
     font-size: 12px;
     margin-top: 24px;
   }
-}
-</style>
-
-<style>
-/* Global SVG styles (not scoped) so they apply to elements injected via v-html */
-.space-map svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.svg-area-hover {
-  fill: rgba(255,255,255,0.16) !important;
-  stroke: rgba(255,255,255,0.85) !important;
-}
-
-.svg-area-active {
-  fill: rgba(255,255,255,0.28) !important;
-  stroke: rgba(255,255,255,0.98) !important;
-  filter: drop-shadow(0 0 22px rgba(255,255,255,0.18));
-}
-
-/* make text inside SVG selectable/visible if needed */
-.space-map svg text {
-  font-family: "Roboto Mono", monospace;
 }
 </style>
