@@ -7,86 +7,70 @@ export type ShopProduct = {
   sizes: string[];
 };
 
-const resolveAsset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, "")}`;
+const resolveAsset = (fileName: string) => encodeURI(`/MERCH/${fileName}`);
 
 export const shopProducts: ShopProduct[] = [
+  {
+    id: "botella",
+    name: "BOTELLA ESCLAT",
+    price: 18,
+    images: [resolveAsset("BOTELLA DEF.png")],
+    description: "Botella reutilizable ESCLAT para acompañarte en el día a día.",
+    sizes: ["U"],
+  },
+  {
+    id: "calcetines-identity",
+    name: "CALCETINES ESCLAT IDENTITY",
+    price: 12,
+    images: [resolveAsset("CALCETINES DEF1.png")],
+    description: "Calcetines ESCLAT IDENTITY con acabado cómodo y uso diario.",
+    sizes: ["U"],
+  },
+  {
+    id: "calcetines-fusion",
+    name: "CALCETINES ESCLAT FUSION",
+    price: 12,
+    images: [resolveAsset("CALCETINES DEF.png")],
+    description: "Calcetines ESCLAT FUSION con diseño limpio y versátil.",
+    sizes: ["U"],
+  },
   {
     id: "camiseta",
     name: "CAMISETA ESCLAT",
     price: 40,
     images: [
-      resolveAsset("/assets/artistas/1.jpg"),
-      resolveAsset("/assets/artistas/2.jpg"),
-      resolveAsset("/assets/artistas/3.jpg"),
-      resolveAsset("/assets/artistas/4.jpg"),
+      resolveAsset("CAMISETA DELANTE DEF.png"),
+      resolveAsset("CAMISETA DETRAS.png"),
     ],
-    description: "Camiseta de corte recto con gráfica central ESCLAT y algodón pesado.",
+    description: "Camiseta ESCLAT con vistas frontal y trasera.",
     sizes: ["XS", "S", "M", "L"],
   },
   {
-    id: "gorra",
-    name: "GORRA ESCLAT",
-    price: 30,
+    id: "gorro",
+    name: "GORRO ESCLAT",
+    price: 24,
+    images: [resolveAsset("GORRO DEF.png")],
+    description: "Gorro ESCLAT con acabado sencillo y cómodo.",
+    sizes: ["U"],
+  },
+  {
+    id: "top",
+    name: "TOP ESCLAT",
+    price: 28,
     images: [
-      resolveAsset("/assets/artistas/5.jpg"),
-      resolveAsset("/assets/artistas/6.jpg"),
-      resolveAsset("/assets/artistas/7.jpg"),
-      resolveAsset("/assets/artistas/8.jpg"),
+      resolveAsset("TOP DEF.png"),
+      resolveAsset("TOP DETRAS DEF.png"),
     ],
-    description: "Gorra de perfil bajo con bordado frontal y ajuste trasero regulable.",
+    description: "Top ESCLAT con vistas frontal y trasera.",
     sizes: ["XS", "S", "M", "L"],
   },
   {
-    id: "sudadera",
-    name: "SUDADERA ESCLAT",
-    price: 48,
-    images: [
-      resolveAsset("/assets/artistas/9.jpg"),
-      resolveAsset("/assets/artistas/10.jpg"),
-      resolveAsset("/assets/artistas/11.jpg"),
-      resolveAsset("/assets/artistas/12.jpg"),
-    ],
-    description: "Sudadera oversize con felpa interior y tacto pesado para una silueta premium.",
-    sizes: ["XS", "S", "M", "L"],
-  },
-  {
-    id: "tote",
-    name: "TOTE BAG",
+    id: "tote-bag",
+    name: "TOTE BAG ESCLAT",
     price: 18,
-    images: [
-      resolveAsset("/assets/artistas/13.jpg"),
-      resolveAsset("/assets/artistas/14.jpg"),
-      resolveAsset("/assets/artistas/15.jpg"),
-      resolveAsset("/assets/artistas/16.jpg"),
-    ],
-    description: "Tote bag de lona resistente para uso diario, archivos y vinilos.",
+    images: [resolveAsset("TOTE DELANTE.png")],
+    description: "Tote bag ESCLAT para llevar lo esencial con estilo.",
     sizes: ["U"],
-  },
-  {
-    id: "vinilo",
-    name: "VINILO",
-    price: 35,
-    images: [
-      resolveAsset("/assets/artistas/17.jpg"),
-      resolveAsset("/assets/artistas/18.jpg"),
-      resolveAsset("/assets/artistas/19.jpg"),
-      resolveAsset("/assets/artistas/20.jpg"),
-    ],
-    description: "Edición física con selección musical del universo ESCLAT.",
-    sizes: ["U"],
-  },
-  {
-    id: "poster",
-    name: "POSTER",
-    price: 12,
-    images: [
-      resolveAsset("/assets/artistas/21.jpg"),
-      resolveAsset("/assets/artistas/22.jpg"),
-      resolveAsset("/assets/artistas/23.jpg"),
-      resolveAsset("/assets/artistas/24.jpg"),
-    ],
-    description: "Póster de edición limitada impreso en papel de alto gramaje.",
-    sizes: ["30x40"],
   },
 ];
 

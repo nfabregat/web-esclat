@@ -33,13 +33,13 @@ defineProps<{
 
 .checkout-summary-row {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-columns: 84px minmax(0, 1fr);
   gap: 16px;
   align-items: center;
 }
 
 .checkout-summary-image {
-  width: 72px;
+  width: 84px;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   background: #050505;

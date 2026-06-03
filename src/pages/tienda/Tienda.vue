@@ -396,7 +396,7 @@ onUnmounted(() => {
 
 .shop-hero {
   position: relative;
-  min-height: 80vh;
+  min-height: 88vh;
 }
 
 .shop-title {
@@ -410,7 +410,7 @@ onUnmounted(() => {
 
 .shop-catalog {
   position: relative;
-  padding: 0 var(--page-padding) 12vh;
+  padding: 0 var(--page-padding) 10vh;
 }
 
 .shop-toolbar {
@@ -466,7 +466,7 @@ onUnmounted(() => {
 .shop-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px 24px;
+  gap: 28px 22px;
 }
 
 .shop-product {
@@ -479,24 +479,26 @@ onUnmounted(() => {
   gap: 10px;
   padding: 0;
   text-align: left;
+  overflow: hidden;
 }
 
 .shop-product-visual {
   position: relative;
   display: block;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   width: 100%;
   overflow: hidden;
   background-color: #060606;
+  padding: 8px;
 }
 
 .shop-product-image {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset: 8px;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
   display: block;
-  object-fit: cover;
+  object-fit: contain;
   transition: opacity 280ms ease;
 }
 
@@ -518,16 +520,18 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: 8px;
+  gap: 6px;
   font-family: "Roboto Mono", monospace;
   letter-spacing: 0.05em;
   min-height: 16px;
   width: 100%;
+  box-sizing: border-box;
+  padding-inline: 8px;
 }
 
 .shop-product-name,
 .shop-product-price {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.1;
 }
 
@@ -747,13 +751,13 @@ onUnmounted(() => {
 
 .shop-mini-list {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .shop-mini-product {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 14px;
   border: 0;
   background: transparent;
   color: inherit;
@@ -763,7 +767,7 @@ onUnmounted(() => {
 }
 
 .shop-mini-image {
-  width: 88px;
+  width: 82px;
   aspect-ratio: 4 / 5;
   object-fit: cover;
   background: #050505;
@@ -774,13 +778,13 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: space-between;
   min-width: 0;
-  padding: 4px 0;
+  padding: 2px 0;
   font-family: "Roboto Mono", monospace;
 }
 
 .shop-mini-name,
 .shop-mini-price {
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.08em;
 }
 
@@ -792,7 +796,7 @@ onUnmounted(() => {
 
 .shop-cart-list {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .shop-cart-item {
@@ -1073,7 +1077,7 @@ onUnmounted(() => {
 
 @media (min-width: 1025px) {
   .shop-hero {
-    min-height: 80vh;
+    min-height: 92vh;
   }
 
   .shop-title {
@@ -1083,7 +1087,7 @@ onUnmounted(() => {
 
 @media (max-width: 1024px) {
   .shop-hero {
-    min-height: 88vh;
+    min-height: 86vh;
   }
 
   .shop-title {
@@ -1093,21 +1097,22 @@ onUnmounted(() => {
   }
 
   .shop-catalog {
-    padding-bottom: 10vh;
+    padding-bottom: 8vh;
   }
 
   .shop-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px 18px;
+    gap: 22px 18px;
   }
 
   .shop-product-name,
   .shop-product-price {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .shop-product-meta {
     gap: 8px;
+    padding-inline: 8px;
   }
 
   .shop-product:hover .shop-product-image--primary,
@@ -1134,6 +1139,14 @@ onUnmounted(() => {
 }
 
 @media (max-width: 760px) {
+  .shop-hero {
+    min-height: 76vh;
+  }
+
+  .shop-title {
+    font-size: clamp(40px, 12vw, 64px);
+  }
+
   .shop-grid {
     grid-template-columns: 1fr;
   }

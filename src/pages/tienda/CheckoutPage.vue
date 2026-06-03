@@ -235,6 +235,11 @@ onUnmounted(() => {
 
       <section class="checkout-summary-wrap">
         <OrderSummary v-if="cartEntries.length" :entries="cartEntries" :format-price="formatPrice" />
+
+        <section v-if="cartEntries.length" class="checkout-total" aria-label="Total del pedido">
+          <span class="checkout-total-label">TOTAL</span>
+          <strong class="checkout-total-value">{{ formatPrice(cartTotal) }}</strong>
+        </section>
       </section>
 
       <div class="checkout-divider"></div>
@@ -491,6 +496,36 @@ onUnmounted(() => {
 .checkout-summary-wrap {
   display: grid;
   width: min(100%, 620px);
+  gap: 22px;
+}
+
+.checkout-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0 0;
+  border-top: 1px solid #333;
+}
+
+.checkout-total-label,
+.checkout-total-value {
+  margin: 0;
+  font-family: "Roboto Mono", monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.checkout-total-label {
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.72);
+}
+
+.checkout-total-value {
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 400;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
 }
 
 .checkout-divider {
@@ -720,13 +755,13 @@ onUnmounted(() => {
 
 .shop-mini-list {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .shop-mini-product {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 14px;
   border: 0;
   background: transparent;
   color: inherit;
@@ -736,7 +771,7 @@ onUnmounted(() => {
 }
 
 .shop-mini-image {
-  width: 88px;
+  width: 82px;
   aspect-ratio: 4 / 5;
   object-fit: cover;
   background: #050505;
@@ -776,7 +811,7 @@ onUnmounted(() => {
 }
 
 .shop-cart-thumb {
-  width: 56px;
+  width: 64px;
   aspect-ratio: 4 / 5;
   object-fit: cover;
   background: #050505;
