@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scroll Driven Canvas</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <section class="intro-section">
+        <p>Haz scroll para llegar a la animacion.</p>
+      </section>
+
+      <section class="canvas-section" aria-label="Animacion controlada por scroll">
+        <canvas id="sequence-canvas"></canvas>
+      </section>
+
+      <section class="content-section">
+        <h1>Contenido posterior</h1>
+        <p>
+          Al llegar al ultimo fotograma, el scroll se libera y puedes seguir
+          navegando por la pagina.
+        </p>
+      </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
