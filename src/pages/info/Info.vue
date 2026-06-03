@@ -203,8 +203,41 @@ const toggleRule = (title: string) => {
       <h2 class="space-title font-monument">EL ESPACIO</h2>
 
       <div class="space-layout">
+        <div class="mutant-side-stack">
+          <div class="space-guide">
+            <p>
+              Guía de espacios:<br />
+              01. Hall La Polivalent<br />
+              02. La Polivalent<br />
+              03. Factoría<br />
+              04. Visual Room<br />
+              05. Sala de Exposiciones<br />
+              06. Patio 1<br />
+              07. Patio 2<br />
+              08. Vestíbulo La Mutant<br />
+              09. La Mutant
+            </p>
+          </div>
+
+          <article v-if="mutantMap" class="map-card map-card-mutant">
+            <div class="map-card-header">
+              <h3>{{ mutantMap.label }}</h3>
+              <p>{{ mutantMap.description }}</p>
+            </div>
+
+            <div class="map-frame">
+              <img :src="mutantMap.src" :alt="mutantMap.label" class="map-image" loading="lazy" decoding="async" />
+            </div>
+          </article>
+        </div>
+
         <div class="main-building-stack">
-          <article v-for="map in mainBuildingMaps" :key="map.id" class="map-card map-card-main">
+          <article
+            v-for="map in mainBuildingMaps"
+            :key="map.id"
+            class="map-card map-card-main"
+            :class="map.id === 'nivel1' ? 'map-card-nivel1' : 'map-card-nivel2'"
+          >
             <div class="map-card-header">
               <h3>{{ map.label }}</h3>
               <p>{{ map.description }}</p>
@@ -214,30 +247,8 @@ const toggleRule = (title: string) => {
               <img :src="map.src" :alt="map.label" class="map-image" loading="lazy" decoding="async" />
             </div>
 
-            <ul class="map-rooms">
-              <li v-for="room in map.rooms" :key="room">
-                {{ room }}
-              </li>
-            </ul>
           </article>
         </div>
-
-        <article v-if="mutantMap" class="map-card map-card-mutant">
-          <div class="map-card-header">
-            <h3>{{ mutantMap.label }}</h3>
-            <p>{{ mutantMap.description }}</p>
-          </div>
-
-          <div class="map-frame">
-            <img :src="mutantMap.src" :alt="mutantMap.label" class="map-image" loading="lazy" decoding="async" />
-          </div>
-
-          <ul class="map-rooms">
-            <li v-for="room in mutantMap.rooms" :key="room">
-              {{ room }}
-            </li>
-          </ul>
-        </article>
       </div>
     </section>
 
@@ -422,10 +433,16 @@ const toggleRule = (title: string) => {
 
 .space-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
-  gap: 32px;
+  grid-template-columns: minmax(360px, 1fr) minmax(0, 1fr);
+  gap: 48px;
   margin-top: 5vh;
   align-items: start;
+}
+
+.mutant-side-stack {
+  display: grid;
+  gap: 28px;
+  align-content: start;
 }
 
 .main-building-stack {
@@ -441,6 +458,13 @@ const toggleRule = (title: string) => {
   min-width: 0;
 }
 
+.map-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .map-card-header h3 {
   margin: 0;
   font-family: "Roboto Mono", monospace;
@@ -450,7 +474,7 @@ const toggleRule = (title: string) => {
 }
 
 .map-card-header p {
-  margin: 8px 0 0;
+  margin: 0;
   color: rgb(255 255 255 / 0.7);
   font-family: "Roboto Mono", monospace;
   font-size: 12px;
@@ -468,26 +492,39 @@ const toggleRule = (title: string) => {
   height: auto;
 }
 
-.map-rooms {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-family: "Roboto Mono", monospace;
-  font-size: 13px;
-  line-height: 1.35;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
 .map-card-main {
   justify-self: end;
   width: min(100%, 640px);
 }
 
+.map-card-nivel1 {
+  width: min(100%, 640px);
+}
+
+.map-card-nivel2 {
+  width: min(78%, 499px);
+}
+
 .map-card-mutant {
-  width: 100%;
+  width: min(100%, 620px);
+  justify-self: start;
+}
+
+.space-guide {
+  margin-top: 0;
+  padding-top: 14px;
+  border-top: 1px solid rgb(255 255 255 / 0.22);
+}
+
+.space-guide p {
+  margin: 0;
+  max-width: 36rem;
+  font-family: "Roboto Mono", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgb(255 255 255 / 0.72);
 }
 
 .faq-section {
@@ -681,13 +718,26 @@ const toggleRule = (title: string) => {
     gap: 34px;
   }
 
+  .mutant-side-stack {
+    gap: 22px;
+  }
+
   .main-building-stack {
     gap: 16px;
   }
 
-  .map-card-main,
-  .map-card-mutant {
+  .map-card-mutant,
+  .map-card-main {
     width: 100%;
+  }
+
+  .map-card-nivel2 {
+    width: min(100%, 499px);
+    justify-self: end;
+  }
+
+  .space-guide {
+    margin-top: 6px;
   }
 
   .faq-question {
