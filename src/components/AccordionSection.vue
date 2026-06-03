@@ -1,15 +1,30 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
-defineProps<{
+const props = defineProps<{
   title: string;
   body: string;
+  modelValue?: boolean;
 }>();
 
-const isOpen = ref(false);
+const emit = defineEmits<{
+  (event: "update:modelValue", value: boolean): void;
+}>();
+
+const localIsOpen = ref(false);
+
+const isControlled = computed(() => props.modelValue !== undefined);
+const isOpen = computed(() => (isControlled.value ? props.modelValue ?? false : localIsOpen.value));
 
 const toggle = () => {
-  isOpen.value = !isOpen.value;
+  const nextValue = !isOpen.value;
+
+  if (isControlled.value) {
+    emit("update:modelValue", nextValue);
+    return;
+  }
+
+  localIsOpen.value = nextValue;
 };
 </script>
 
@@ -32,7 +47,7 @@ const toggle = () => {
 <style scoped>
 .accordion-item {
   border-bottom: 1px solid rgb(255 255 255 / 70%);
-  padding: 18px 0;
+  padding: 24px 0;
 }
 
 .accordion-item:first-child {
@@ -48,9 +63,9 @@ const toggle = () => {
   color: white;
   cursor: pointer;
   font: inherit;
-  font-size: 14px;
-  line-height: 1.05;
-  letter-spacing: 0.08em;
+  font-size: 18px;
+  line-height: 1.08;
+  letter-spacing: 0.06em;
   padding: 0;
   text-align: left;
   text-transform: uppercase;
@@ -66,11 +81,11 @@ const toggle = () => {
 }
 
 .accordion-answer {
-  max-width: 880px;
-  margin: 18px 0 4px;
+  max-width: 980px;
+  margin: 22px 0 6px;
   font-family: "Roboto Mono", monospace;
-  font-size: 12px;
-  line-height: 1.35;
+  font-size: 15px;
+  line-height: 1.45;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -88,16 +103,16 @@ const toggle = () => {
 
 @media (max-width: 760px) {
   .accordion-item {
-    padding: 16px 0;
+    padding: 20px 0;
   }
 
   .accordion-question {
-    font-size: 13px;
+    font-size: 15px;
   }
 
   .accordion-answer {
-    font-size: 12px;
-    margin-top: 16px;
+    font-size: 14px;
+    margin-top: 18px;
   }
 }
 </style>

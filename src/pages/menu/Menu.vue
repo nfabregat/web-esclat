@@ -9,6 +9,7 @@ const menuLinks = [
   { text: "TIENDA", path: "/tienda" },
   { text: "ENTRADAS", path: "/entradas" },
   { text: "ARTISTAS", path: "/artistas" },
+  { text: "ACTIVIDADES", path: "/actividades" },
   { text: "PROGRAMA", path: "/programa" },
   { text: "INFO", path: "/info" },
 ];
