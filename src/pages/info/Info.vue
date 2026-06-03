@@ -45,6 +45,9 @@ const mapCards: MapCard[] = [
   },
 ];
 
+const mainBuildingMaps = mapCards.slice(0, 2);
+const mutantMap = mapCards[2];
+
 const faqItems = [
   {
     question: "¿QUÉ ES ESCLAT?",
@@ -199,19 +202,38 @@ const toggleRule = (title: string) => {
     <section class="space-section">
       <h2 class="space-title font-monument">EL ESPACIO</h2>
 
-      <div class="map-gallery">
-        <article v-for="map in mapCards" :key="map.id" class="map-card">
+      <div class="space-layout">
+        <div class="main-building-stack">
+          <article v-for="map in mainBuildingMaps" :key="map.id" class="map-card map-card-main">
+            <div class="map-card-header">
+              <h3>{{ map.label }}</h3>
+              <p>{{ map.description }}</p>
+            </div>
+
+            <div class="map-frame">
+              <img :src="map.src" :alt="map.label" class="map-image" loading="lazy" decoding="async" />
+            </div>
+
+            <ul class="map-rooms">
+              <li v-for="room in map.rooms" :key="room">
+                {{ room }}
+              </li>
+            </ul>
+          </article>
+        </div>
+
+        <article v-if="mutantMap" class="map-card map-card-mutant">
           <div class="map-card-header">
-            <h3>{{ map.label }}</h3>
-            <p>{{ map.description }}</p>
+            <h3>{{ mutantMap.label }}</h3>
+            <p>{{ mutantMap.description }}</p>
           </div>
 
           <div class="map-frame">
-            <img :src="map.src" :alt="map.label" class="map-image" loading="lazy" decoding="async" />
+            <img :src="mutantMap.src" :alt="mutantMap.label" class="map-image" loading="lazy" decoding="async" />
           </div>
 
           <ul class="map-rooms">
-            <li v-for="room in map.rooms" :key="room">
+            <li v-for="room in mutantMap.rooms" :key="room">
               {{ room }}
             </li>
           </ul>
@@ -398,17 +420,25 @@ const toggleRule = (title: string) => {
   line-height: 1;
 }
 
-.map-gallery {
+.space-layout {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 32px;
   margin-top: 5vh;
+  align-items: start;
+}
+
+.main-building-stack {
+  display: grid;
+  gap: 12px;
+  align-content: start;
 }
 
 .map-card {
   display: grid;
   gap: 16px;
   align-content: start;
+  min-width: 0;
 }
 
 .map-card-header h3 {
@@ -449,6 +479,15 @@ const toggleRule = (title: string) => {
   line-height: 1.35;
   letter-spacing: 0;
   text-transform: none;
+}
+
+.map-card-main {
+  justify-self: end;
+  width: min(100%, 640px);
+}
+
+.map-card-mutant {
+  width: 100%;
 }
 
 .faq-section {
@@ -637,9 +676,18 @@ const toggleRule = (title: string) => {
     padding-top: 10vh;
   }
 
-  .map-gallery {
+  .space-layout {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 34px;
+  }
+
+  .main-building-stack {
+    gap: 16px;
+  }
+
+  .map-card-main,
+  .map-card-mutant {
+    width: 100%;
   }
 
   .faq-question {
