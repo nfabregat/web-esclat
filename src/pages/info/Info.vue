@@ -136,12 +136,12 @@ const getSpaceSubtitle = (spaceId: SpaceId) => {
 
 const registerSpaceGuideRef =
   (spaceId: SpaceId) => (el: Element | ComponentPublicInstance | null) => {
-  if (el instanceof HTMLElement) {
-    spaceGuideRefs.set(spaceId, el);
-  } else {
-    spaceGuideRefs.delete(spaceId);
-  }
-};
+    if (el instanceof HTMLElement) {
+      spaceGuideRefs.set(spaceId, el);
+    } else {
+      spaceGuideRefs.delete(spaceId);
+    }
+  };
 
 const normalizeSvg = (id: MapCard["id"], svg: string) => {
   if (id !== "mutant") {
@@ -412,7 +412,17 @@ onBeforeUnmount(() => {
           </article>
 
           <div class="space-guide">
-            <p class="space-guide-title">Guía de espacios:</p>
+            <div class="space-guide-header">
+              <p class="space-guide-title">iNFORMACIÓN</p>
+              <div class="space-guide-legend">
+                <div class="space-guide-legend-list" aria-label="Leyenda de iconos">
+                  <div class="space-guide-legend-item">entrada</div>
+                  <div class="space-guide-legend-item">escalera</div>
+                  <div class="space-guide-legend-item">baños</div>
+                  <div class="space-guide-legend-item">punto de información</div>
+                </div>
+              </div>
+            </div>
             <ul class="space-guide-list">
               <li
                 v-for="item in spaceGuideItems"
@@ -730,6 +740,15 @@ onBeforeUnmount(() => {
   stroke: rgba(255, 255, 255, 0.95) !important;
 }
 
+.info-page.legend-entrada .map-svg :deep([id="entrada"] *),
+.info-page.legend-escalera .map-svg :deep([id="Escalera"] *),
+.info-page.legend-escalera .map-svg :deep([id="escaleras"] *),
+.info-page.legend-wc .map-svg :deep([id="WC-2"] *),
+.info-page.legend-wc .map-svg :deep([data-name="WC"] *) {
+  fill: rgba(255, 255, 255, 0.18) !important;
+  stroke: rgba(255, 255, 255, 0.95) !important;
+}
+
 .map-card-main {
   justify-self: end;
   width: min(100%, 600px);
@@ -754,7 +773,15 @@ onBeforeUnmount(() => {
   border-top: 1px solid rgb(255 255 255 / 0.22);
 }
 
+.space-guide-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
 .space-guide-title {
+  flex: 0 0 auto;
   margin: 0;
   font-family: "Roboto Mono", monospace;
   font-size: 13px;
@@ -762,6 +789,29 @@ onBeforeUnmount(() => {
   letter-spacing: 0;
   text-transform: none;
   color: rgb(255 255 255 / 0.72);
+}
+
+.space-guide-legend {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  max-width: 340px;
+}
+
+.space-guide-legend-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.space-guide-legend-item {
+  font-family: "Roboto Mono", monospace;
+  font-size: 16px;
+  line-height: 1.25;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .space-guide-list {
@@ -1033,6 +1083,24 @@ onBeforeUnmount(() => {
 
   .space-guide {
     margin-top: 6px;
+  }
+
+  .space-guide-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .space-guide-legend {
+    justify-items: start;
+    max-width: none;
+  }
+
+  .space-guide-legend-svg {
+    width: min(100%, 230px);
+  }
+
+  .space-guide-legend-list {
+    justify-content: flex-start;
   }
 
   .faq-question {
