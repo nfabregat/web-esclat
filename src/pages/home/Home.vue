@@ -28,7 +28,7 @@
 
     <section
       class="home-intro"
-      :class="{ 'is-visible': isIntroVisible }"
+      :class="{ 'is-visible': isIntroVisible, 'is-released': isHomeReleased }"
     >
       <div class="home-intro-content">
         <h2 class="home-intro-title font-monument" :style="homeIntroTitleStyles">
@@ -57,6 +57,7 @@ const revealProgress = ref(0);
 
 const isRevealComplete = computed(() => revealProgress.value >= 0.995);
 const isIntroVisible = computed(() => revealProgress.value >= 0.985);
+const isHomeReleased = computed(() => revealProgress.value >= 0.995);
 const homeIntroTitleStyles = computed(() => {
   const start = 0.975;
   const end = 0.999;
@@ -440,6 +441,10 @@ onUnmounted(() => {
   transform: translateY(0);
 }
 
+.home-intro.is-released {
+  pointer-events: none;
+}
+
 .home-intro-content {
   position: relative;
   z-index: 1;
@@ -478,6 +483,7 @@ onUnmounted(() => {
   line-height: 1;
   text-decoration: none;
   text-underline-offset: 4px;
+  pointer-events: auto;
   will-change: opacity, transform;
 }
 
