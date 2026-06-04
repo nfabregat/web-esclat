@@ -10,6 +10,7 @@
       <div
         class="home-meta font-monument"
         :class="{ 'is-complete': isRevealComplete }"
+        :style="homeMetaStyles"
       >
         <p class="home-date">
           23.10—<br />
@@ -23,15 +24,17 @@
       </div>
     </section>
 
+    <div class="home-intro-cover" :style="homeIntroCoverStyles" aria-hidden="true"></div>
+
     <section class="home-intro" :class="{ 'is-visible': isIntroVisible }">
       <div class="home-intro-content">
-        <h2 class="home-intro-title font-monument">
+        <h2 class="home-intro-title font-monument" :style="homeIntroTitleStyles">
           <span>FESTIVAL DE MÚSICA,</span>
           <span>PENSAMIENTO</span>
           <span>Y CREATIVIDAD</span>
         </h2>
 
-        <RouterLink class="home-info-link font-monument" to="/info">
+        <RouterLink class="home-info-link font-monument" :style="homeInfoLinkStyles" to="/info">
           MÁS INFORMACIÓN
         </RouterLink>
       </div>
@@ -47,11 +50,62 @@ const scrollContainer = ref<HTMLElement | null>(null);
 const animationCanvas = ref<HTMLCanvasElement | null>(null);
 const revealProgress = ref(0);
 
-const isRevealComplete = computed(() => revealProgress.value >= 0.95);
-const isIntroVisible = computed(() => revealProgress.value >= 0.965);
-const sequenceCanvasStyles = computed(() => {
+const isRevealComplete = computed(() => revealProgress.value >= 0.995);
+const isIntroVisible = computed(() => revealProgress.value >= 0.985);
+const homeIntroTitleStyles = computed(() => {
+  const start = 0.975;
+  const end = 0.999;
+  const progress = revealProgress.value;
+  const t = Math.min(Math.max((progress - start) / (end - start), 0), 1);
+  const eased = t * t * (3 - 2 * t);
+
   return {
-    "--sequence-exit-progress": revealProgress.value.toFixed(4),
+    opacity: eased.toFixed(4),
+    transform: `translateY(${(14 * (1 - eased)).toFixed(2)}px)`,
+  };
+});
+const homeInfoLinkStyles = computed(() => {
+  const start = 0.988;
+  const end = 1;
+  const progress = revealProgress.value;
+  const t = Math.min(Math.max((progress - start) / (end - start), 0), 1);
+  const eased = t * t * (3 - 2 * t);
+
+  return {
+    opacity: eased.toFixed(4),
+    transform: `translateY(${(12 * (1 - eased)).toFixed(2)}px)`,
+  };
+});
+const homeIntroCoverStyles = computed(() => {
+  const raw = revealProgress.value;
+  const coverT = Math.min(Math.max((raw - 0.84) / 0.16, 0), 1);
+  const cover = coverT * coverT * (3 - 2 * coverT);
+
+  return {
+    opacity: cover.toFixed(4),
+  };
+});
+const homeMetaStyles = computed(() => {
+  const fadeStart = 0.76;
+  const fadeEnd = 0.92;
+  const progress = revealProgress.value;
+  const fadeT = Math.min(Math.max((progress - fadeStart) / (fadeEnd - fadeStart), 0), 1);
+  const fade = fadeT * fadeT * (3 - 2 * fadeT);
+  const opacity = 1 - fade;
+  const translateY = 18 * fade;
+
+  return {
+    opacity: opacity.toFixed(4),
+    transform: `translateY(${translateY.toFixed(2)}px)`,
+  };
+});
+const sequenceCanvasStyles = computed(() => {
+  const raw = revealProgress.value;
+  const coverT = Math.min(Math.max((raw - 0.84) / 0.16, 0), 1);
+  const cover = coverT * coverT * (3 - 2 * coverT);
+
+  return {
+    "--sequence-exit-progress": cover.toFixed(4),
   };
 });
 
@@ -74,6 +128,7 @@ onMounted(async () => {
   const frameCount = frameEnd - frameStart + 1;
   const imageFolder = "/assets/W.I.def";
   const lerpFactor = 0.18;
+  const animationEndProgress = 0.84;
 
   const images: HTMLImageElement[] = [];
 
@@ -86,11 +141,6 @@ onMounted(async () => {
 
   const clamp = (value: number, min: number, max: number) => {
     return Math.min(Math.max(value, min), max);
-  };
-
-  const smoothStep = (start: number, end: number, value: number) => {
-    const progress = clamp((value - start) / (end - start), 0, 1);
-    return progress * progress * (3 - 2 * progress);
   };
 
   const getFramePath = (frameNumber: number) => {
@@ -204,8 +254,10 @@ onMounted(async () => {
     const localScroll = window.scrollY - sectionTop;
     const progress = clamp(localScroll / scrollDistance, 0, 1);
 
-    targetFrame = progress * (frameCount - 1);
-    revealProgress.value = smoothStep(0.72, 0.9, progress);
+    const animationProgress = clamp(progress / animationEndProgress, 0, 1);
+
+    targetFrame = animationProgress * (frameCount - 1);
+    revealProgress.value = progress;
   };
 
   const animate = () => {
@@ -281,7 +333,7 @@ onUnmounted(() => {
 .home {
   min-height: 100vh;
   overflow-x: hidden;
-  background-color: #080808;
+  background-color: #000;
   color: white;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -290,7 +342,7 @@ onUnmounted(() => {
 
 .home-sequence {
   position: relative;
-  height: 400vh;
+  height: 500vh;
   background-color: black;
 }
 
@@ -318,6 +370,8 @@ onUnmounted(() => {
   grid-template-columns: 1fr 1fr;
   gap: clamp(18px, 3vw, 32px);
   pointer-events: none;
+  transition: opacity 180ms linear, transform 280ms ease;
+  will-change: opacity, transform;
 }
 
 .home-meta.is-complete {
@@ -337,30 +391,39 @@ onUnmounted(() => {
 }
 
 .home-intro {
-  position: relative;
+  position: fixed;
+  inset: 0;
   z-index: 3;
-  margin-top: 0;
-  min-height: auto;
-  background-color: #000;
-  padding: clamp(72px, 12vh, 132px) var(--page-padding) clamp(140px, 18vh, 240px);
+  display: flex;
+  align-items: flex-start;
   overflow: hidden;
+  padding: clamp(140px, 20vh, 220px) var(--page-padding) clamp(180px, 24vh, 280px);
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 380ms ease, transform 380ms ease;
   will-change: opacity, transform;
 }
 
+.home-intro-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.72) 72%,
+    #000 100%
+  );
+  pointer-events: none;
+  will-change: opacity;
+}
+
 .home-intro::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
-  height: clamp(84px, 12vh, 140px);
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.45) 58%,
-    #000 100%
-  );
+  height: clamp(64px, 9vh, 112px);
+  background: transparent;
   pointer-events: none;
 }
 
@@ -373,10 +436,13 @@ onUnmounted(() => {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: clamp(28px, 5vw, 68px);
   min-height: auto;
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: clamp(36px, 8vh, 96px);
 }
 
 .home-intro-title {
@@ -384,14 +450,18 @@ onUnmounted(() => {
   flex-direction: column;
   margin: 0;
   max-width: 17ch;
+  justify-self: start;
+  text-align: left;
   font-size: clamp(26px, 3.8vw, 52px);
   font-weight: 400;
   line-height: 1.08;
+  will-change: opacity, transform;
 }
 
 .home-info-link {
   display: inline-flex;
   width: fit-content;
+  justify-self: end;
   align-items: center;
   min-height: 44px;
   color: inherit;
@@ -400,6 +470,7 @@ onUnmounted(() => {
   line-height: 1;
   text-decoration: none;
   text-underline-offset: 4px;
+  will-change: opacity, transform;
 }
 
 .home-info-link:hover {
@@ -426,20 +497,16 @@ onUnmounted(() => {
   }
 
   .home-intro {
-    min-height: auto;
-    margin-top: 0;
-    background-color: #000;
-    padding-top: 104px;
-    padding-bottom: clamp(120px, 22vh, 190px);
+    padding-top: clamp(150px, 24vh, 240px);
+    padding-bottom: clamp(140px, 24vh, 210px);
     transform: translateY(34px);
   }
 
-  .home-intro::before {
-    height: clamp(96px, 14vh, 156px);
+  .home-intro-cover {
     background: linear-gradient(
       to bottom,
       rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0.5) 62%,
+      rgba(0, 0, 0, 0.78) 76%,
       #000 100%
     );
   }
@@ -447,14 +514,19 @@ onUnmounted(() => {
   .home-intro-content {
     align-items: start;
     min-height: auto;
+    margin-top: auto;
+    margin-bottom: clamp(28px, 10vh, 70px);
   }
 
   .home-intro-title {
     max-width: 15ch;
+    justify-self: start;
+    text-align: left;
     font-size: clamp(25px, 7.4vw, 34px);
   }
 
   .home-info-link {
+    justify-self: end;
     margin-top: 6px;
   }
 }
