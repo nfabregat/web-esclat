@@ -193,7 +193,7 @@ const faqItems = [
   },
   {
     question: "¿DÓNDE SE REALIZA?",
-    answer: "En Les Naus, Valencia.",
+    answer: "En Las Naves, Valencia.\nLas Naves | Centro de innovación social y urbana\nC/ de Joan Verdeguer, 16, Poblados Marítimos, 46024 València, Valencia",
   },
   {
     question: "¿QUÉ TIPO DE MÚSICA HABRÁ?",
@@ -406,7 +406,7 @@ onBeforeUnmount(() => {
         <h2>MÚSICA</h2>
         <img
           class="balance-circle balance-circle-large"
-          src="/assets/CIRCULOS INFO/CIRCULOGRANDE INFO.png"
+          src="/assets/CIRCULOS INFO/CIRCULOGRANDE.png"
           alt=""
           aria-hidden="true"
         />
@@ -417,7 +417,7 @@ onBeforeUnmount(() => {
         <h2>PENSAMIENTO Y CREATIVIDAD</h2>
         <img
           class="balance-circle balance-circle-small"
-          src="/assets/CIRCULOS INFO/CIRCULOPEQUENYO INFO.png"
+          src="/assets/CIRCULOS INFO/CIRCULOPEQUENO.png"
           alt=""
           aria-hidden="true"
         />
@@ -579,9 +579,25 @@ onBeforeUnmount(() => {
             {{ item.question }}
           </button>
 
-          <p v-if="activeFaq === item.question" class="faq-answer">
+          <p
+            v-if="activeFaq === item.question"
+            class="faq-answer"
+            :class="{ 'faq-answer--location': item.question === '¿DÓNDE SE REALIZA?' }"
+          >
             {{ item.answer }}
           </p>
+
+          <div v-if="activeFaq === item.question && item.question === '¿DÓNDE SE REALIZA?'" class="faq-map-wrap">
+            <div class="faq-map-frame" aria-label="Mapa de ubicación">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6160.940507486977!2d-0.34084325956942285!3d39.45870387172783!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd6048f63da49ce1%3A0x37b1bcba9ad9547a!2sLas%20Naves%20%7C%20Centro%20de%20innovaci%C3%B3n%20social%20y%20urbana!5e0!3m2!1ses!2ses!4v1780600748491!5m2!1ses!2ses"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title="Mapa de Las Naves, Valencia"
+              ></iframe>
+            </div>
+          </div>
         </li>
       </ul>
     </section>
@@ -705,14 +721,14 @@ onBeforeUnmount(() => {
 }
 
 .balance-circle-large {
-  width: min(34vw, 360px);
+  width: min(44vw, 450px);
   aspect-ratio: 1;
   justify-self: center;
   margin-right: 3vw;
 }
 
 .balance-circle-small {
-  width: min(20vw, 220px);
+  width: min(27vw, 290px);
   aspect-ratio: 1;
   justify-self: center;
   margin-right: 0;
@@ -1043,6 +1059,34 @@ onBeforeUnmount(() => {
   text-transform: none;
 }
 
+.faq-answer--location {
+  white-space: pre-line;
+}
+
+.faq-map-wrap {
+  max-width: 880px;
+  margin-top: 26px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.faq-map-frame {
+  width: min(100%, 300px);
+  aspect-ratio: 4 / 3;
+  margin: 0;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  background: #050505;
+  overflow: hidden;
+}
+
+.faq-map-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 .rules-section {
   padding: 16vh var(--page-padding) 0;
 }
@@ -1167,12 +1211,12 @@ onBeforeUnmount(() => {
 
   .balance-circle-large,
   .balance-circle-small {
-    width: min(58vw, 240px);
+    width: min(70vw, 300px);
     margin-right: 0;
   }
 
   .balance-circle-small {
-    width: min(40vw, 170px);
+    width: min(52vw, 220px);
   }
 
   .space-section {
@@ -1271,6 +1315,15 @@ onBeforeUnmount(() => {
   .faq-answer {
     font-size: 12px;
     margin-top: 24px;
+  }
+
+  .faq-map-wrap {
+    margin-top: 20px;
+    margin-bottom: 4px;
+  }
+
+  .faq-map-frame {
+    width: min(100%, 240px);
   }
 
   .rules-question {
