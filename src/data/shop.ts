@@ -72,6 +72,22 @@ export const shopProducts: ShopProduct[] = [
     description: "Tote bag ESCLAT para llevar lo esencial con estilo.",
     sizes: ["U"],
   },
+  {
+    id: "vaso-esclat",
+    name: "VASO ESCLAT",
+    price: 3,
+    images: [resolveAsset("Vaso1.png"), resolveAsset("Vaso2.png")],
+    description: "Vaso ESCLAT con dos vistas para mantener la misma experiencia visual del catálogo.",
+    sizes: ["U"],
+  },
+  {
+    id: "pegatinas-esclat",
+    name: "PEGATINAS ESCLAT",
+    price: 2,
+    images: [resolveAsset("Pegatinas1.jpg"), resolveAsset("Pegatinas2.png")],
+    description: "Pegatinas ESCLAT con dos imágenes para mantener el mismo patrón de producto.",
+    sizes: ["U"],
+  },
 ];
 
 export const shopProductMap = Object.fromEntries(
