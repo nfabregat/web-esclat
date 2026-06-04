@@ -417,7 +417,7 @@ onBeforeUnmount(() => {
         <h2>PENSAMIENTO Y CREATIVIDAD</h2>
         <img
           class="balance-circle balance-circle-small"
-          src="/assets/CIRCULOS INFO/CIRCULOPEQUEÑO INFO.png"
+          src="/assets/CIRCULOS INFO/CIRCULOPEQUENYO INFO.png"
           alt=""
           aria-hidden="true"
         />
