@@ -579,25 +579,29 @@ onBeforeUnmount(() => {
             {{ item.question }}
           </button>
 
-          <p
-            v-if="activeFaq === item.question"
-            class="faq-answer"
-            :class="{ 'faq-answer--location': item.question === '¿DÓNDE SE REALIZA?' }"
-          >
+          <template v-if="activeFaq === item.question && item.question === '¿DÓNDE SE REALIZA?'">
+            <div class="faq-location-layout">
+              <p class="faq-answer faq-answer--location">
+                {{ item.answer }}
+              </p>
+
+              <div class="faq-map-wrap">
+                <div class="faq-map-frame" aria-label="Mapa de ubicación">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6160.940507486977!2d-0.34084325956942285!3d39.45870387172783!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd6048f63da49ce1%3A0x37b1bcba9ad9547a!2sLas%20Naves%20%7C%20Centro%20de%20innovaci%C3%B3n%20social%20y%20urbana!5e0!3m2!1ses!2ses!4v1780600748491!5m2!1ses!2ses"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Mapa de Las Naves, Valencia"
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <p v-else-if="activeFaq === item.question" class="faq-answer">
             {{ item.answer }}
           </p>
-
-          <div v-if="activeFaq === item.question && item.question === '¿DÓNDE SE REALIZA?'" class="faq-map-wrap">
-            <div class="faq-map-frame" aria-label="Mapa de ubicación">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6160.940507486977!2d-0.34084325956942285!3d39.45870387172783!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd6048f63da49ce1%3A0x37b1bcba9ad9547a!2sLas%20Naves%20%7C%20Centro%20de%20innovaci%C3%B3n%20social%20y%20urbana!5e0!3m2!1ses!2ses!4v1780600748491!5m2!1ses!2ses"
-                allowfullscreen=""
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-                title="Mapa de Las Naves, Valencia"
-              ></iframe>
-            </div>
-          </div>
         </li>
       </ul>
     </section>
@@ -1063,6 +1067,12 @@ onBeforeUnmount(() => {
   white-space: pre-line;
 }
 
+.faq-location-layout {
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+
 .faq-map-wrap {
   max-width: 880px;
   margin-top: 26px;
@@ -1085,6 +1095,27 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+@media (min-width: 1025px) {
+  .faq-location-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+    gap: 22px;
+  }
+
+  .faq-location-layout .faq-answer {
+    margin-bottom: 0;
+  }
+
+  .faq-location-layout .faq-map-wrap {
+    margin-top: 0;
+    margin-bottom: 0;
+    justify-content: flex-end;
+  }
+
+  .faq-location-layout .faq-map-frame {
+    width: 100%;
+  }
 }
 
 .rules-section {
@@ -1320,10 +1351,13 @@ onBeforeUnmount(() => {
   .faq-map-wrap {
     margin-top: 20px;
     margin-bottom: 4px;
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .faq-map-frame {
-    width: min(100%, 240px);
+    width: min(100%, 360px);
+    aspect-ratio: 16 / 10;
   }
 
   .rules-question {
