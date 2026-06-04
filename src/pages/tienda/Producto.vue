@@ -507,7 +507,8 @@ onUnmounted(() => {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center center;
   opacity: 0.86;
 }
 
@@ -527,7 +528,8 @@ onUnmounted(() => {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center center;
   transition: transform 300ms ease, opacity 220ms ease;
 }
 
@@ -900,7 +902,8 @@ onUnmounted(() => {
 .shop-mini-image {
   width: 88px;
   aspect-ratio: 4 / 5;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center center;
   background: #050505;
 }
 
@@ -940,7 +943,8 @@ onUnmounted(() => {
 .shop-cart-thumb {
   width: 56px;
   aspect-ratio: 4 / 5;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center center;
   background: #050505;
 }
 

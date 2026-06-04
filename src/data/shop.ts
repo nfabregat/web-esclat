@@ -7,14 +7,14 @@ export type ShopProduct = {
   sizes: string[];
 };
 
-const resolveAsset = (fileName: string) => encodeURI(`/MERCH/${fileName}`);
+const resolveAsset = (fileName: string) => encodeURI(`/assets/Merch/${fileName}`);
 
 export const shopProducts: ShopProduct[] = [
   {
     id: "botella",
     name: "BOTELLA ESCLAT",
     price: 18,
-    images: [resolveAsset("BOTELLA DEF.png")],
+    images: [resolveAsset("Botella.png")],
     description: "Botella reutilizable ESCLAT para acompañarte en el día a día.",
     sizes: ["U"],
   },
@@ -22,7 +22,7 @@ export const shopProducts: ShopProduct[] = [
     id: "calcetines-identity",
     name: "CALCETINES ESCLAT IDENTITY",
     price: 12,
-    images: [resolveAsset("CALCETINES DEF1.png")],
+    images: [resolveAsset("Calcetines1.png")],
     description: "Calcetines ESCLAT IDENTITY con acabado cómodo y uso diario.",
     sizes: ["U"],
   },
@@ -30,7 +30,7 @@ export const shopProducts: ShopProduct[] = [
     id: "calcetines-fusion",
     name: "CALCETINES ESCLAT FUSION",
     price: 12,
-    images: [resolveAsset("CALCETINES DEF.png")],
+    images: [resolveAsset("Calcetines2.png")],
     description: "Calcetines ESCLAT FUSION con diseño limpio y versátil.",
     sizes: ["U"],
   },
@@ -39,8 +39,8 @@ export const shopProducts: ShopProduct[] = [
     name: "CAMISETA ESCLAT",
     price: 40,
     images: [
-      resolveAsset("CAMISETA DELANTE DEF.png"),
-      resolveAsset("CAMISETA DETRAS.png"),
+      resolveAsset("Camiseta-front.png"),
+      resolveAsset("Camiseta-back.png"),
     ],
     description: "Camiseta ESCLAT con vistas frontal y trasera.",
     sizes: ["XS", "S", "M", "L"],
@@ -49,7 +49,7 @@ export const shopProducts: ShopProduct[] = [
     id: "gorro",
     name: "GORRO ESCLAT",
     price: 24,
-    images: [resolveAsset("GORRO DEF.png")],
+    images: [resolveAsset("Gorro.png")],
     description: "Gorro ESCLAT con acabado sencillo y cómodo.",
     sizes: ["U"],
   },
@@ -58,8 +58,8 @@ export const shopProducts: ShopProduct[] = [
     name: "TOP ESCLAT",
     price: 28,
     images: [
-      resolveAsset("TOP DEF.png"),
-      resolveAsset("TOP DETRAS DEF.png"),
+      resolveAsset("Top-front.png"),
+      resolveAsset("Top-back.png"),
     ],
     description: "Top ESCLAT con vistas frontal y trasera.",
     sizes: ["XS", "S", "M", "L"],
@@ -68,7 +68,7 @@ export const shopProducts: ShopProduct[] = [
     id: "tote-bag",
     name: "TOTE BAG ESCLAT",
     price: 18,
-    images: [resolveAsset("TOTE DELANTE.png")],
+    images: [resolveAsset("Tote-front.png")],
     description: "Tote bag ESCLAT para llevar lo esencial con estilo.",
     sizes: ["U"],
   },

@@ -499,6 +499,7 @@ onUnmounted(() => {
   height: calc(100% - 16px);
   display: block;
   object-fit: contain;
+  object-position: center center;
   transition: opacity 280ms ease;
 }
 
@@ -769,7 +770,8 @@ onUnmounted(() => {
 .shop-mini-image {
   width: 82px;
   aspect-ratio: 4 / 5;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center center;
   background: #050505;
 }
 
@@ -809,7 +811,8 @@ onUnmounted(() => {
 .shop-cart-thumb {
   width: 56px;
   aspect-ratio: 4 / 5;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center center;
   background: #050505;
 }
 
@@ -937,7 +940,8 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   min-height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center center;
 }
 
 .shop-modal-copy {
