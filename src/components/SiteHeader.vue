@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
 const router = useRouter();
+const isInfoPage = computed(() => route.name === "info");
 
 const toggleMenu = () => {
   if (route.name === "menu") {
@@ -15,7 +17,7 @@ const toggleMenu = () => {
 </script>
 
 <template>
-  <header class="site-header">
+  <header class="site-header" :class="{ 'site-header--info': isInfoPage }">
     <RouterLink class="site-logo font-monument" to="/">ESCLAT</RouterLink>
     <button class="site-menu font-monument" type="button" @click="toggleMenu">
       MENÚ
@@ -94,6 +96,12 @@ const toggleMenu = () => {
 
   .site-menu {
     font-size: 16px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .site-header--info::before {
+    content: none;
   }
 }
 </style>

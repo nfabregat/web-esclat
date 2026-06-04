@@ -738,6 +738,16 @@ onBeforeUnmount(() => {
   margin-right: 0;
 }
 
+@media (min-width: 1025px) {
+  .balance-circle-large {
+    width: min(49vw, 500px);
+  }
+
+  .balance-circle-small {
+    width: min(30vw, 320px);
+  }
+}
+
 .space-section {
   padding: 24vh var(--page-padding) 0;
 }
