@@ -334,7 +334,7 @@ const programDays = [
 
 <template>
   <main class="program-page flex flex-col" @click="clearFilter">
-    <section class="program-hero hidden md:block">
+    <section class="program-hero">
       <h1 class="program-title font-monument">PROGRAMA</h1>
     </section>
 
@@ -564,10 +564,6 @@ const programDays = [
     letter-spacing: 0.045em;
   }
 
-  .program-hero {
-    display: none;
-  }
-
   .program-day {
     padding: 8px 18px 72px;
   }
@@ -703,11 +699,16 @@ const programDays = [
   }
 
   .program-hero {
-    display: none;
+    min-height: 88vh;
   }
 
   .program-day {
     padding: 8px 18px 72px;
+  }
+
+  .program-title {
+    bottom: 32px;
+    font-size: clamp(36px, 12vw, 54px);
   }
 
   .program-filter {
@@ -762,8 +763,8 @@ const programDays = [
   .program-space-name::after {
     content: "";
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 12px;
+    right: 12px;
     bottom: -8px;
     height: 1px;
     background-color: #8a8a8a;
@@ -831,4 +832,3 @@ const programDays = [
 }
 
 </style>
-
