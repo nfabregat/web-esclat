@@ -173,11 +173,11 @@ onUnmounted(() => {
   }
 
   .artists-hero {
-    min-height: 80vh;
+    min-height: 88vh;
   }
 
   .artists-title {
-    bottom: 24px;
+    bottom: 32px;
     left: var(--page-padding);
     font-size: clamp(46px, 6.6vw, 90px);
   }
@@ -204,7 +204,7 @@ onUnmounted(() => {
 
   .artists-carousel {
     min-height: auto;
-    padding: 12vh var(--page-padding) 48px;
+    padding: 14vh var(--page-padding) 48px;
   }
 
   .artists-stage:focus-visible .artists-track {
