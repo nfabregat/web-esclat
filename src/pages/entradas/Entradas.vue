@@ -461,10 +461,10 @@ onUnmounted(() => {
           ×
         </button>
         <h2 id="tickets-modal-title" class="tickets-modal-title font-monument">
-          Entrada confirmada
+          ENTRADA CONFIRMADA
         </h2>
         <p id="tickets-modal-description" class="tickets-modal-text">
-          <span>Gracias por formar parte de ESCLAT.</span>
+          <span>GRACIAS POR FORMAR PARTE DE ESCLAT.</span>
           <span>Hemos registrado tu correo y te enviaremos la entrada por email en un plazo de 24 a 48 horas.</span>
         </p>
         <p class="tickets-modal-note">

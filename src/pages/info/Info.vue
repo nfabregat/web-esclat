@@ -47,7 +47,7 @@ const mutantMap = reactive<MapCard>({
   svg: "",
 });
 
-const activeFaq = ref<string | null>(null);
+const activeFaq = ref<string | null>("¿DÓNDE SE REALIZA?");
 const activeRule = ref<string | null>(null);
 const activeSpaceId = ref<string | null>(null);
 const activeMobileMap = ref<MobileMapId>("mutant");
