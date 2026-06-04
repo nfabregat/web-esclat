@@ -1215,6 +1215,8 @@ onUnmounted(() => {
 @media (min-width: 761px) and (max-width: 1024px) {
   .product-shell {
     padding: 7vh var(--page-padding) 11vh;
+    --tablet-stack-gap: 7px;
+    gap: var(--tablet-stack-gap);
   }
 
   .product-info {
@@ -1231,9 +1233,13 @@ onUnmounted(() => {
     order: 1;
     gap: 12px;
     align-items: flex-start;
+    justify-content: center;
     width: min(100%, 1500px);
+    margin-inline: auto;
+    --gallery-horizontal-offset: 0px;
     --main-image-top-offset: -55px;
     --thumbnails-top-offset: 20px;
+    transform: translateX(var(--gallery-horizontal-offset));
   }
 
   .product-thumbnails {

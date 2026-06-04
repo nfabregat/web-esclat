@@ -4,35 +4,25 @@ import { Check } from "lucide-vue-next";
 
 <template>
   <section class="checkout-success">
-    <div class="checkout-success-box">
-      <Check :size="72" stroke-width="1.6" />
-      <h2 class="checkout-success-title font-monument">PAGO REALIZADO CON ÉXITO</h2>
-      <p class="checkout-success-copy">¡GRACIAS POR SU COMPRA!</p>
-    </div>
+    <Check :size="72" stroke-width="1.6" />
+    <h2 class="checkout-success-title">PAGO REALIZADO CON ÉXITO</h2>
+    <p class="checkout-success-copy">¡GRACIAS POR SU COMPRA!</p>
   </section>
 </template>
 
 <style scoped>
 .checkout-success {
   display: grid;
-  justify-content: flex-start;
-}
-
-.checkout-success-box {
-  width: 560px;
-  min-height: 560px;
-  display: grid;
-  place-items: center;
-  gap: 26px;
-  border: 1px solid #333;
-  background: #000;
+  justify-items: center;
+  gap: 22px;
   color: #fff;
-  padding: 56px 44px;
+  padding: 0;
   text-align: center;
 }
 
 .checkout-success-title {
   margin: 0;
+  font-family: "Roboto Mono", monospace;
   font-size: 18px;
   font-weight: 400;
   letter-spacing: 0.14em;

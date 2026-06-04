@@ -72,14 +72,7 @@ const cartEntries = computed(() =>
 );
 
 const updateField = (field: keyof CheckoutValues, value: string | boolean) => {
-  console.log("UPDATE FIELD", field, value);
-
-  form.value = {
-    ...form.value,
-    [field]: value,
-  } as CheckoutValues;
-
-  console.log("FORM STATE", { ...form.value });
+  Object.assign(form.value, { [field]: value });
 };
 
 const closeSearch = () => {
@@ -138,9 +131,11 @@ const goToCheckout = () => {
   }
 };
 
-const submitCheckout = async () => {
-  console.log("PAY BUTTON CLICKED");
+const goToShop = () => {
+  router.push({ name: "tienda" });
+};
 
+const submitCheckout = async () => {
   paymentMessage.value = "";
   paymentSuccess.value = true;
 
@@ -159,11 +154,11 @@ const handleEscape = (event: KeyboardEvent) => {
 };
 
 watch(
-  [isSearchOpen, isCartOpen],
-  async ([searchOpen, cartOpen]) => {
+  [isSearchOpen, isCartOpen, paymentSuccess],
+  async ([searchOpen, cartOpen, paid]) => {
     if (typeof document === "undefined") return;
 
-    document.body.style.overflow = Boolean(searchOpen || cartOpen) ? "hidden" : "";
+    document.body.style.overflow = Boolean(searchOpen || cartOpen || paid) ? "hidden" : "";
 
     if (searchOpen) {
       await nextTick();
@@ -180,13 +175,6 @@ watch(
       closeSearch();
       closeCart();
     }
-  },
-);
-
-watch(
-  () => form.value.cardNumber,
-  (value) => {
-    console.log("CARD NUMBER CHANGED:", value);
   },
 );
 
@@ -249,7 +237,11 @@ onUnmounted(() => {
       <p v-if="paymentMessage" class="checkout-notice">{{ paymentMessage }}</p>
 
       <div v-if="isPaid" ref="successRef" class="checkout-success-anchor">
-        <PaymentSuccess v-if="isPaid" />
+        <PaymentSuccess />
+
+        <button class="checkout-submit checkout-submit--success" type="button" @click="goToShop">
+          HACER OTRO PEDIDO
+        </button>
       </div>
     </section>
 
@@ -538,10 +530,31 @@ onUnmounted(() => {
 }
 
 .checkout-success-anchor {
-  margin-top: 80px;
+  margin-top: 150px;
   display: grid;
-  justify-content: flex-start;
+  justify-items: center;
+  gap: 28px;
   width: min(100%, 620px);
+}
+
+.checkout-submit--success {
+  width: 100%;
+  font-family: "Roboto Mono", monospace;
+  border: 1px solid rgb(255 255 255 / 0.48);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  padding: 14px 18px;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+  margin-top: clamp(180px, 24vh, 280px);
+}
+
+.checkout-submit--success:hover {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
 }
 
 .checkout-notice {
@@ -945,8 +958,9 @@ onUnmounted(() => {
 
 @media (min-width: 761px) and (max-width: 1024px) {
   .checkout-shell {
-    padding-top: 6vh;
+    padding-top: 0;
     padding-bottom: 12vh;
+    margin-top: -20vh;
   }
 
   .checkout-toolbar {

@@ -105,7 +105,7 @@ onUnmounted(() => {
         class="artists-controls absolute left-4 right-4 top-6 z-10 flex justify-end sm:left-6 sm:right-6 md:right-10 lg:right-11"
       >
         <RouterLink
-          class="artists-view-all font-monument inline-flex items-center gap-2 rounded-full border border-white/20 bg-white px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-black no-underline shadow-[0_10px_30px_rgba(255,255,255,0.12)] transition duration-200 hover:-translate-y-0.5 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-4 md:text-xs md:px-5 md:py-2.5"
+          class="artists-view-all font-monument inline-flex items-center gap-2 border px-4 py-2 text-[11px] uppercase no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-4 md:text-xs md:px-5 md:py-2.5"
           to="/artistas/galeria"
         >
           <span>VER TODOS</span>
@@ -165,6 +165,21 @@ onUnmounted(() => {
 .artist-image {
   background-color: transparent;
   aspect-ratio: 1 / 1;
+}
+
+.artists-view-all {
+  border-radius: 0;
+  border-color: rgb(255 255 255 / 0.48);
+  background: transparent;
+  color: #fff;
+  letter-spacing: 0.18em;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.artists-view-all:hover {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
 }
 
 @media (min-width: 1025px) {
