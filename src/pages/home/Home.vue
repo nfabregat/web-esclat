@@ -9,7 +9,7 @@
 
       <div
         class="home-meta font-monument"
-        :class="{ 'is-transformed': revealProgress > 0.18, 'is-complete': isRevealComplete }"
+        :class="{ 'is-complete': isRevealComplete }"
       >
         <p class="home-date">
           23.10—<br />
@@ -47,7 +47,7 @@ const scrollContainer = ref<HTMLElement | null>(null);
 const animationCanvas = ref<HTMLCanvasElement | null>(null);
 const revealProgress = ref(0);
 
-const isRevealComplete = computed(() => revealProgress.value >= 0.995);
+const isRevealComplete = computed(() => revealProgress.value >= 0.95);
 const sequenceCanvasStyles = computed(() => {
   return {
     "--sequence-exit-progress": revealProgress.value.toFixed(4),
@@ -68,8 +68,6 @@ onMounted(async () => {
     return;
   }
 
-  console.log("¡Canvas inicializado con éxito!");
-
   const frameStart = 121;
   const frameEnd = 146;
   const frameCount = frameEnd - frameStart + 1;
@@ -83,6 +81,7 @@ onMounted(async () => {
   let targetFrame = 0;
   let displayedFrame = 0;
   let animationFrameId = 0;
+  let scrollRafId = 0;
 
   const clamp = (value: number, min: number, max: number) => {
     return Math.min(Math.max(value, min), max);
@@ -191,6 +190,12 @@ onMounted(async () => {
     }
   };
 
+  const startAnimation = () => {
+    if (!animationFrameId) {
+      animationFrameId = requestAnimationFrame(animate);
+    }
+  };
+
   const updateFrameFromWindowScroll = () => {
     const sectionTop = container.offsetTop;
     const documentHeight = document.documentElement.scrollHeight;
@@ -199,10 +204,11 @@ onMounted(async () => {
     const progress = clamp(localScroll / scrollDistance, 0, 1);
 
     targetFrame = progress * (frameCount - 1);
-    revealProgress.value = smoothStep(0.82, 0.98, progress);
+    revealProgress.value = smoothStep(0.72, 0.9, progress);
   };
 
   const animate = () => {
+    animationFrameId = 0;
     const distance = targetFrame - displayedFrame;
 
     displayedFrame += distance * lerpFactor;
@@ -212,21 +218,39 @@ onMounted(async () => {
     }
 
     renderFrame();
-    animationFrameId = requestAnimationFrame(animate);
+
+    if (Math.abs(targetFrame - displayedFrame) >= 0.001) {
+      animationFrameId = requestAnimationFrame(animate);
+    }
+  };
+
+  const scheduleScrollUpdate = () => {
+    if (scrollRafId) return;
+
+    scrollRafId = requestAnimationFrame(() => {
+      scrollRafId = 0;
+      updateFrameFromWindowScroll();
+      startAnimation();
+    });
   };
 
   const handleResize = () => {
     setCanvasSize();
     updateFrameFromWindowScroll();
     renderFrame();
+    startAnimation();
   };
 
   cleanupAnimation = () => {
-    window.removeEventListener("scroll", updateFrameFromWindowScroll);
+    window.removeEventListener("scroll", scheduleScrollUpdate);
     window.removeEventListener("resize", handleResize);
 
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
+    }
+
+    if (scrollRafId) {
+      cancelAnimationFrame(scrollRafId);
     }
 
     images.forEach((image) => {
@@ -242,9 +266,8 @@ onMounted(async () => {
 
   updateFrameFromWindowScroll();
   renderFrame();
-  animationFrameId = requestAnimationFrame(animate);
 
-  window.addEventListener("scroll", updateFrameFromWindowScroll, { passive: true });
+  window.addEventListener("scroll", scheduleScrollUpdate, { passive: true });
   window.addEventListener("resize", handleResize);
 });
 
@@ -280,11 +303,8 @@ onUnmounted(() => {
   height: 100vh;
   background-color: black;
   opacity: calc(1 - var(--sequence-exit-progress));
-  filter: blur(calc(var(--sequence-exit-progress) * 8px));
-  transform: scale(calc(1 + (var(--sequence-exit-progress) * 0.015)));
-  transform-origin: 50% 42%;
   pointer-events: none;
-  will-change: opacity, filter, transform;
+  will-change: opacity;
 }
 
 .home-meta {
@@ -297,15 +317,6 @@ onUnmounted(() => {
   grid-template-columns: 1fr 1fr;
   gap: clamp(18px, 3vw, 32px);
   pointer-events: none;
-  transform-origin: center;
-  transition:
-    filter 520ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.home-meta.is-transformed {
-  filter: blur(18px);
-  transform: scale(0.88);
 }
 
 .home-meta.is-complete {
@@ -327,9 +338,10 @@ onUnmounted(() => {
 .home-intro {
   position: relative;
   z-index: 3;
-  margin-top: -46vh;
+  margin-top: 0;
   min-height: auto;
-  padding: clamp(18px, 5vh, 56px) var(--page-padding) clamp(0px, 1vh, 12px);
+  background-color: #000;
+  padding: clamp(40px, 8vh, 96px) var(--page-padding) clamp(140px, 18vh, 240px);
 }
 
 .home-intro-content {
@@ -390,9 +402,10 @@ onUnmounted(() => {
 
   .home-intro {
     min-height: auto;
-    margin-top: -44vh;
-    padding-top: 46px;
-    padding-bottom: 20px;
+    margin-top: 0;
+    background-color: #000;
+    padding-top: 58px;
+    padding-bottom: clamp(120px, 22vh, 190px);
   }
 
   .home-intro-content {
