@@ -91,7 +91,7 @@ onUnmounted(() => {
   <main class="artists-page min-h-[200vh] bg-black text-white">
     <section class="artists-hero relative flex min-h-screen items-end">
       <h1
-        class="artists-title font-monument absolute bottom-8 left-8 text-[clamp(40px,6vw,64px)] font-normal leading-none md:bottom-10 md:left-10 lg:bottom-8 lg:left-8"
+        class="artists-title font-monument absolute bottom-5 left-8 text-[clamp(40px,6vw,64px)] font-normal leading-none md:bottom-5 md:left-10 lg:bottom-5 lg:left-8"
       >
         ARTISTAS
       </h1>
@@ -158,6 +158,10 @@ onUnmounted(() => {
   outline-offset: 6px;
 }
 
+.artists-hero {
+  min-height: 88vh;
+}
+
 .artists-slide {
   align-items: start;
 }
@@ -187,12 +191,8 @@ onUnmounted(() => {
     --page-padding: max(24px, 3vw);
   }
 
-  .artists-hero {
-    min-height: 88vh;
-  }
-
   .artists-title {
-    bottom: 32px;
+    bottom: 20px;
     left: var(--page-padding);
     font-size: clamp(46px, 6.6vw, 90px);
   }
@@ -207,12 +207,8 @@ onUnmounted(() => {
     --page-padding: max(24px, 3vw);
   }
 
-  .artists-hero {
-    min-height: 88vh;
-  }
-
   .artists-title {
-    bottom: 32px;
+    bottom: 20px;
     left: var(--page-padding);
     font-size: clamp(46px, 6.6vw, 90px);
   }
