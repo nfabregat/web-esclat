@@ -3,6 +3,7 @@ import { nextTick, onMounted, onUnmounted, ref } from "vue";
 
 const email = ref("");
 const isSent = ref(false);
+const showConfirmation = ref(false);
 const animationCanvas = ref<HTMLCanvasElement | null>(null);
 const animationStage = ref<HTMLElement | null>(null);
 
@@ -52,6 +53,17 @@ const sendEmail = () => {
 
   email.value = "";
   isSent.value = true;
+  showConfirmation.value = true;
+};
+
+const closeConfirmation = () => {
+  showConfirmation.value = false;
+};
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === "Escape" && showConfirmation.value) {
+    closeConfirmation();
+  }
 };
 
 const getCanvasContext = () => {
@@ -363,6 +375,7 @@ onMounted(async () => {
   await nextTick();
   void startAnimation();
 
+  window.addEventListener("keydown", handleKeydown);
   window.addEventListener("resize", resizeCanvas, { passive: true });
   window.addEventListener("orientationchange", resizeCanvas, { passive: true });
 
@@ -396,6 +409,7 @@ onMounted(async () => {
 onUnmounted(() => {
   isComponentMounted = false;
   stopAnimation();
+  window.removeEventListener("keydown", handleKeydown);
   window.removeEventListener("resize", resizeCanvas);
   window.removeEventListener("orientationchange", resizeCanvas);
 });
@@ -431,6 +445,32 @@ onUnmounted(() => {
 
     <div ref="animationStage" class="tickets-animation" aria-hidden="true">
       <canvas ref="animationCanvas" class="tickets-canvas"></canvas>
+    </div>
+
+    <div
+      v-if="showConfirmation"
+      class="tickets-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tickets-modal-title"
+      aria-describedby="tickets-modal-description"
+      @click.self="closeConfirmation"
+    >
+      <div class="tickets-modal">
+        <button class="tickets-modal-close" type="button" @click="closeConfirmation" aria-label="Cerrar mensaje">
+          ×
+        </button>
+        <h2 id="tickets-modal-title" class="tickets-modal-title font-monument">
+          Entrada confirmada
+        </h2>
+        <p id="tickets-modal-description" class="tickets-modal-text">
+          <span>Gracias por formar parte de ESCLAT.</span>
+          <span>Hemos registrado tu correo y te enviaremos la entrada por email en un plazo de 24 a 48 horas.</span>
+        </p>
+        <p class="tickets-modal-note">
+          Revisa tu bandeja de entrada y promociones para no perderla.
+        </p>
+      </div>
     </div>
   </section>
 </template>
@@ -502,6 +542,95 @@ onUnmounted(() => {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.tickets-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 62%);
+  backdrop-filter: blur(10px);
+}
+
+.tickets-modal {
+  position: relative;
+  width: min(900px, 100%);
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  border: 1px solid rgb(255 255 255 / 16%);
+  background: #000;
+  box-shadow:
+    0 18px 80px rgb(0 0 0 / 55%),
+    0 0 0 1px rgb(255 255 255 / 4%) inset;
+  padding: 48px 34px 40px;
+  color: white;
+}
+
+.tickets-modal-kicker {
+  margin: 0 0 10px;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 60%);
+}
+
+.tickets-modal-title {
+  margin: 0 0 14px;
+  max-width: 13ch;
+  font-size: clamp(24px, 4vw, 36px);
+  line-height: 1.08;
+  font-weight: 400;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.tickets-modal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: flex-start;
+  margin: 0 0 18px;
+  max-width: none;
+  font-size: 13px;
+  line-height: 1.85;
+  color: rgb(255 255 255 / 82%);
+  text-align: left;
+}
+
+.tickets-modal-text span {
+  display: block;
+}
+
+.tickets-modal-note {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 55%);
+  text-align: left;
+}
+
+.tickets-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  color: rgb(255 255 255 / 72%);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  padding: 4px;
+}
+
+.tickets-modal-close:hover {
+  color: white;
 }
 
 .tickets-input {
@@ -613,6 +742,20 @@ onUnmounted(() => {
     height: clamp(220px, 31svh, 300px);
     min-height: clamp(220px, 31svh, 300px);
     margin-top: -34px;
+  }
+
+  .tickets-modal {
+    min-height: 260px;
+    padding: 30px 20px 24px;
+  }
+
+  .tickets-modal-text {
+    font-size: 12px;
+    max-width: none;
+  }
+
+  .tickets-modal-title {
+    max-width: none;
   }
 }
 </style>
