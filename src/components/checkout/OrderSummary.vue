@@ -87,4 +87,30 @@ defineProps<{
   grid-area: size;
   color: #fff;
 }
+
+@media (min-width: 1025px) {
+  .checkout-summary {
+    gap: 24px;
+  }
+
+  .checkout-summary-row {
+    grid-template-columns: 98px minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .checkout-summary-image {
+    width: 98px;
+  }
+
+  .checkout-summary-copy {
+    column-gap: 34px;
+    row-gap: 4px;
+  }
+
+  .checkout-summary-name,
+  .checkout-summary-price,
+  .checkout-summary-size {
+    font-size: 13px;
+  }
+}
 </style>

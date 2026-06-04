@@ -177,4 +177,33 @@ const updateCvc = (event: Event) => {
 .checkout-error--row {
   margin-top: -2px;
 }
+
+@media (min-width: 1025px) {
+  .checkout-section {
+    gap: 38px;
+  }
+
+  .checkout-section-title {
+    font-size: 16px;
+  }
+
+  .checkout-payment-grid {
+    gap: 20px;
+  }
+
+  .checkout-payment-full input,
+  .checkout-payment-half input {
+    height: 58px;
+    font-size: 14px;
+    padding-inline: 17px;
+  }
+
+  .checkout-payment-row {
+    gap: 18px;
+  }
+
+  .checkout-error {
+    font-size: 12px;
+  }
+}
 </style>

@@ -208,4 +208,36 @@ const handleSubmit = () => {
   cursor: default;
   opacity: 0.9;
 }
+
+@media (min-width: 1025px) {
+  .checkout-form {
+    gap: 84px;
+  }
+
+  .checkout-section {
+    gap: 38px;
+  }
+
+  .checkout-section-title {
+    font-size: 16px;
+  }
+
+  .checkout-field-group {
+    gap: 12px;
+  }
+
+  .checkout-field-grid {
+    gap: 22px;
+  }
+
+  .checkout-field input {
+    font-size: 14px;
+    padding-bottom: 13px;
+  }
+
+  .checkout-submit {
+    font-size: 14px;
+    padding: 17px 22px;
+  }
+}
 </style>

@@ -424,6 +424,7 @@ onUnmounted(() => {
   color: #fff;
   --page-padding: max(24px, 3vw);
   --header-offset: 92px;
+  --checkout-content-width: min(100%, 620px);
 }
 
 .checkout-shell {
@@ -437,14 +438,13 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  width: var(--checkout-content-width);
   min-height: 28px;
   margin-bottom: 40px;
 }
 
 .checkout-toolbar-actions {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -487,7 +487,7 @@ onUnmounted(() => {
 
 .checkout-summary-wrap {
   display: grid;
-  width: min(100%, 620px);
+  width: var(--checkout-content-width);
   gap: 22px;
 }
 
@@ -526,7 +526,7 @@ onUnmounted(() => {
 }
 
 .checkout-form {
-  width: min(100%, 620px);
+  width: var(--checkout-content-width);
 }
 
 .checkout-success-anchor {
@@ -534,7 +534,7 @@ onUnmounted(() => {
   display: grid;
   justify-items: center;
   gap: 28px;
-  width: min(100%, 620px);
+  width: var(--checkout-content-width);
 }
 
 .checkout-submit--success {
@@ -559,12 +559,52 @@ onUnmounted(() => {
 
 .checkout-notice {
   margin: 16px 0 0;
-  width: min(100%, 620px);
+  width: var(--checkout-content-width);
   color: rgb(255 255 255 / 0.72);
   font-family: "Roboto Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+@media (min-width: 1025px) {
+  .checkout-page {
+    --checkout-content-width: min(100%, 720px);
+  }
+
+  .checkout-toolbar {
+    margin-bottom: 46px;
+  }
+
+  .checkout-summary-wrap {
+    gap: 26px;
+  }
+
+  .checkout-total {
+    gap: 18px;
+    padding-top: 22px;
+  }
+
+  .checkout-total-label {
+    font-size: 14px;
+  }
+
+  .checkout-total-value {
+    font-size: clamp(19px, 1.8vw, 24px);
+  }
+
+  .checkout-divider {
+    margin: 58px 0 48px;
+  }
+
+  .checkout-submit--success {
+    font-size: 14px;
+    padding: 16px 22px;
+  }
+
+  .checkout-notice {
+    font-size: 12px;
+  }
 }
 
 .shop-search-backdrop,
@@ -939,12 +979,17 @@ onUnmounted(() => {
 }
 
 @media (max-width: 760px) {
+  .checkout-page {
+    --checkout-content-width: min(100%, 620px);
+  }
+
   .checkout-shell {
     padding-top: 4vh;
     padding-bottom: 10vh;
   }
 
   .checkout-toolbar {
+    width: 100%;
     justify-content: space-between;
   }
 
@@ -957,6 +1002,10 @@ onUnmounted(() => {
 }
 
 @media (min-width: 761px) and (max-width: 1024px) {
+  .checkout-page {
+    --checkout-content-width: min(100%, 620px);
+  }
+
   .checkout-shell {
     padding-top: 0;
     padding-bottom: 12vh;
@@ -964,6 +1013,7 @@ onUnmounted(() => {
   }
 
   .checkout-toolbar {
+    width: 100%;
     justify-content: space-between;
   }
 
