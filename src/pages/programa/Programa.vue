@@ -17,6 +17,7 @@ type ProgramDisplayItem = {
 
 const programFilters: ProgramFilter[] = ["EVENTOS", "ARTISTAS", "TALLERES"];
 const activeFilters = ref<Record<string, ProgramFilter | null>>({});
+const activeTimeFilters = ref<Record<string, string | null>>({});
 const isCompactLayout = ref(false);
 
 const eventItem = (text: string): ProgramItem => ({ text, category: "EVENTOS" });
@@ -24,11 +25,16 @@ const artistItem = (text: string): ProgramItem => ({ text, category: "ARTISTAS" 
 const workshopItem = (text: string): ProgramItem => ({ text, category: "TALLERES" });
 
 const setFilter = (date: string, filter: ProgramFilter) => {
-  activeFilters.value[date] = filter;
+  activeFilters.value[date] = activeFilters.value[date] === filter ? null : filter;
+};
+
+const setTimeFilter = (date: string, time: string) => {
+  activeTimeFilters.value[date] = activeTimeFilters.value[date] === time ? null : time;
 };
 
 const clearFilter = () => {
   activeFilters.value = {};
+  activeTimeFilters.value = {};
 };
 
 const getItemText = (item: ProgramItem) => {
@@ -41,12 +47,22 @@ const getItemCategory = (item: ProgramItem) => {
 
 const isItemHidden = (date: string, item: ProgramItem) => {
   const activeFilter = activeFilters.value[date];
+  const activeTimeFilter = activeTimeFilters.value[date];
+  const details = getProgramDetails(item);
 
-  return (
+  if (
     activeFilter !== null &&
     activeFilter !== undefined &&
     (typeof item === "string" || item.category !== activeFilter)
-  );
+  ) {
+    return true;
+  }
+
+  if (activeTimeFilter && !details.time.includes(activeTimeFilter)) {
+    return true;
+  }
+
+  return false;
 };
 
 const splitProgramText = (text: string) => {
@@ -67,18 +83,29 @@ const splitProgramText = (text: string) => {
 
 const getProgramDetails = (item: ProgramItem) => splitProgramText(getItemText(item));
 
-const getProgramDisplayItems = (items: ProgramItem[]) => {
+const getProgramDisplayItems = (date: string, items: ProgramItem[]) => {
+  const activeTimeFilter = activeTimeFilters.value[date];
+
   if (!isCompactLayout.value) {
     return items.map<ProgramDisplayItem>((item, index) => {
       const details = getProgramDetails(item);
 
+      if (isItemHidden(date, item)) {
+        return {
+          key: `${getItemText(item)}-${index}`,
+          title: "",
+          times: [],
+          item,
+        };
+      }
+
       return {
         key: `${getItemText(item)}-${index}`,
         title: details.title,
-        times: details.time ? [details.time] : [],
+        times: details.time && (!activeTimeFilter || details.time === activeTimeFilter) ? [details.time] : [],
         item,
       };
-    });
+    }).filter((displayItem) => displayItem.title !== "");
   }
 
   const groupedItems: ProgramDisplayItem[] = [];
@@ -88,12 +115,16 @@ const getProgramDisplayItems = (items: ProgramItem[]) => {
     const itemCategory = getItemCategory(item);
     const previousItem = groupedItems[groupedItems.length - 1];
 
+    if (isItemHidden(date, item)) {
+      continue;
+    }
+
     if (
       previousItem &&
       previousItem.title === details.title &&
       getItemCategory(previousItem.item) === itemCategory
     ) {
-      if (details.time) {
+      if (details.time && (!activeTimeFilter || details.time === activeTimeFilter)) {
         previousItem.times.push(details.time);
       }
       continue;
@@ -102,7 +133,7 @@ const getProgramDisplayItems = (items: ProgramItem[]) => {
     groupedItems.push({
       key: `${details.title}-${groupedItems.length}`,
       title: details.title,
-      times: details.time ? [details.time] : [],
+      times: details.time && (!activeTimeFilter || details.time === activeTimeFilter) ? [details.time] : [],
       item,
     });
   }
@@ -334,16 +365,23 @@ const programDays = [
 
           <div class="program-events">
             <p
-              v-for="displayItem in getProgramDisplayItems(column.items)"
+              v-for="displayItem in getProgramDisplayItems(day.date, column.items)"
               :key="displayItem.key"
               class="program-event"
-              :class="{ 'is-hidden': isItemHidden(day.date, displayItem.item), 'program-event--multiple-times': displayItem.times.length > 1 }"
+              :class="{ 'program-event--multiple-times': displayItem.times.length > 1 }"
             >
               <span class="program-event-time">
                 <template v-if="displayItem.times.length > 0">
-                  <span v-for="time in displayItem.times" :key="time" class="program-event-time-line">
+                  <button
+                    v-for="time in displayItem.times"
+                    :key="time"
+                    class="program-event-time-line program-event-time-button"
+                    type="button"
+                    :class="{ 'is-active': activeTimeFilters[day.date] === time }"
+                    @click.stop="setTimeFilter(day.date, time)"
+                  >
                     {{ time }}
-                  </span>
+                  </button>
                 </template>
                 <span v-else class="program-event-time-line">&nbsp;</span>
               </span>
@@ -492,6 +530,33 @@ const programDays = [
   font-size: 12px;
   letter-spacing: 0.15em;
   color: rgba(255, 255, 255, 0.75);
+}
+
+.program-event-time-button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  transition: opacity 160ms ease, transform 160ms ease, color 160ms ease;
+}
+
+.program-event-time-button:hover,
+.program-event-time-button.is-active {
+  color: white;
+  opacity: 1;
+}
+
+.program-event-time-button:hover {
+  transform: translateX(1px);
+}
+
+.program-event.is-hidden {
+  display: none;
 }
 
 @media (max-width: 1024px) and (min-width: 761px) {
