@@ -16,40 +16,61 @@ const showFooter = computed(() => route.name !== 'menu');
       <RouterView />
     </main>
 
-    <footer v-if="showFooter" class="site-footer mt-0 border-t border-white/10 bg-black pb-8 pt-12 text-white/80 md:pt-16">
+    <footer v-if="showFooter" class="site-footer mt-0 bg-black pb-8 pt-12 text-white/80 md:pt-16">
       <div class="footer-inner flex flex-col gap-8">
-        <div class="footer-brands grid gap-8 lg:grid-cols-[1.2fr_1fr]">
-          <div>
-            <p class="footer-label mb-3 uppercase text-white/50">Colabora</p>
-            <div class="brand-row flex flex-wrap items-center gap-6">
-              <RouterLink to="/" class="brand-text font-monument text-[17px] font-black tracking-normal">ESCLAT</RouterLink>
-              <div class="collab-logos flex items-center">
-                <a href="https://www.valencia.es/val/inici" target="_blank" rel="noreferrer">
-                  <img src="/assets/logos/Ayuntament de Valencia.png" alt="Ajuntament de València" class="h-8 max-w-[132px] object-contain" />
+        <div class="footer-top flex flex-col gap-8">
+          <div class="footer-brands grid gap-8 lg:grid-cols-[1.2fr_1fr]">
+            <div>
+              <p class="footer-label mb-3 uppercase text-white/50">Organiza</p>
+              <div class="brand-row flex flex-wrap items-center gap-6">
+                <RouterLink to="/" class="brand-text font-monument text-[17px] font-black tracking-normal">ESCLAT</RouterLink>
+                <div class="collab-logos flex items-center">
+                  <a href="https://www.valencia.es/val/inici" target="_blank" rel="noreferrer">
+                    <img src="/assets/logos/Ayuntament de Valencia.png" alt="Ajuntament de València" class="h-8 max-w-[132px] object-contain" />
+                  </a>
+                  <a href="https://cultural.valencia.es/espais/las-naves-centre-dinnovacio/" target="_blank" rel="noreferrer">
+                    <img src="/assets/logos/Las Naves.png" alt="Las Naves" class="h-8 max-w-[132px] object-contain" />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <p class="footer-label mb-3 uppercase text-white/50">Colabora</p>
+              <div class="brand-row flex flex-wrap items-center gap-6">
+                <a href="http://dival.es/va" target="_blank" rel="noreferrer">
+                  <img src="/assets/logos/Diputacio de Valencia.png" alt="Diputació de València" class="footer-logo-diputacio h-8 max-w-[132px] object-contain" />
                 </a>
-                <a href="https://cultural.valencia.es/espais/las-naves-centre-dinnovacio/" target="_blank" rel="noreferrer">
-                  <img src="/assets/logos/Las Naves.png" alt="Las Naves" class="h-8 max-w-[132px] object-contain" />
+                <a href="https://ivaj.gva.es/va/" target="_blank" rel="noreferrer">
+                  <img src="/assets/logos/IVAJ.png" alt="IVAJ" class="footer-logo-ivaj h-8 max-w-[96px] object-contain" />
+                </a>
+                <a href="https://www.cervezaturia.es/va" target="_blank" rel="noreferrer">
+                  <img src="/assets/logos/Turia.png" alt="Turia" class="h-8 max-w-[96px] object-contain" />
+                </a>
+                <a href="https://www.coca-cola.com/es/es" target="_blank" rel="noreferrer">
+                  <img src="/assets/logos/Cocacola.png" alt="Coca-Cola" class="footer-logo-cocacola h-8 max-w-[112px] object-contain" />
                 </a>
               </div>
             </div>
           </div>
 
-          <div>
-            <p class="footer-label mb-3 uppercase text-white/50">Organiza</p>
-            <div class="brand-row flex flex-wrap items-center gap-6">
-              <a href="http://dival.es/va" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/Diputacio de Valencia.png" alt="Diputació de València" class="footer-logo-diputacio h-8 max-w-[132px] object-contain" />
-              </a>
-              <a href="https://ivaj.gva.es/va/" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/IVAJ.png" alt="IVAJ" class="footer-logo-ivaj h-8 max-w-[96px] object-contain" />
-              </a>
-              <a href="https://www.cervezaturia.es/va" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/Turia.png" alt="Turia" class="h-8 max-w-[96px] object-contain" />
-              </a>
-              <a href="https://www.coca-cola.com/es/es" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/Cocacola.png" alt="Coca-Cola" class="footer-logo-cocacola h-8 max-w-[112px] object-contain" />
-              </a>
-            </div>
+          <div class="footer-social footer-social--brands flex items-center justify-end gap-4 lg:hidden">
+            <Button as="a" href="https://www.instagram.com" target="_blank" rel="noreferrer" variant="ghost" size="icon" class="footer-social-link no-hover">
+              <component :is="Icons.Instagram" class="lucide-icon" />
+              <span class="sr-only">Instagram</span>
+            </Button>
+
+            <a href="https://x.com" target="_blank" rel="noreferrer" class="footer-social-link" aria-label="X">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="social-svg">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.514l-5.106-6.665-5.841 6.665H2.556l7.73-8.835L1.75 2.25h6.52l4.827 6.383 5.447-6.383zM16.6 20.575h1.829L7.75 3.972H5.81l10.79 16.603z"/>
+              </svg>
+            </a>
+
+            <a href="https://www.tiktok.com" target="_blank" rel="noreferrer" class="footer-social-link" aria-label="TikTok">
+              <svg viewBox="0 0 16 16" fill="currentColor" class="social-svg">
+                <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z"/>
+              </svg>
+            </a>
           </div>
         </div>
 
@@ -65,7 +86,7 @@ const showFooter = computed(() => route.name !== 'menu');
             <RouterLink to="/" class="hover:text-white">Política de cookies</RouterLink>
           </nav>
 
-          <div class="footer-social flex items-center gap-4">
+          <div class="footer-social footer-social--meta hidden items-center gap-4 lg:flex">
             <Button as="a" href="https://www.instagram.com" target="_blank" rel="noreferrer" variant="ghost" size="icon" class="footer-social-link no-hover">
               <component :is="Icons.Instagram" class="lucide-icon" />
               <span class="sr-only">Instagram</span>
@@ -98,6 +119,10 @@ const showFooter = computed(() => route.name !== 'menu');
 .footer-inner {
   width: 100%;
   padding-inline: var(--footer-padding);
+}
+
+.footer-top {
+  width: 100%;
 }
 
 .footer-label {
@@ -214,8 +239,15 @@ const showFooter = computed(() => route.name !== 'menu');
     gap: 20px;
   }
 
+  .footer-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 14px;
+  }
+
   .footer-brands {
-    gap: 22px;
+    gap: 14px;
   }
 
   .footer-label {
@@ -266,11 +298,65 @@ const showFooter = computed(() => route.name !== 'menu');
     height: 18px;
   }
 
+  .footer-social--brands {
+    justify-self: end;
+    margin-top: 0;
+    padding-top: 24px;
+    align-self: end;
+  }
+
   .footer-links {
-    display: none;
+    gap: 4px 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .footer-links a {
+    font-size: 8px;
+    line-height: 1.25;
+    letter-spacing: 0.16em;
+    white-space: nowrap;
   }
   .footer-copy {
     font-size: 9px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .footer-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 28px;
+  }
+
+  .footer-social--brands {
+    justify-self: end;
+    margin-top: 0;
+    padding-top: 44px;
+    align-self: end;
+  }
+
+  .footer-links a {
+    font-size: 8px;
+    letter-spacing: 0.14em;
+    white-space: nowrap;
+  }
+
+  .footer-links {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer-brands {
+    grid-template-columns: max-content max-content;
+    justify-content: start;
+    column-gap: 150px;
   }
 }
 </style>
