@@ -26,7 +26,10 @@
 
     <div class="home-intro-cover" :style="homeIntroCoverStyles" aria-hidden="true"></div>
 
-    <section class="home-intro" :class="{ 'is-visible': isIntroVisible }">
+    <section
+      class="home-intro"
+      :class="{ 'is-visible': isIntroVisible }"
+    >
       <div class="home-intro-content">
         <h2 class="home-intro-title font-monument" :style="homeIntroTitleStyles">
           <span>FESTIVAL DE MÚSICA,</span>
@@ -39,6 +42,8 @@
         </RouterLink>
       </div>
     </section>
+
+    <div class="home-tail-spacer" aria-hidden="true"></div>
   </main>
 </template>
 
@@ -78,8 +83,11 @@ const homeInfoLinkStyles = computed(() => {
 });
 const homeIntroCoverStyles = computed(() => {
   const raw = revealProgress.value;
-  const coverT = Math.min(Math.max((raw - 0.84) / 0.16, 0), 1);
-  const cover = coverT * coverT * (3 - 2 * coverT);
+  const fadeInT = Math.min(Math.max((raw - 0.84) / 0.12, 0), 1);
+  const fadeIn = fadeInT * fadeInT * (3 - 2 * fadeInT);
+  const fadeOutT = Math.min(Math.max((raw - 0.96) / 0.04, 0), 1);
+  const fadeOut = fadeOutT * fadeOutT * (3 - 2 * fadeOutT);
+  const cover = raw < 0.96 ? fadeIn : 1 - fadeOut;
 
   return {
     opacity: cover.toFixed(4),
@@ -442,7 +450,7 @@ onUnmounted(() => {
   min-height: auto;
   width: 100%;
   margin-top: auto;
-  margin-bottom: clamp(36px, 8vh, 96px);
+  margin-bottom: clamp(150px, 18vh, 220px);
 }
 
 .home-intro-title {
@@ -475,6 +483,11 @@ onUnmounted(() => {
 
 .home-info-link:hover {
   text-decoration: underline;
+}
+
+.home-tail-spacer {
+  height: clamp(900px, 120vh, 1500px);
+  pointer-events: none;
 }
 
 @media (max-width: 760px) {
@@ -515,7 +528,7 @@ onUnmounted(() => {
     align-items: start;
     min-height: auto;
     margin-top: auto;
-    margin-bottom: clamp(28px, 10vh, 70px);
+    margin-bottom: clamp(72px, 18vh, 160px);
   }
 
   .home-intro-title {
