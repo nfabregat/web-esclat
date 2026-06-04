@@ -1,8 +1,29 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { nextTick, onMounted, onUnmounted, ref } from "vue";
 
 const email = ref("");
 const isSent = ref(false);
+const animationCanvas = ref<HTMLCanvasElement | null>(null);
+const animationStage = ref<HTMLElement | null>(null);
+
+const frameSources = Array.from(
+  { length: 6 },
+  (_, index) => encodeURI(`/assets/ANIMACION ENTRADAS/${index + 1}.png`),
+);
+
+let frames: HTMLImageElement[] = [];
+let animationFrameId = 0;
+let currentFrameIndex = 0;
+let frameAccumulator = 0;
+let lastTimestamp = 0;
+let isAnimationRunning = false;
+let isComponentMounted = false;
+let canvasWidth = 0;
+let canvasHeight = 0;
+let resizeObserver: ResizeObserver | null = null;
+let isAnimationComplete = false;
+
+const FRAME_DURATION = 320;
 
 const sendEmail = () => {
   if (!email.value) return;
@@ -10,6 +31,196 @@ const sendEmail = () => {
   email.value = "";
   isSent.value = true;
 };
+
+const getCanvasContext = () => {
+  const canvas = animationCanvas.value;
+  if (!canvas) return null;
+
+  return canvas.getContext("2d");
+};
+
+const resizeCanvas = () => {
+  const canvas = animationCanvas.value;
+  const context = getCanvasContext();
+  if (!canvas || !context) return;
+
+  const stage = animationStage.value;
+  if (!stage) return;
+
+  const { width, height } = stage.getBoundingClientRect();
+  const pixelRatio = window.devicePixelRatio || 1;
+  const nextWidth = Math.max(1, Math.floor(width));
+  const nextHeight = Math.max(1, Math.floor(height));
+
+  if (canvasWidth === nextWidth && canvasHeight === nextHeight) {
+    return;
+  }
+
+  canvasWidth = nextWidth;
+  canvasHeight = nextHeight;
+
+  canvas.width = Math.floor(canvasWidth * pixelRatio);
+  canvas.height = Math.floor(canvasHeight * pixelRatio);
+  canvas.style.width = `${canvasWidth}px`;
+  canvas.style.height = `${canvasHeight}px`;
+
+  context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+  drawCurrentFrame();
+};
+
+const drawCurrentFrame = () => {
+  const canvas = animationCanvas.value;
+  const context = getCanvasContext();
+  const image = frames[currentFrameIndex];
+
+  if (!canvas || !context || !image || !image.complete || image.naturalWidth === 0) {
+    return;
+  }
+
+  const width = canvasWidth;
+  const height = canvasHeight;
+  const imageRatio = image.naturalWidth / image.naturalHeight;
+  const canvasRatio = width / height;
+
+  let drawWidth = width;
+  let drawHeight = height;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  if (imageRatio > canvasRatio) {
+    drawHeight = height;
+    drawWidth = height * imageRatio;
+    offsetX = (width - drawWidth) / 2;
+  } else {
+    drawWidth = width;
+    drawHeight = width / imageRatio;
+    offsetY = (height - drawHeight) / 2;
+  }
+
+  context.clearRect(0, 0, width, height);
+  context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+};
+
+const preloadFrames = async () => {
+  const loadedFrames = await Promise.all(
+    frameSources.map(
+      (src) =>
+        new Promise<HTMLImageElement>((resolve, reject) => {
+          const image = new Image();
+          image.decoding = "async";
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(new Error(`No se pudo cargar ${src}`));
+          image.src = src;
+        }),
+    ),
+  );
+
+  frames = loadedFrames;
+};
+
+const stopAnimation = () => {
+  isAnimationRunning = false;
+  lastTimestamp = 0;
+  frameAccumulator = 0;
+  isAnimationComplete = false;
+
+  if (animationFrameId) {
+    window.cancelAnimationFrame(animationFrameId);
+    animationFrameId = 0;
+  }
+
+  const canvas = animationCanvas.value;
+  const context = getCanvasContext();
+
+  if (canvas && context) {
+    context.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  resizeObserver?.disconnect();
+  resizeObserver = null;
+};
+
+const tick = (timestamp: number) => {
+  if (!isAnimationRunning || isAnimationComplete) return;
+
+  if (!lastTimestamp) {
+    lastTimestamp = timestamp;
+    drawCurrentFrame();
+    animationFrameId = window.requestAnimationFrame(tick);
+    return;
+  }
+
+  const deltaTime = timestamp - lastTimestamp;
+  lastTimestamp = timestamp;
+  frameAccumulator += deltaTime;
+
+  let advancedFrames = 0;
+
+  while (frameAccumulator >= FRAME_DURATION && !isAnimationComplete) {
+    frameAccumulator -= FRAME_DURATION;
+    if (currentFrameIndex < frames.length - 1) {
+      currentFrameIndex += 1;
+      advancedFrames += 1;
+    } else {
+      isAnimationComplete = true;
+    }
+  }
+
+  if (advancedFrames > 0 || isAnimationComplete) {
+    drawCurrentFrame();
+  }
+
+  if (isAnimationComplete) {
+    isAnimationRunning = false;
+    animationFrameId = 0;
+    return;
+  }
+
+  animationFrameId = window.requestAnimationFrame(tick);
+};
+
+const startAnimation = async () => {
+  if (isAnimationRunning) return;
+
+  try {
+    await preloadFrames();
+  } catch {
+    return;
+  }
+
+  if (!isComponentMounted || !animationCanvas.value) return;
+
+  currentFrameIndex = 0;
+  frameAccumulator = 0;
+  lastTimestamp = 0;
+  isAnimationRunning = true;
+  isAnimationComplete = false;
+  resizeCanvas();
+  drawCurrentFrame();
+  animationFrameId = window.requestAnimationFrame(tick);
+};
+
+onMounted(async () => {
+  isComponentMounted = true;
+  await nextTick();
+  void startAnimation();
+
+  window.addEventListener("resize", resizeCanvas, { passive: true });
+
+  if (typeof ResizeObserver !== "undefined" && animationStage.value) {
+    resizeObserver = new ResizeObserver(() => {
+      resizeCanvas();
+    });
+    resizeObserver.observe(animationStage.value);
+  }
+});
+
+onUnmounted(() => {
+  isComponentMounted = false;
+  stopAnimation();
+  window.removeEventListener("resize", resizeCanvas);
+});
 </script>
 
 <template>
@@ -39,11 +250,17 @@ const sendEmail = () => {
         <button class="tickets-button" type="submit">ENTER</button>
       </form>
     </div>
+
+    <div ref="animationStage" class="tickets-animation" aria-hidden="true">
+      <canvas ref="animationCanvas" class="tickets-canvas"></canvas>
+    </div>
   </section>
 </template>
 
 <style scoped>
 .tickets-page {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background-color: black;
   color: white;
@@ -53,6 +270,8 @@ const sendEmail = () => {
 .tickets-content {
   width: auto;
   padding: 11.5vh var(--page-padding) 0;
+  position: relative;
+  z-index: 1;
 }
 
 .tickets-title {
@@ -82,6 +301,24 @@ const sendEmail = () => {
   grid-template-columns: 1fr auto;
   width: 100%;
   border: 0.5px solid rgb(255 255 255 / 55%);
+}
+
+.tickets-animation {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  align-self: stretch;
+  min-height: 32vh;
+  margin-top: clamp(18px, 3vw, 34px);
+  overflow: hidden;
+}
+
+.tickets-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .tickets-input {
@@ -145,6 +382,11 @@ const sendEmail = () => {
     font-size: 14px;
     padding: 13px 14px;
   }
+
+  .tickets-animation {
+    min-height: 28vh;
+    margin-top: 22px;
+  }
 }
 
 @media (max-width: 380px) {
@@ -169,6 +411,11 @@ const sendEmail = () => {
   .tickets-input,
   .tickets-button {
     font-size: 13px;
+  }
+
+  .tickets-animation {
+    min-height: 26vh;
+    margin-top: 18px;
   }
 }
 </style>
