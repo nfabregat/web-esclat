@@ -15,6 +15,45 @@ const searchQuery = ref("");
 const searchInputRef = ref<HTMLInputElement | null>(null);
 const isSearchOpen = ref(false);
 const isCartOpen = ref(false);
+const shopScrollKeyPrefix = "esclat-shop-scroll:";
+
+const getHistoryPosition = () => {
+  if (typeof window === "undefined") return null;
+
+  const position = window.history.state?.position;
+  return typeof position === "number" ? position : null;
+};
+
+const saveShopScrollPosition = () => {
+  if (typeof window === "undefined") return;
+
+  const position = getHistoryPosition();
+  if (position === null) return;
+
+  window.sessionStorage.setItem(`${shopScrollKeyPrefix}${position}`, String(window.scrollY));
+};
+
+const restoreShopScrollPosition = async () => {
+  if (typeof window === "undefined") return;
+
+  const position = getHistoryPosition();
+  if (position === null) return;
+
+  const storedScroll = window.sessionStorage.getItem(`${shopScrollKeyPrefix}${position}`);
+  if (storedScroll === null) return;
+
+  window.sessionStorage.removeItem(`${shopScrollKeyPrefix}${position}`);
+
+  const targetScroll = Number(storedScroll);
+  if (!Number.isFinite(targetScroll)) return;
+
+  await nextTick();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: targetScroll, behavior: "auto" });
+    });
+  });
+};
 
 const filteredProducts = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
@@ -79,6 +118,7 @@ const openCart = () => {
 const goToCheckout = () => {
   if (cartItems.value.length === 0) return;
 
+  saveShopScrollPosition();
   const firstEntry = cartEntries.value[0];
 
   router.push({
@@ -102,6 +142,7 @@ const toggleCart = () => {
 };
 
 const openProductPage = (productId: string) => {
+  saveShopScrollPosition();
   closeSearch();
   closeCart();
   router.push({ name: "tienda-product", params: { productId } });
@@ -141,6 +182,7 @@ watch(
 
 onMounted(() => {
   window.addEventListener("keydown", handleEscape);
+  void restoreShopScrollPosition();
 });
 
 onUnmounted(() => {
@@ -1144,15 +1186,40 @@ onUnmounted(() => {
 
 @media (max-width: 760px) {
   .shop-hero {
-    min-height: 76vh;
+    min-height: 88vh;
   }
 
   .shop-title {
-    font-size: clamp(40px, 12vw, 64px);
+    bottom: 36px;
+    font-size: clamp(36px, 13vw, 58px);
+  }
+
+  .shop-catalog {
+    padding-top: 0;
+    padding-bottom: 9vh;
   }
 
   .shop-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+
+  .shop-product {
+    gap: 6px;
+  }
+
+  .shop-product-visual {
+    padding: 5px;
+  }
+
+  .shop-product-meta {
+    gap: 5px;
+    padding-inline: 4px;
+  }
+
+  .shop-product-name,
+  .shop-product-price {
+    font-size: 10px;
   }
 
   .shop-search-input {
@@ -1170,6 +1237,44 @@ onUnmounted(() => {
 
   .shop-cart-drawer {
     width: 100vw;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1024px) {
+  .shop-hero {
+    min-height: 90vh;
+  }
+
+  .shop-title {
+    bottom: 36px;
+    font-size: clamp(42px, 5.8vw, 76px);
+  }
+
+  .shop-catalog {
+    padding-bottom: 7vh;
+  }
+
+  .shop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 16px;
+  }
+
+  .shop-product {
+    gap: 8px;
+  }
+
+  .shop-product-visual {
+    padding: 6px;
+  }
+
+  .shop-product-meta {
+    gap: 6px;
+    padding-inline: 6px;
+  }
+
+  .shop-product-name,
+  .shop-product-price {
+    font-size: 11px;
   }
 }
 </style>

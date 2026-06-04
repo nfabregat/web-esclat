@@ -924,4 +924,40 @@ onUnmounted(() => {
 .shop-drawer-leave-active .shop-cart-drawer {
   transition: transform 260ms ease;
 }
+
+@media (max-width: 760px) {
+  .checkout-shell {
+    padding-top: 4vh;
+    padding-bottom: 10vh;
+  }
+
+  .checkout-toolbar {
+    justify-content: space-between;
+  }
+
+  .checkout-toolbar-actions {
+    position: static;
+    left: auto;
+    transform: none;
+    margin-left: auto;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1024px) {
+  .checkout-shell {
+    padding-top: 6vh;
+    padding-bottom: 12vh;
+  }
+
+  .checkout-toolbar {
+    justify-content: space-between;
+  }
+
+  .checkout-toolbar-actions {
+    position: static;
+    left: auto;
+    transform: none;
+    margin-left: auto;
+  }
+}
 </style>

@@ -3,7 +3,13 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ArrowLeft, Minus, Plus, Search, ShoppingCart, X } from "lucide-vue-next";
 import AccordionSection from "@/components/AccordionSection.vue";
-import { formatShopPrice, getShopProduct, shopProducts, type ShopProduct } from "@/data/shop";
+import {
+  formatShopPrice,
+  getShopProduct,
+  shopProducts,
+  type ShopProduct,
+  type ShopProductAccordion,
+} from "@/data/shop";
 import { useShopCart, type CartItem } from "@/composables/useShopCart";
 
 const route = useRoute();
@@ -56,6 +62,8 @@ const searchResults = computed(() => {
 
 const recommendedProducts = computed(() => shopProducts.slice(0, 3));
 const completeLookProducts = computed(() => shopProducts.slice(3, 6));
+const productAccordions = computed<ShopProductAccordion[]>(() => product.value?.accordions ?? []);
+const activeAccordion = ref<string | null>(null);
 const cartEntries = computed(() =>
   cartItems.value
     .map((item) => ({
@@ -67,6 +75,15 @@ const cartEntries = computed(() =>
 
 const selectImage = (index: number) => {
   activeImageIndex.value = index;
+};
+
+const setAccordionOpen = (title: string, isOpen: boolean) => {
+  console.log(`Click en "${title}"`);
+  console.log("Estado abierto:", isOpen);
+
+  activeAccordion.value = isOpen ? title : null;
+
+  console.log("Sección activa:", activeAccordion.value);
 };
 
 const goBack = () => {
@@ -203,7 +220,10 @@ onUnmounted(() => {
   <main class="product-page">
     <section v-if="product" class="product-shell">
       <div class="product-gallery">
-        <div class="product-thumbnails" aria-label="Miniaturas del producto">
+        <div
+          class="product-thumbnails"
+          aria-label="Miniaturas del producto"
+        >
           <button
             v-for="(image, index) in thumbnails"
             :key="image"
@@ -275,16 +295,12 @@ onUnmounted(() => {
 
         <div class="product-accordions">
           <AccordionSection
-            title="DETALLES DEL PRODUCTO"
-            body="Aquí va la información del producto, estamos trabajando en ello. En breves estará listo."
-          />
-          <AccordionSection
-            title="ENVÍOS Y DEVOLUCIONES"
-            body="Aquí va la información del producto, estamos trabajando en ello. En breves estará listo."
-          />
-          <AccordionSection
-            title="GUÍA DE CUIDADO"
-            body="Aquí va la información del producto, estamos trabajando en ello. En breves estará listo."
+            v-for="section in productAccordions"
+            :key="section.title"
+            :title="section.title"
+            :body="section.body"
+            :model-value="activeAccordion === section.title"
+            @update:modelValue="setAccordionOpen(section.title, $event)"
           />
         </div>
       </aside>
@@ -474,18 +490,23 @@ onUnmounted(() => {
   grid-template-columns: minmax(0, 1.18fr) minmax(340px, 0.82fr);
   gap: 42px;
   padding: 8vh var(--page-padding) 12vh;
+  align-items: start;
 }
 
 .product-gallery {
-  display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
+  display: flex;
   gap: 16px;
   align-items: start;
 }
 
 .product-thumbnails {
+  --thumbnail-size: 76px;
+  --thumbnail-gap: 12px;
   display: grid;
-  gap: 12px;
+  gap: var(--thumbnail-gap);
+  flex: 0 0 var(--thumbnail-size);
+  align-self: start;
+  margin-top: calc(var(--thumbnail-size) + var(--thumbnail-gap));
 }
 
 .product-thumbnail {
@@ -493,7 +514,8 @@ onUnmounted(() => {
   background: transparent;
   cursor: pointer;
   padding: 0;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
+  width: 100%;
   overflow: hidden;
   transition: border-color 180ms ease, opacity 180ms ease;
 }
@@ -522,6 +544,7 @@ onUnmounted(() => {
   aspect-ratio: 4 / 5;
   overflow: hidden;
   background: #060606;
+  flex: 1 1 auto;
 }
 
 .product-image {
@@ -1073,6 +1096,7 @@ onUnmounted(() => {
     grid-auto-columns: 84px;
     overflow-x: auto;
     padding-bottom: 4px;
+    margin-top: 0;
   }
 
   .product-info {
@@ -1095,19 +1119,79 @@ onUnmounted(() => {
 
 @media (max-width: 760px) {
   .product-shell {
-    padding: 4vh var(--page-padding) 10vh;
+    position: relative;
+    padding: 8vh var(--page-padding) 10vh;
+  }
+
+  .product-toolbar {
+    position: absolute;
+    top: 0;
+    left: var(--page-padding);
+    right: var(--page-padding);
+    margin-bottom: 0;
+  }
+
+  .product-info {
+    padding-top: 0;
+    gap: 18px;
+  }
+
+  .product-gallery {
+    gap: 10px;
   }
 
   .product-thumbnails {
-    grid-auto-columns: 72px;
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    overflow-x: visible;
+    padding-bottom: 0;
+    margin-top: 55px;
+  }
+
+  .product-name {
+    font-size: clamp(22px, 10vw, 34px);
+    letter-spacing: 0.06em;
+  }
+
+  .product-kicker {
+    font-size: 10px;
   }
 
   .product-price {
-    font-size: 16px;
+    font-size: 14px;
+  }
+
+  .product-sizes {
+    gap: 10px 16px;
   }
 
   .product-size {
-    font-size: 12px;
+    font-size: 11px;
+    padding-bottom: 6px;
+  }
+
+  .product-add {
+    margin-bottom: 12px;
+    font-size: 11px;
+    padding: 12px 14px;
+    letter-spacing: 0.14em;
+  }
+
+  .product-accordions {
+    margin-top: 28px;
+  }
+
+  .product-accordions :deep(.accordion-item) {
+    padding: 16px 0;
+  }
+
+  .product-accordions :deep(.accordion-question) {
+    font-size: 14px;
+  }
+
+  .product-accordions :deep(.accordion-answer) {
+    font-size: 13px;
+    margin-top: 14px;
   }
 
   .shop-search-input {
@@ -1125,6 +1209,62 @@ onUnmounted(() => {
 
   .shop-cart-drawer {
     width: 100vw;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1024px) {
+  .product-shell {
+    padding: 7vh var(--page-padding) 11vh;
+  }
+
+  .product-info {
+    gap: 20px;
+  }
+
+  .product-gallery {
+    gap: 14px;
+  }
+
+  .product-thumbnails {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    overflow-x: visible;
+    padding-bottom: 0;
+    margin-top: calc(var(--thumbnail-size) + var(--thumbnail-gap));
+  }
+
+  .product-name {
+    font-size: clamp(24px, 5vw, 40px);
+  }
+
+  .product-price {
+    font-size: 16px;
+  }
+
+  .product-size {
+    font-size: 12px;
+  }
+
+  .product-add {
+    margin-bottom: 14px;
+    font-size: 11px;
+  }
+
+  .product-accordions {
+    margin-top: 24px;
+  }
+
+  .product-accordions :deep(.accordion-item) {
+    padding: 18px 0;
+  }
+
+  .product-accordions :deep(.accordion-question) {
+    font-size: 16px;
+  }
+
+  .product-accordions :deep(.accordion-answer) {
+    font-size: 14px;
+    margin-top: 16px;
   }
 }
 </style>
