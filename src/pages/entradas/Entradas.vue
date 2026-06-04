@@ -43,6 +43,10 @@ let drawBox = {
   drawHeight: 0,
 };
 
+const DESKTOP_IMAGE_Y_SHIFT = 70;
+const MEDIUM_IMAGE_Y_SHIFT = 58;
+const MOBILE_IMAGE_Y_SHIFT = 44;
+
 const sendEmail = () => {
   if (!email.value) return;
 
@@ -160,6 +164,41 @@ const resizeCanvas = () => {
     drawBox.drawHeight = canvasWidth / sourceAspectRatio;
     drawBox.offsetX = 0;
     drawBox.offsetY = (canvasHeight - drawBox.drawHeight) / 2;
+  }
+
+  if (window.matchMedia("(min-width: 1025px)").matches) {
+    const centerX = drawBox.offsetX + drawBox.drawWidth / 2;
+    const minDesktopDrawHeight = canvasHeight + DESKTOP_IMAGE_Y_SHIFT;
+
+    if (drawBox.drawHeight < minDesktopDrawHeight) {
+      drawBox.drawHeight = minDesktopDrawHeight;
+      drawBox.drawWidth = drawBox.drawHeight * sourceAspectRatio;
+      drawBox.offsetX = centerX - drawBox.drawWidth / 2;
+    }
+
+    drawBox.offsetY -= DESKTOP_IMAGE_Y_SHIFT;
+  } else if (window.matchMedia("(min-width: 761px)").matches) {
+    const centerX = drawBox.offsetX + drawBox.drawWidth / 2;
+    const minMediumDrawHeight = canvasHeight + MEDIUM_IMAGE_Y_SHIFT;
+
+    if (drawBox.drawHeight < minMediumDrawHeight) {
+      drawBox.drawHeight = minMediumDrawHeight;
+      drawBox.drawWidth = drawBox.drawHeight * sourceAspectRatio;
+      drawBox.offsetX = centerX - drawBox.drawWidth / 2;
+    }
+
+    drawBox.offsetY -= MEDIUM_IMAGE_Y_SHIFT;
+  } else {
+    const centerX = drawBox.offsetX + drawBox.drawWidth / 2;
+    const minMobileDrawHeight = canvasHeight + MOBILE_IMAGE_Y_SHIFT;
+
+    if (drawBox.drawHeight < minMobileDrawHeight) {
+      drawBox.drawHeight = minMobileDrawHeight;
+      drawBox.drawWidth = drawBox.drawHeight * sourceAspectRatio;
+      drawBox.offsetX = centerX - drawBox.drawWidth / 2;
+    }
+
+    drawBox.offsetY -= MOBILE_IMAGE_Y_SHIFT;
   }
 
   console.debug("[Entradas canvas]", {
@@ -445,11 +484,12 @@ onUnmounted(() => {
 .tickets-animation {
   position: relative;
   width: 100%;
-  min-height: clamp(460px, 58vh, 780px);
-  margin-top: clamp(22px, 4vw, 42px);
+  min-height: clamp(560px, 74vh, 820px);
+  margin-top: -110px;
   margin-inline: calc(var(--page-padding) * -1);
   width: calc(100% + (var(--page-padding) * 2));
   align-self: stretch;
+  z-index: 0;
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 58%, rgb(255 255 255 / 8%), transparent 58%),
@@ -490,6 +530,12 @@ onUnmounted(() => {
   font-weight: 400;
   letter-spacing: 0;
   padding: 14px 24px;
+}
+
+@media (min-width: 761px) and (max-width: 1024px) {
+  .tickets-animation {
+    margin-top: -82px;
+  }
 }
 
 @media (max-width: 760px) {
@@ -534,7 +580,7 @@ onUnmounted(() => {
   .tickets-animation {
     height: clamp(240px, 34svh, 360px);
     min-height: clamp(240px, 34svh, 360px);
-    margin-top: 16px;
+    margin-top: -42px;
     margin-bottom: 0;
   }
 }
@@ -566,7 +612,7 @@ onUnmounted(() => {
   .tickets-animation {
     height: clamp(220px, 31svh, 300px);
     min-height: clamp(220px, 31svh, 300px);
-    margin-top: 14px;
+    margin-top: -34px;
   }
 }
 </style>
