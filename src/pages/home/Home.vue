@@ -23,7 +23,7 @@
       </div>
     </section>
 
-    <section class="home-intro">
+    <section class="home-intro" :class="{ 'is-visible': isIntroVisible }">
       <div class="home-intro-content">
         <h2 class="home-intro-title font-monument">
           <span>FESTIVAL DE MÚSICA,</span>
@@ -48,6 +48,7 @@ const animationCanvas = ref<HTMLCanvasElement | null>(null);
 const revealProgress = ref(0);
 
 const isRevealComplete = computed(() => revealProgress.value >= 0.95);
+const isIntroVisible = computed(() => revealProgress.value >= 0.965);
 const sequenceCanvasStyles = computed(() => {
   return {
     "--sequence-exit-progress": revealProgress.value.toFixed(4),
@@ -341,7 +342,31 @@ onUnmounted(() => {
   margin-top: 0;
   min-height: auto;
   background-color: #000;
-  padding: clamp(40px, 8vh, 96px) var(--page-padding) clamp(140px, 18vh, 240px);
+  padding: clamp(72px, 12vh, 132px) var(--page-padding) clamp(140px, 18vh, 240px);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 380ms ease, transform 380ms ease;
+  will-change: opacity, transform;
+}
+
+.home-intro::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: clamp(84px, 12vh, 140px);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.45) 58%,
+    #000 100%
+  );
+  pointer-events: none;
+}
+
+.home-intro.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .home-intro-content {
@@ -404,8 +429,19 @@ onUnmounted(() => {
     min-height: auto;
     margin-top: 0;
     background-color: #000;
-    padding-top: 58px;
+    padding-top: 104px;
     padding-bottom: clamp(120px, 22vh, 190px);
+    transform: translateY(34px);
+  }
+
+  .home-intro::before {
+    height: clamp(96px, 14vh, 156px);
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.5) 62%,
+      #000 100%
+    );
   }
 
   .home-intro-content {
