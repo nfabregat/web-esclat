@@ -16,19 +16,21 @@ const showFooter = computed(() => route.name !== 'menu');
       <RouterView />
     </main>
 
-    <footer v-if="showFooter" class="site-footer mt-0 border-t border-white/10 bg-black pb-8 pt-2 text-white/80">
+    <footer v-if="showFooter" class="site-footer mt-0 border-t border-white/10 bg-black pb-8 pt-12 text-white/80 md:pt-16">
       <div class="footer-inner flex flex-col gap-8">
         <div class="footer-brands grid gap-8 lg:grid-cols-[1.2fr_1fr]">
           <div>
             <p class="footer-label mb-3 uppercase text-white/50">Colabora</p>
             <div class="brand-row flex flex-wrap items-center gap-6">
               <RouterLink to="/" class="brand-text font-monument text-[17px] font-black tracking-normal">ESCLAT</RouterLink>
-              <a href="https://www.valencia.es/val/inici" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/Ayuntament de Valencia.png" alt="Ajuntament de València" class="h-8 max-w-[132px] object-contain" />
-              </a>
-              <a href="https://cultural.valencia.es/espais/las-naves-centre-dinnovacio/" target="_blank" rel="noreferrer">
-                <img src="/assets/logos/Las Naves.png" alt="Las Naves" class="h-8 max-w-[132px] object-contain" />
-              </a>
+              <div class="collab-logos flex items-center">
+                <a href="https://www.valencia.es/val/inici" target="_blank" rel="noreferrer">
+                  <img src="/assets/logos/Ayuntament de Valencia.png" alt="Ajuntament de València" class="h-8 max-w-[132px] object-contain" />
+                </a>
+                <a href="https://cultural.valencia.es/espais/las-naves-centre-dinnovacio/" target="_blank" rel="noreferrer">
+                  <img src="/assets/logos/Las Naves.png" alt="Las Naves" class="h-8 max-w-[132px] object-contain" />
+                </a>
+              </div>
             </div>
           </div>
 
@@ -136,6 +138,14 @@ const showFooter = computed(() => route.name !== 'menu');
 .brand-row a {
   display: inline-flex;
 }
+
+.collab-logos {
+  gap: 0;
+}
+
+.collab-logos a + a {
+  margin-left: -5px;
+}
 .footer-copy {
   font-size: 10px;
   letter-spacing: 0.25em;
@@ -214,6 +224,14 @@ const showFooter = computed(() => route.name !== 'menu');
 
   .brand-row {
     gap: 14px;
+  }
+
+  .collab-logos {
+    gap: 0;
+  }
+
+  .collab-logos a + a {
+    margin-left: -6px;
   }
 
   .brand-row .footer-logo-diputacio {
