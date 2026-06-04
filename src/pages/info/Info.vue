@@ -404,13 +404,23 @@ onBeforeUnmount(() => {
     <section class="info-balance" aria-label="Balance del festival">
       <div class="balance-item balance-item-music">
         <h2>MÚSICA</h2>
-        <div class="balance-circle balance-circle-large"></div>
+        <img
+          class="balance-circle balance-circle-large"
+          src="/assets/CIRCULOS INFO/CIRCULOGRANDE INFO.png"
+          alt=""
+          aria-hidden="true"
+        />
         <p>60%</p>
       </div>
 
       <div class="balance-item balance-item-thinking">
         <h2>PENSAMIENTO Y CREATIVIDAD</h2>
-        <div class="balance-circle balance-circle-small"></div>
+        <img
+          class="balance-circle balance-circle-small"
+          src="/assets/CIRCULOS INFO/CIRCULOPEQUEÑO INFO.png"
+          alt=""
+          aria-hidden="true"
+        />
         <p>40%</p>
       </div>
     </section>
@@ -659,19 +669,6 @@ onBeforeUnmount(() => {
   transform-origin: left;
 }
 
-.info-balance::after {
-  content: "";
-  position: absolute;
-  top: 52%;
-  left: var(--page-padding);
-  right: var(--page-padding);
-  height: 1px;
-  background-color: white;
-  opacity: 0.35;
-  transform: scaleY(0.5);
-  transform-origin: top;
-}
-
 .balance-item {
   position: relative;
   z-index: 1;
@@ -702,20 +699,20 @@ onBeforeUnmount(() => {
 }
 
 .balance-circle {
+  display: block;
   align-self: center;
-  border-radius: 50%;
-  background-color: white;
+  object-fit: contain;
 }
 
 .balance-circle-large {
-  width: min(31vw, 330px);
+  width: min(34vw, 360px);
   aspect-ratio: 1;
   justify-self: center;
   margin-right: 3vw;
 }
 
 .balance-circle-small {
-  width: min(26vw, 270px);
+  width: min(20vw, 220px);
   aspect-ratio: 1;
   justify-self: center;
   margin-right: 0;
@@ -1147,12 +1144,6 @@ onBeforeUnmount(() => {
     display: none;
   }
 
-  .info-balance::after {
-    top: 50%;
-    left: var(--page-padding);
-    right: var(--page-padding);
-  }
-
   .balance-item {
     min-height: 180px;
   }
@@ -1170,10 +1161,18 @@ onBeforeUnmount(() => {
     padding-left: 20px;
   }
 
+  .balance-item-thinking {
+    transform: translateX(-8px);
+  }
+
   .balance-circle-large,
   .balance-circle-small {
-    width: min(54vw, 200px);
+    width: min(58vw, 240px);
     margin-right: 0;
+  }
+
+  .balance-circle-small {
+    width: min(40vw, 170px);
   }
 
   .space-section {
