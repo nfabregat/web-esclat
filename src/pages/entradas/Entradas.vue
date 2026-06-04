@@ -43,20 +43,6 @@ let drawBox = {
   drawHeight: 0,
 };
 
-const getVerticalFocalPoint = () => {
-  const viewportWidth = window.innerWidth;
-
-  if (viewportWidth <= 760) {
-    return 0.5;
-  }
-
-  if (viewportWidth < 1100) {
-    return 0.4;
-  }
-
-  return 0.33;
-};
-
 const sendEmail = () => {
   if (!email.value) return;
 
@@ -170,12 +156,20 @@ const resizeCanvas = () => {
     drawBox.offsetX = (canvasWidth - drawBox.drawWidth) / 2;
     drawBox.offsetY = 0;
   } else {
-    const focalPointY = getVerticalFocalPoint();
     drawBox.drawWidth = canvasWidth;
     drawBox.drawHeight = canvasWidth / sourceAspectRatio;
     drawBox.offsetX = 0;
-    drawBox.offsetY = (canvasHeight - drawBox.drawHeight) * focalPointY;
+    drawBox.offsetY = (canvasHeight - drawBox.drawHeight) / 2;
   }
+
+  console.debug("[Entradas canvas]", {
+    canvasWidth,
+    canvasHeight,
+    drawWidth: Math.round(drawBox.drawWidth),
+    drawHeight: Math.round(drawBox.drawHeight),
+    offsetX: Math.round(drawBox.offsetX),
+    offsetY: Math.round(drawBox.offsetY),
+  });
 
   renderCurrentFrame();
 };
