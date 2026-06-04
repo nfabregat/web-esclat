@@ -83,7 +83,6 @@ const setEventOpen = (title: string, isOpen: boolean) => {
 <template>
   <main class="activities-page">
     <section class="activities-hero">
-      <div class="activities-hero-art" aria-hidden="true"></div>
       <h1 class="activities-title font-monument">ACTIVIDADES</h1>
     </section>
 
@@ -135,10 +134,6 @@ const setEventOpen = (title: string, isOpen: boolean) => {
   isolation: isolate;
   overflow: hidden;
   min-height: 88vh;
-  background-image: url("/assets/Circulosfondos/fondoACTIVIDADES.webp");
-  background-repeat: no-repeat;
-  background-position: center 4%;
-  background-size: min(126vw, 1450px) auto;
 }
 
 .activities-hero::before {
@@ -178,10 +173,6 @@ const setEventOpen = (title: string, isOpen: boolean) => {
   );
 }
 
-.activities-hero-art {
-  display: none;
-}
-
 .activities-title {
   position: absolute;
   left: var(--page-padding);
@@ -212,16 +203,9 @@ const setEventOpen = (title: string, isOpen: boolean) => {
   display: grid;
 }
 
-@media (min-width: 761px) and (max-width: 1024px) {
-  .activities-hero {
-    background-size: min(120vw, 1380px) auto;
-  }
-}
-
 @media (max-width: 760px) {
   .activities-hero {
     min-height: 88vh;
-    background-image: none;
   }
 
   .activities-hero::before {
@@ -230,38 +214,6 @@ const setEventOpen = (title: string, isOpen: boolean) => {
 
   .activities-hero::after {
     display: none;
-  }
-
-  .activities-hero-art {
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: min(148vw, 980px);
-    height: clamp(290px, 68vw, 460px);
-    transform: translateX(-50%);
-    pointer-events: none;
-    z-index: 0;
-    background-image: url("/assets/Circulosfondos/fondoACTIVIDADES.webp");
-    background-repeat: no-repeat;
-    background-position: center 2%;
-    background-size: contain;
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      rgb(0 0 0 / 0) 0%,
-      rgb(0 0 0 / 0.24) 18px,
-      rgb(0 0 0 / 0.68) 54px,
-      rgb(0 0 0 / 1) 102px,
-      rgb(0 0 0 / 1) 100%
-    );
-    mask-image: linear-gradient(
-      to bottom,
-      rgb(0 0 0 / 0) 0%,
-      rgb(0 0 0 / 0.24) 18px,
-      rgb(0 0 0 / 0.68) 54px,
-      rgb(0 0 0 / 1) 102px,
-      rgb(0 0 0 / 1) 100%
-    );
   }
 
   .activities-title {
