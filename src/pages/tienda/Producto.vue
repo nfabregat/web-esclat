@@ -1218,19 +1218,42 @@ onUnmounted(() => {
   }
 
   .product-info {
-    gap: 20px;
+    display: contents;
+  }
+
+  .product-toolbar {
+    order: 0;
+    --toolbar-top-offset: -50px;
+    margin-top: var(--toolbar-top-offset);
   }
 
   .product-gallery {
-    gap: 14px;
+    order: 1;
+    gap: 12px;
+    align-items: flex-start;
+    width: min(100%, 1500px);
+    --main-image-top-offset: -55px;
+    --thumbnails-top-offset: 20px;
   }
 
   .product-thumbnails {
+    --thumbnail-size: 94px;
+    --thumbnail-gap: 13px;
     grid-auto-flow: row;
     grid-auto-columns: auto;
     overflow-x: visible;
     padding-bottom: 0;
-    margin-top: calc(var(--thumbnail-size) + var(--thumbnail-gap));
+    margin-top: var(--thumbnails-top-offset);
+    align-self: flex-start;
+  }
+
+  .product-figure {
+    flex: 0 1 clamp(280px, 106vw, 600px);
+    margin-top: var(--main-image-top-offset);
+  }
+
+  .product-heading {
+    order: 2;
   }
 
   .product-name {
@@ -1241,16 +1264,22 @@ onUnmounted(() => {
     font-size: 16px;
   }
 
+  .product-sizes {
+    order: 3;
+  }
+
   .product-size {
     font-size: 12px;
   }
 
   .product-add {
+    order: 4;
     margin-bottom: 14px;
     font-size: 11px;
   }
 
   .product-accordions {
+    order: 5;
     margin-top: 24px;
   }
 
