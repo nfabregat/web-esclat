@@ -11,19 +11,51 @@ const frameSources = Array.from(
   (_, index) => encodeURI(`/assets/ANIMACION ENTRADAS/${index + 1}.png`),
 );
 
+const FRAME_COUNT = frameSources.length;
+const ANIMATION_DURATION = 1080;
+const HOVER_PHASE_DURATION = ANIMATION_DURATION;
+const HOVER_PAUSE_DURATION = 2000;
+const HOVER_TOTAL_DURATION = HOVER_PHASE_DURATION * 2 + HOVER_PAUSE_DURATION;
+
 let frames: HTMLImageElement[] = [];
+let framesLoadPromise: Promise<void> | null = null;
 let animationFrameId = 0;
-let currentFrameIndex = 0;
-let frameAccumulator = 0;
-let lastTimestamp = 0;
+let hoverAnimationFrameId = 0;
 let isAnimationRunning = false;
+let isHoverSequenceRunning = false;
 let isComponentMounted = false;
+let isAnimationComplete = false;
+let isHoverInteractionEnabled = false;
+let animationStartTime = 0;
+let hoverSequenceStartTime = 0;
+let currentProgress = 0;
+let hoverFramePosition = FRAME_COUNT - 1;
 let canvasWidth = 0;
 let canvasHeight = 0;
+let canvasPixelRatio = 1;
+let sourceAspectRatio = 16 / 9;
 let resizeObserver: ResizeObserver | null = null;
-let isAnimationComplete = false;
+let removeHoverListeners = () => {};
+let drawBox = {
+  offsetX: 0,
+  offsetY: 0,
+  drawWidth: 0,
+  drawHeight: 0,
+};
 
-const FRAME_DURATION = 320;
+const getVerticalFocalPoint = () => {
+  const viewportWidth = window.innerWidth;
+
+  if (viewportWidth <= 760) {
+    return 0.5;
+  }
+
+  if (viewportWidth < 1100) {
+    return 0.4;
+  }
+
+  return 0.33;
+};
 
 const sendEmail = () => {
   if (!email.value) return;
@@ -39,6 +71,64 @@ const getCanvasContext = () => {
   return canvas.getContext("2d");
 };
 
+const drawFrame = (frameIndex: number, alpha = 1) => {
+  const context = getCanvasContext();
+  const image = frames[frameIndex];
+
+  if (!context || !image || !image.complete || image.naturalWidth === 0) {
+    return;
+  }
+
+  context.globalAlpha = alpha;
+  context.drawImage(
+    image,
+    drawBox.offsetX,
+    drawBox.offsetY,
+    drawBox.drawWidth,
+    drawBox.drawHeight,
+  );
+  context.globalAlpha = 1;
+};
+
+const renderFramePosition = (framePosition: number) => {
+  const context = getCanvasContext();
+  if (!context || canvasWidth === 0 || canvasHeight === 0 || frames.length === 0) {
+    return;
+  }
+
+  const safeFramePosition = Math.min(Math.max(framePosition, 0), FRAME_COUNT - 1);
+  const lowerFrame = Math.floor(safeFramePosition);
+  const upperFrame = Math.min(lowerFrame + 1, FRAME_COUNT - 1);
+  const blend = safeFramePosition - lowerFrame;
+
+  context.clearRect(0, 0, canvasWidth, canvasHeight);
+  drawFrame(lowerFrame, 1);
+
+  if (upperFrame !== lowerFrame && blend > 0) {
+    drawFrame(upperFrame, blend);
+  }
+};
+
+const renderCurrentFrame = () => {
+  if (isHoverSequenceRunning) {
+    renderFramePosition(hoverFramePosition);
+    return;
+  }
+
+  if (isAnimationComplete) {
+    renderFramePosition(FRAME_COUNT - 1);
+    return;
+  }
+
+  renderFramePosition(currentProgress * (FRAME_COUNT - 1));
+};
+
+const easeInOutCubic = (value: number) => {
+  return value < 0.5
+    ? 4 * value * value * value
+    : 1 - Math.pow(-2 * value + 2, 3) / 2;
+};
+
 const resizeCanvas = () => {
   const canvas = animationCanvas.value;
   const context = getCanvasContext();
@@ -52,12 +142,17 @@ const resizeCanvas = () => {
   const nextWidth = Math.max(1, Math.floor(width));
   const nextHeight = Math.max(1, Math.floor(height));
 
-  if (canvasWidth === nextWidth && canvasHeight === nextHeight) {
+  if (
+    canvasWidth === nextWidth &&
+    canvasHeight === nextHeight &&
+    canvasPixelRatio === pixelRatio
+  ) {
     return;
   }
 
   canvasWidth = nextWidth;
   canvasHeight = nextHeight;
+  canvasPixelRatio = pixelRatio;
 
   canvas.width = Math.floor(canvasWidth * pixelRatio);
   canvas.height = Math.floor(canvasHeight * pixelRatio);
@@ -65,45 +160,32 @@ const resizeCanvas = () => {
   canvas.style.height = `${canvasHeight}px`;
 
   context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
 
-  drawCurrentFrame();
-};
-
-const drawCurrentFrame = () => {
-  const canvas = animationCanvas.value;
-  const context = getCanvasContext();
-  const image = frames[currentFrameIndex];
-
-  if (!canvas || !context || !image || !image.complete || image.naturalWidth === 0) {
-    return;
-  }
-
-  const width = canvasWidth;
-  const height = canvasHeight;
-  const imageRatio = image.naturalWidth / image.naturalHeight;
-  const canvasRatio = width / height;
-
-  let drawWidth = width;
-  let drawHeight = height;
-  let offsetX = 0;
-  let offsetY = 0;
-
-  if (imageRatio > canvasRatio) {
-    drawHeight = height;
-    drawWidth = height * imageRatio;
-    offsetX = (width - drawWidth) / 2;
+  const canvasRatio = canvasWidth / canvasHeight;
+  if (sourceAspectRatio > canvasRatio) {
+    drawBox.drawHeight = canvasHeight;
+    drawBox.drawWidth = canvasHeight * sourceAspectRatio;
+    drawBox.offsetX = (canvasWidth - drawBox.drawWidth) / 2;
+    drawBox.offsetY = 0;
   } else {
-    drawWidth = width;
-    drawHeight = width / imageRatio;
-    offsetY = (height - drawHeight) / 2;
+    const focalPointY = getVerticalFocalPoint();
+    drawBox.drawWidth = canvasWidth;
+    drawBox.drawHeight = canvasWidth / sourceAspectRatio;
+    drawBox.offsetX = 0;
+    drawBox.offsetY = (canvasHeight - drawBox.drawHeight) * focalPointY;
   }
 
-  context.clearRect(0, 0, width, height);
-  context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+  renderCurrentFrame();
 };
 
 const preloadFrames = async () => {
-  const loadedFrames = await Promise.all(
+  if (framesLoadPromise) {
+    return framesLoadPromise;
+  }
+
+  framesLoadPromise = Promise.all(
     frameSources.map(
       (src) =>
         new Promise<HTMLImageElement>((resolve, reject) => {
@@ -114,66 +196,107 @@ const preloadFrames = async () => {
           image.src = src;
         }),
     ),
-  );
+  ).then((loadedFrames) => {
+    frames = loadedFrames;
+    sourceAspectRatio = loadedFrames[0]?.naturalWidth && loadedFrames[0]?.naturalHeight
+      ? loadedFrames[0].naturalWidth / loadedFrames[0].naturalHeight
+      : 16 / 9;
+  });
 
-  frames = loadedFrames;
+  return framesLoadPromise;
+};
+
+const stopHoverAnimation = () => {
+  if (hoverAnimationFrameId) {
+    window.cancelAnimationFrame(hoverAnimationFrameId);
+    hoverAnimationFrameId = 0;
+  }
+};
+
+const runHoverSequence = (timestamp: number) => {
+  if (!isHoverSequenceRunning) return;
+
+  if (!hoverSequenceStartTime) {
+    hoverSequenceStartTime = timestamp;
+  }
+
+  const elapsed = timestamp - hoverSequenceStartTime;
+
+  if (elapsed < HOVER_PHASE_DURATION) {
+    const phaseProgress = easeInOutCubic(Math.min(elapsed / HOVER_PHASE_DURATION, 1));
+    hoverFramePosition = (FRAME_COUNT - 1) * (1 - phaseProgress);
+  } else if (elapsed < HOVER_PHASE_DURATION + HOVER_PAUSE_DURATION) {
+    hoverFramePosition = 0;
+  } else if (elapsed < HOVER_TOTAL_DURATION) {
+    const phaseElapsed = elapsed - HOVER_PHASE_DURATION - HOVER_PAUSE_DURATION;
+    const phaseProgress = easeInOutCubic(Math.min(phaseElapsed / HOVER_PHASE_DURATION, 1));
+    hoverFramePosition = (FRAME_COUNT - 1) * phaseProgress;
+  } else {
+    hoverFramePosition = FRAME_COUNT - 1;
+    isHoverSequenceRunning = false;
+    hoverSequenceStartTime = 0;
+    hoverAnimationFrameId = 0;
+    renderFramePosition(hoverFramePosition);
+    return;
+  }
+
+  renderFramePosition(hoverFramePosition);
+  hoverAnimationFrameId = window.requestAnimationFrame(runHoverSequence);
+};
+
+const startHoverSequence = () => {
+  if (!isHoverInteractionEnabled || !isAnimationComplete || isHoverSequenceRunning) {
+    return;
+  }
+
+  isHoverSequenceRunning = true;
+  hoverSequenceStartTime = 0;
+  hoverFramePosition = FRAME_COUNT - 1;
+  hoverAnimationFrameId = window.requestAnimationFrame(runHoverSequence);
 };
 
 const stopAnimation = () => {
   isAnimationRunning = false;
-  lastTimestamp = 0;
-  frameAccumulator = 0;
+  animationStartTime = 0;
+  currentProgress = 0;
   isAnimationComplete = false;
+  isHoverSequenceRunning = false;
+  hoverSequenceStartTime = 0;
+  hoverFramePosition = FRAME_COUNT - 1;
+  isHoverInteractionEnabled = false;
 
   if (animationFrameId) {
     window.cancelAnimationFrame(animationFrameId);
     animationFrameId = 0;
   }
 
-  const canvas = animationCanvas.value;
-  const context = getCanvasContext();
-
-  if (canvas && context) {
-    context.setTransform(1, 0, 0, 1, 0, 0);
-  }
+  stopHoverAnimation();
 
   resizeObserver?.disconnect();
   resizeObserver = null;
+  removeHoverListeners();
+  removeHoverListeners = () => {};
 };
 
 const tick = (timestamp: number) => {
   if (!isAnimationRunning || isAnimationComplete) return;
 
-  if (!lastTimestamp) {
-    lastTimestamp = timestamp;
-    drawCurrentFrame();
-    animationFrameId = window.requestAnimationFrame(tick);
-    return;
+  if (!animationStartTime) {
+    animationStartTime = timestamp;
   }
 
-  const deltaTime = timestamp - lastTimestamp;
-  lastTimestamp = timestamp;
-  frameAccumulator += deltaTime;
+  const elapsed = timestamp - animationStartTime;
+  const nextProgress = Math.min(elapsed / ANIMATION_DURATION, 1);
+  currentProgress = nextProgress;
 
-  let advancedFrames = 0;
+  renderFramePosition(nextProgress * (FRAME_COUNT - 1));
 
-  while (frameAccumulator >= FRAME_DURATION && !isAnimationComplete) {
-    frameAccumulator -= FRAME_DURATION;
-    if (currentFrameIndex < frames.length - 1) {
-      currentFrameIndex += 1;
-      advancedFrames += 1;
-    } else {
-      isAnimationComplete = true;
-    }
-  }
-
-  if (advancedFrames > 0 || isAnimationComplete) {
-    drawCurrentFrame();
-  }
-
-  if (isAnimationComplete) {
+  if (nextProgress >= 1) {
+    isAnimationComplete = true;
     isAnimationRunning = false;
     animationFrameId = 0;
+    hoverFramePosition = FRAME_COUNT - 1;
+    renderFramePosition(FRAME_COUNT - 1);
     return;
   }
 
@@ -191,13 +314,14 @@ const startAnimation = async () => {
 
   if (!isComponentMounted || !animationCanvas.value) return;
 
-  currentFrameIndex = 0;
-  frameAccumulator = 0;
-  lastTimestamp = 0;
+  currentProgress = 0;
+  animationStartTime = 0;
   isAnimationRunning = true;
   isAnimationComplete = false;
+  isHoverSequenceRunning = false;
+  hoverSequenceStartTime = 0;
+  hoverFramePosition = FRAME_COUNT - 1;
   resizeCanvas();
-  drawCurrentFrame();
   animationFrameId = window.requestAnimationFrame(tick);
 };
 
@@ -207,6 +331,7 @@ onMounted(async () => {
   void startAnimation();
 
   window.addEventListener("resize", resizeCanvas, { passive: true });
+  window.addEventListener("orientationchange", resizeCanvas, { passive: true });
 
   if (typeof ResizeObserver !== "undefined" && animationStage.value) {
     resizeObserver = new ResizeObserver(() => {
@@ -214,12 +339,32 @@ onMounted(async () => {
     });
     resizeObserver.observe(animationStage.value);
   }
+
+  isHoverInteractionEnabled = window.innerWidth > 760;
+
+  const stage = animationStage.value;
+  if (stage && isHoverInteractionEnabled) {
+    const handleMouseEnter = () => {
+      startHoverSequence();
+    };
+
+    stage.addEventListener("mouseenter", handleMouseEnter);
+
+    removeHoverListeners = () => {
+      stage.removeEventListener("mouseenter", handleMouseEnter);
+    };
+  }
+
+  window.requestAnimationFrame(() => {
+    resizeCanvas();
+  });
 });
 
 onUnmounted(() => {
   isComponentMounted = false;
   stopAnimation();
   window.removeEventListener("resize", resizeCanvas);
+  window.removeEventListener("orientationchange", resizeCanvas);
 });
 </script>
 
@@ -259,9 +404,9 @@ onUnmounted(() => {
 
 <style scoped>
 .tickets-page {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100dvh;
   background-color: black;
   color: white;
   --page-padding: max(24px, 3vw);
@@ -305,12 +450,16 @@ onUnmounted(() => {
 
 .tickets-animation {
   position: relative;
-  flex: 1;
   width: 100%;
+  min-height: clamp(460px, 58vh, 780px);
+  margin-top: clamp(22px, 4vw, 42px);
+  margin-inline: calc(var(--page-padding) * -1);
+  width: calc(100% + (var(--page-padding) * 2));
   align-self: stretch;
-  min-height: 32vh;
-  margin-top: clamp(18px, 3vw, 34px);
   overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 58%, rgb(255 255 255 / 8%), transparent 58%),
+    linear-gradient(180deg, rgb(255 255 255 / 2%), transparent 18%, transparent 82%, rgb(255 255 255 / 4%));
 }
 
 .tickets-canvas {
@@ -350,8 +499,13 @@ onUnmounted(() => {
 }
 
 @media (max-width: 760px) {
+  .tickets-page {
+    grid-template-rows: auto auto;
+    min-height: 100svh;
+  }
+
   .tickets-content {
-    padding-top: 10.5vh;
+    padding-top: clamp(34px, 5vh, 52px);
   }
 
   .tickets-title {
@@ -384,8 +538,10 @@ onUnmounted(() => {
   }
 
   .tickets-animation {
-    min-height: 28vh;
-    margin-top: 22px;
+    height: clamp(240px, 34svh, 360px);
+    min-height: clamp(240px, 34svh, 360px);
+    margin-top: 16px;
+    margin-bottom: 0;
   }
 }
 
@@ -395,7 +551,7 @@ onUnmounted(() => {
   }
 
   .tickets-content {
-    padding-top: 9.5vh;
+    padding-top: clamp(28px, 4vh, 40px);
   }
 
   .tickets-intro {
@@ -414,8 +570,9 @@ onUnmounted(() => {
   }
 
   .tickets-animation {
-    min-height: 26vh;
-    margin-top: 18px;
+    height: clamp(220px, 31svh, 300px);
+    min-height: clamp(220px, 31svh, 300px);
+    margin-top: 14px;
   }
 }
 </style>
