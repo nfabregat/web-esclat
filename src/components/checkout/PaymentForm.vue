@@ -15,36 +15,6 @@ const updateText = (field: keyof CheckoutValues) => (event: Event) => {
 
   emit("update-field", field, value);
 };
-
-const digitsOnly = (value: string) => value.replace(/\D/g, "");
-
-const formatCardNumber = (value: string) => {
-  const digits = digitsOnly(value).slice(0, 16);
-  return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
-};
-
-const formatExpiry = (value: string) => {
-  const digits = digitsOnly(value).slice(0, 4);
-  if (digits.length <= 2) return digits;
-  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-};
-
-const formatCvc = (value: string) => digitsOnly(value).slice(0, 3);
-
-const updateCardNumber = (event: Event) => {
-  const value = formatCardNumber((event.target as HTMLInputElement).value);
-  emit("update-field", "cardNumber", value);
-};
-
-const updateExpiry = (event: Event) => {
-  const value = formatExpiry((event.target as HTMLInputElement).value);
-  emit("update-field", "expiry", value);
-};
-
-const updateCvc = (event: Event) => {
-  const value = formatCvc((event.target as HTMLInputElement).value);
-  emit("update-field", "cvc", value);
-};
 </script>
 
 <template>
@@ -67,11 +37,9 @@ const updateCvc = (event: Event) => {
         <input
           :value="props.form.cardNumber"
           type="text"
-          inputmode="numeric"
-          maxlength="19"
           placeholder="NÚMERO DE TARJETA"
           aria-label="Número de tarjeta"
-          @input="updateCardNumber"
+          @input="updateText('cardNumber')"
         />
       </label>
       <div class="checkout-payment-row">
@@ -80,11 +48,9 @@ const updateCvc = (event: Event) => {
           <input
             :value="props.form.expiry"
             type="text"
-            inputmode="numeric"
-            maxlength="5"
             placeholder="FECHA DE EXPIRACIÓN (MM / YY)"
             aria-label="Fecha de expiración"
-            @input="updateExpiry"
+            @input="updateText('expiry')"
           />
         </label>
 
@@ -93,11 +59,9 @@ const updateCvc = (event: Event) => {
           <input
             :value="props.form.cvc"
             type="text"
-            inputmode="numeric"
-            maxlength="3"
             placeholder="CÓDIGO DE SEGURIDAD"
             aria-label="Código de seguridad"
-            @input="updateCvc"
+            @input="updateText('cvc')"
           />
         </label>
       </div>

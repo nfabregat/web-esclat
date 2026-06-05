@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ArrowLeft, Minus, Plus, Search, ShoppingCart, X } from "lucide-vue-next";
 import CheckoutForm from "@/components/checkout/CheckoutForm.vue";
@@ -23,7 +23,7 @@ const paymentSuccess = ref(false);
 const isPaid = paymentSuccess;
 const successRef = ref<HTMLDivElement | null>(null);
 const paymentMessage = ref("");
-const form = ref<CheckoutValues>({
+const form = reactive<CheckoutValues>({
   email: "",
   name: "",
   phone: "",
@@ -72,7 +72,12 @@ const cartEntries = computed(() =>
 );
 
 const updateField = (field: keyof CheckoutValues, value: string | boolean) => {
-  Object.assign(form.value, { [field]: value });
+  if (field === "rememberPayment") {
+    form.rememberPayment = Boolean(value);
+    return;
+  }
+
+  form[field] = String(value);
 };
 
 const closeSearch = () => {
