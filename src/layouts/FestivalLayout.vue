@@ -112,6 +112,8 @@ const showFooter = computed(() => route.name !== 'menu');
 
 <style scoped>
 .site-footer {
+  position: relative;
+  z-index: 2;
   --footer-padding: clamp(18px, 3vw, 48px);
   --footer-logo-scale: 1;
 }

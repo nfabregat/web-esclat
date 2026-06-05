@@ -525,11 +525,11 @@ onUnmounted(() => {
 
 .contact-animation {
   position: absolute;
-  top: clamp(78px, 10vh, 120px);
+  top: clamp(96px, 12vh, 140px);
   left: 0;
   width: 100%;
-  height: clamp(620px, 92vh, 980px);
-  min-height: clamp(620px, 92vh, 980px);
+  height: clamp(720px, 102vh, 1120px);
+  min-height: clamp(720px, 102vh, 1120px);
   z-index: 0;
   overflow: hidden;
   background:
@@ -547,8 +547,9 @@ onUnmounted(() => {
 
 @media (min-width: 761px) and (max-width: 1024px) {
   .contact-animation {
-    height: clamp(560px, 82svh, 780px);
-    min-height: clamp(560px, 82svh, 780px);
+    top: 132px;
+    height: clamp(660px, 92svh, 920px);
+    min-height: clamp(660px, 92svh, 920px);
   }
 }
 
@@ -565,17 +566,17 @@ onUnmounted(() => {
   }
 
   .contact-animation {
-    top: 170px;
-    height: clamp(420px, 74svh, 620px);
-    min-height: clamp(420px, 74svh, 620px);
+    top: 186px;
+    height: clamp(500px, 82svh, 700px);
+    min-height: clamp(500px, 82svh, 700px);
   }
 }
 
 @media (max-width: 380px) {
   .contact-animation {
-    top: 150px;
-    height: clamp(380px, 70svh, 540px);
-    min-height: clamp(380px, 70svh, 540px);
+    top: 168px;
+    height: clamp(460px, 76svh, 620px);
+    min-height: clamp(460px, 76svh, 620px);
   }
 }
 </style>
