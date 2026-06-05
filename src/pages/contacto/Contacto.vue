@@ -4,6 +4,7 @@ import { nextTick, onMounted, onUnmounted, ref } from "vue";
 const name = ref("");
 const email = ref("");
 const subject = ref("");
+const showConfirmation = ref(false);
 const animationCanvas = ref<HTMLCanvasElement | null>(null);
 const animationStage = ref<HTMLElement | null>(null);
 
@@ -52,6 +53,17 @@ const submitContact = () => {
   name.value = "";
   email.value = "";
   subject.value = "";
+  showConfirmation.value = true;
+};
+
+const closeConfirmation = () => {
+  showConfirmation.value = false;
+};
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === "Escape" && showConfirmation.value) {
+    closeConfirmation();
+  }
 };
 
 const getCanvasContext = () => {
@@ -354,6 +366,7 @@ onMounted(async () => {
   await nextTick();
   void startAnimation();
 
+  window.addEventListener("keydown", handleKeydown);
   window.addEventListener("resize", resizeCanvas, { passive: true });
   window.addEventListener("orientationchange", resizeCanvas, { passive: true });
 
@@ -387,6 +400,7 @@ onMounted(async () => {
 onUnmounted(() => {
   isComponentMounted = false;
   stopAnimation();
+  window.removeEventListener("keydown", handleKeydown);
   window.removeEventListener("resize", resizeCanvas);
   window.removeEventListener("orientationchange", resizeCanvas);
 });
@@ -433,6 +447,34 @@ onUnmounted(() => {
 
     <div ref="animationStage" class="contact-animation" aria-hidden="true">
       <canvas ref="animationCanvas" class="contact-canvas"></canvas>
+    </div>
+
+    <div
+      v-if="showConfirmation"
+      class="contact-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="contact-modal-title"
+      aria-describedby="contact-modal-description"
+      @click.self="closeConfirmation"
+    >
+      <div class="contact-modal">
+        <button
+          class="contact-modal-close"
+          type="button"
+          @click="closeConfirmation"
+          aria-label="Cerrar mensaje"
+        >
+          ×
+        </button>
+        <h2 id="contact-modal-title" class="contact-modal-title font-monument">
+          MENSAJE ENVIADO
+        </h2>
+        <p id="contact-modal-description" class="contact-modal-text">
+          <span>GRACIAS POR ESCRIBIR A ESCLAT.</span>
+          <span>Hemos recibido tu mensaje y te responderemos lo antes posible.</span>
+        </p>
+      </div>
     </div>
   </main>
 </template>
@@ -545,6 +587,81 @@ onUnmounted(() => {
   height: 100%;
 }
 
+.contact-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 62%);
+  backdrop-filter: blur(10px);
+}
+
+.contact-modal {
+  position: relative;
+  width: min(900px, 100%);
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  border: 1px solid rgb(255 255 255 / 16%);
+  background: #000;
+  box-shadow:
+    0 18px 80px rgb(0 0 0 / 55%),
+    0 0 0 1px rgb(255 255 255 / 4%) inset;
+  padding: 48px 34px 40px;
+  color: white;
+  text-align: left;
+}
+
+.contact-modal-title {
+  margin: 0 0 14px;
+  max-width: 13ch;
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 400;
+  line-height: 1.08;
+  white-space: nowrap;
+}
+
+.contact-modal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: flex-start;
+  margin: 0 0 18px;
+  max-width: none;
+  font-family: "Roboto Mono", monospace;
+  font-size: 15px;
+  line-height: 1.75;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgb(255 255 255 / 82%);
+  text-align: left;
+}
+
+.contact-modal-text span {
+  display: block;
+}
+
+.contact-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  color: rgb(255 255 255 / 72%);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  padding: 4px;
+}
+
+.contact-modal-close:hover {
+  color: white;
+}
+
 @media (min-width: 761px) and (max-width: 1024px) {
   .contact-animation {
     top: 132px;
@@ -570,6 +687,14 @@ onUnmounted(() => {
     height: clamp(500px, 82svh, 700px);
     min-height: clamp(500px, 82svh, 700px);
   }
+
+  .contact-modal {
+    padding: 32px 26px 26px;
+  }
+
+  .contact-modal-text {
+    font-size: 15px;
+  }
 }
 
 @media (max-width: 380px) {
@@ -577,6 +702,18 @@ onUnmounted(() => {
     top: 168px;
     height: clamp(460px, 76svh, 620px);
     min-height: clamp(460px, 76svh, 620px);
+  }
+
+  .contact-modal {
+    padding: 28px 20px 20px;
+  }
+
+  .contact-modal-title {
+    font-size: 22px;
+  }
+
+  .contact-modal-text {
+    font-size: 14px;
   }
 }
 </style>
